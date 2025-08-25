@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NexaMART cart icon with Wi‑Fi" width="64" height="64">
+  <title>NexaMART cart icon with Wi‑Fi</title>
+  <g id="cart" fill="#1D9A6C">
+    <!-- handle -->
+    <rect x="8" y="14" width="16" height="4" rx="2" />
+    <!-- neck / connector (stylized) -->
+    <polygon points="20,18 24,18 22,26 18,26" />
+    <!-- basket (trapezoid, minimal) -->
+    <polygon points="22,22 46,22 42,34 26,34" />
+    <!-- wheels -->
+    <circle cx="28" cy="38" r="4" />
+    <circle cx="40" cy="38" r="4" />
+  </g>
+  <!-- Wi‑Fi arcs above cart -->
+  <g id="wifi" fill="#1D9A6C">
+    <path d="M32 6c6.6 0 12 5.4 12 12h-4c0-4.4-3.6-8-8-8s-8 3.6-8 8h-4c0-6.6 5.4-12 12-12z"/>
+    <path d="M32 12c3.3 0 6 2.7 6 6h-4c0-1.1-.9-2-2-2s-2 .9-2 2h-4c0-3.3 2.7-6 6-6z"/>
+    <circle cx="32" cy="20" r="2"/>
+  </g>
+</svg>
