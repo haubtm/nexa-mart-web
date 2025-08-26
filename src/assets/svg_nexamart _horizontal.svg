@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="112" viewBox="0 0 260 112" fill="none">
+  <g transform="translate(0,0)">
+    <path d="M14 22h7l4 16h19l4-10H23" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="26" cy="46" r="4" fill="#0ea5e9"/>
+    <circle cx="42" cy="46" r="4" fill="#22c55e"/>
+    <circle cx="27" cy="30" r="2" fill="#0ea5e9"/>
+    <circle cx="35" cy="30" r="2" fill="#22c55e"/>
+    <circle cx="43" cy="30" r="2" fill="#0ea5e9"/>
+    <path d="M27 30h6m2 0h6" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+    <path d="M48 14c3 0 5.7 1.2 7.6 3.1M48 19c1.9 0 3.6.7 4.9 1.9" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <text x="80" y="48" font-family="Inter, sans-serif" font-size="28" fill="#0f172a" font-weight="600">NexaMart</text>
+</svg>

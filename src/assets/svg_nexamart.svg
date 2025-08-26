@@ -1,21 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NexaMART cart icon with Wi‑Fi" width="64" height="64">
-  <title>NexaMART cart icon with Wi‑Fi</title>
-  <g id="cart" fill="#1D9A6C">
-    <!-- handle -->
-    <rect x="8" y="14" width="16" height="4" rx="2" />
-    <!-- neck / connector (stylized) -->
-    <polygon points="20,18 24,18 22,26 18,26" />
-    <!-- basket (trapezoid, minimal) -->
-    <polygon points="22,22 46,22 42,34 26,34" />
-    <!-- wheels -->
-    <circle cx="28" cy="38" r="4" />
-    <circle cx="40" cy="38" r="4" />
-  </g>
-  <!-- Wi‑Fi arcs above cart -->
-  <g id="wifi" fill="#1D9A6C">
-    <path d="M32 6c6.6 0 12 5.4 12 12h-4c0-4.4-3.6-8-8-8s-8 3.6-8 8h-4c0-6.6 5.4-12 12-12z"/>
-    <path d="M32 12c3.3 0 6 2.7 6 6h-4c0-1.1-.9-2-2-2s-2 .9-2 2h-4c0-3.3 2.7-6 6-6z"/>
-    <circle cx="32" cy="20" r="2"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 64 64" fill="none">
+  <path d="M14 22h7l4 16h19l4-10H23" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="26" cy="46" r="4" fill="#0ea5e9"/>
+  <circle cx="42" cy="46" r="4" fill="#22c55e"/>
+  <circle cx="27" cy="30" r="2" fill="#0ea5e9"/>
+  <circle cx="35" cy="30" r="2" fill="#22c55e"/>
+  <circle cx="43" cy="30" r="2" fill="#0ea5e9"/>
+  <path d="M27 30h6m2 0h6" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+  <path d="M48 14c3 0 5.7 1.2 7.6 3.1M48 19c1.9 0 3.6.7 4.9 1.9" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round"/>
 </svg>
