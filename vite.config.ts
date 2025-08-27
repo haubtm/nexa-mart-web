@@ -7,7 +7,7 @@ import svgr from 'vite-plugin-svgr';
 export default defineConfig({
   server: {
     host: '::',
-    port: 8080,
+    port: 2003,
     strictPort: true,
     allowedHosts: ['localhost', '127.0.0.1'],
     watch: {

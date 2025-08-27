@@ -2,6 +2,7 @@ import { ROUTE_PATH } from '@/common';
 import {
   BaseLayout as AdminBaseLayout,
   DashboardPage as AdminDashboardPage,
+  ProductPage as AdminProductPage,
 } from '@/features/main';
 
 // import { getStorageItem, STORAGE_KEY } from '@/lib';
@@ -27,10 +28,7 @@ const AdminMiddleware = () => {
 
 export const AdminRoute = () => {
   return (
-    <Route
-      path={ROUTE_PATH.ADMIN.PATH()}
-      // element={<AdminMiddleware />}
-    >
+    <Route path={ROUTE_PATH.ADMIN.PATH()} element={<AdminMiddleware />}>
       <Route
         index
         element={<Navigate to={ROUTE_PATH.ADMIN.DASHBOARD.PATH()} replace />}
@@ -38,6 +36,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.DASHBOARD.PATH()}
         element={<AdminDashboardPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.PRODUCT.PATH()}
+        element={<AdminProductPage />}
       />
     </Route>
   );

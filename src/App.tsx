@@ -1,7 +1,11 @@
-import { AppRouterProvider } from './providers';
+import { AntdProvider, AppRouterProvider } from './providers';
 
 function App() {
-  return <AppRouterProvider />;
+  return (
+    <AntdProvider>
+      <AppRouterProvider />
+    </AntdProvider>
+  );
 }
 
 export default App;
