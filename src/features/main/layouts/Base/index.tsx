@@ -3,7 +3,7 @@ import { Flex, Layout, LayoutContent, LayoutHeader } from '@/lib';
 import { Outlet } from 'react-router-dom';
 import { Root } from './styles';
 import Logo from '@/assets/svg_nexamart _horizontal.svg';
-import LayoutMenu from './components/LayoutMenu';
+import { LayoutMenu } from './components';
 
 const BaseLayout = () => {
   return (

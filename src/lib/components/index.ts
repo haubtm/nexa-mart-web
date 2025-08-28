@@ -1,4 +1,5 @@
 export * from './layouts';
+export * from './tables';
 export * from './typography';
 export { default as App } from './App';
 export type { IAppProps } from './App';
