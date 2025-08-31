@@ -1,4 +1,6 @@
+export * from './forms';
 export * from './layouts';
+export * from './inputs';
 export * from './tables';
 export * from './typography';
 export { default as App } from './App';

@@ -1,7 +1,14 @@
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+} from 'react-router-dom';
 import { AdminRoute, AuthRoute } from './routes';
 import { NotFoundPage, ROUTE_PATH } from '@/common';
 import QueryParamProvider from '../QueryParam';
+import { getStorageItem, STORAGE_KEY } from '@/lib';
 
 const WithQueryParams = () => (
   <QueryParamProvider>
@@ -10,8 +17,8 @@ const WithQueryParams = () => (
 );
 
 const PrivateRoute = () => {
-  // const token = getStorageItem<string>(STORAGE_KEY.TOKEN);
-  // if (!token) return <Navigate to={ROUTE_PATH.AUTH.LOGIN.PATH()} replace />;
+  const token = getStorageItem<string>(STORAGE_KEY.TOKEN);
+  if (!token) return <Navigate to={ROUTE_PATH.AUTH.LOGIN.PATH()} replace />;
   return <WithQueryParams />;
 };
 

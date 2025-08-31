@@ -1,0 +1,12 @@
+export { default as InputNumber } from './Number';
+export type { IInputNumberProps } from './Number';
+export { default as InputPassword } from './Password';
+export type { IInputPasswordProps } from './Password';
+export { default as Select } from './Select';
+export type { ISelectProps } from './Select';
+export { default as Input } from './Text';
+export type { IInputProps } from './Text';
+export { default as TextArea } from './TextArea';
+export type { ITextAreaProps } from './TextArea';
+export { default as InputOtp } from './Otp';
+export type { IInputOtpProps } from './Otp';

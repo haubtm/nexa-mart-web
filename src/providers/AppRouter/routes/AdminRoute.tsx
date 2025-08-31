@@ -4,20 +4,14 @@ import {
   DashboardPage as AdminDashboardPage,
   ProductPage as AdminProductPage,
 } from '@/features/main';
-
-// import { getStorageItem, STORAGE_KEY } from '@/lib';
+import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
 import { Navigate, Route } from 'react-router-dom';
 
 const AdminMiddleware = () => {
-  //   const token = getStorageItem<string>(STORAGE_KEY.TOKEN);
-  //   const platform = getStorageItem<RoleEnum>(STORAGE_KEY.PLATFORM);
+  const token = getStorageItem<string>(STORAGE_KEY.TOKEN);
 
-  //   if (!token) return <Navigate to={ROUTE_PATH.AUTH.LOGIN.PATH()} replace />;
-
-  //   if (platform !== RoleEnum.MANAGER) {
-  //     return <Navigate to={ROUTE_PATH.HOME.PATH()} replace />;
-  //   }
+  if (!token) return <Navigate to={ROUTE_PATH.AUTH.LOGIN.PATH()} replace />;
 
   return (
     <QueryParamProvider>

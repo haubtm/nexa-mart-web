@@ -1,8 +1,10 @@
+import { LoginContainer } from '@/features/auth/containers';
+
 const LoginPage = () => {
   return (
     <>
       <title>Đăng nhập</title>
-      <div>Đăng nhập</div>
+      <LoginContainer />
     </>
   );
 };
