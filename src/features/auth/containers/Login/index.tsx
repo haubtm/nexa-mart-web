@@ -16,8 +16,8 @@ import { getUserInfo } from '@/redux/slices/userSlice';
 import { useNavigate } from 'react-router-dom';
 import { LoginBox, LoginFormWrapper, LoginIllustration, Root } from './styles';
 import type { ILoginRequest } from '@/dtos';
-import Logo from '@/assets/svg_nexamart _horizontal.svg';
 import { Button } from 'antd';
+import { SvgNexamartHorizontalIcon } from '@/assets';
 const LoginContainer = () => {
   const [changePasswordForm] = Form.useForm<ILoginRequest>();
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ const LoginContainer = () => {
         ></LoginIllustration>
         <Flex vertical justify="center" align="center" gap={16} flex={1}>
           <Flex align="center" vertical gap={24}>
-            <img src={Logo} alt="Logo" />
+            <SvgNexamartHorizontalIcon />
             <Text>Đăng nhập</Text>
           </Flex>
           <LoginFormWrapper>

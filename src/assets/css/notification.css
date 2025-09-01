@@ -1,0 +1,45 @@
+.kng-notification {
+  padding: 16px !important;
+}
+
+.kng-notification .ant-notification-notice-icon {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.kng-notification .kng-notification-icon {
+  width: 22px;
+  height: 20px;
+}
+
+.kng-notification .ant-notification-notice-message {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  /* color: #01b58a !important; */
+}
+
+.kng-notification .kng-notification-success-message {
+  color: #01b58a !important;
+}
+
+.kng-notification .kng-notification-info-message {
+  color: #007aff !important;
+}
+
+.kng-notification .kng-notification-warning-message {
+  color: #ff9500 !important;
+}
+
+.kng-notification .kng-notification-error-message {
+  color: #ff3b30 !important;
+}
+
+.kng-notification .ant-notification-notice-description {
+  color: #26273d !important;
+  padding-inline-end: 24px !important;
+}
+
+.kng-notification .ant-notification-notice-close {
+  right: 16px !important;
+  color: #4b5563 !important;
+}

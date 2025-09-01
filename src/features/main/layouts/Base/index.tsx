@@ -2,8 +2,8 @@ import { Flex, Layout, LayoutContent, LayoutHeader } from '@/lib';
 
 import { Outlet } from 'react-router-dom';
 import { Root } from './styles';
-import Logo from '@/assets/svg_nexamart _horizontal.svg';
 import { LayoutMenu } from './components';
+import { SvgNexamartHorizontalIcon } from '@/assets';
 
 const BaseLayout = () => {
   return (
@@ -15,7 +15,7 @@ const BaseLayout = () => {
             justify="space-between"
             style={{ height: '100%' }}
           >
-            <img src={Logo} alt="Logo" />
+            <SvgNexamartHorizontalIcon />
 
             <Flex align="center" gap={12}>
               Avatar

@@ -1,0 +1,9 @@
+export { default as SvgNexamartIcon } from './svgs/svg_nexamart.svg?react';
+export { default as SvgNexamartHorizontalIcon } from './svgs/svg_nexamart_horizontal.svg?react';
+export { default as SvgNexamartVerticalIcon } from './svgs/svg_nexamart_vertical.svg?react';
+export { default as SvgPencilIcon } from './svgs/svg_pencil.svg?react';
+export { default as SvgPlusIcon } from './svgs/svg_plus.svg?react';
+export { default as SvgReloadIcon } from './svgs/svg_reload.svg?react';
+export { default as SvgSearchIcon } from './svgs/svg_search.svg?react';
+export { default as SvgSuccessNotificationIcon } from './svgs/svg_success_notification.svg?react';
+export { default as SvgTrashIcon } from './svgs/svg_trash.svg?react';

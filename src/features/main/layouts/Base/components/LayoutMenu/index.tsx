@@ -43,6 +43,10 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.PRODUCT.PATH(),
         label: 'Danh sách hàng hóa',
       },
+      [ROUTE_PATH.ADMIN.EMPLOYEE.PATH()]: {
+        key: ROUTE_PATH.ADMIN.EMPLOYEE.PATH(),
+        label: 'Danh sách nhân viên',
+      },
     };
   }, []);
 
@@ -61,12 +65,12 @@ const LayoutMenu = () => {
         label: 'Hàng hóa',
         children: [
           {
-            key: '1-1',
+            key: routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].key,
             label: 'Hàng hóa',
             type: 'group',
             children: [
               {
-                key: '1',
+                key: routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].key,
                 label: (
                   <Link to={ROUTE_PATH.ADMIN.PRODUCT.PATH()}>
                     {routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].label}
@@ -84,6 +88,20 @@ const LayoutMenu = () => {
               { key: '3', label: 'Option 3' },
               { key: '4', label: 'Option 4' },
             ],
+          },
+        ],
+      },
+      {
+        key: routePathMapping[ROUTE_PATH.ADMIN.EMPLOYEE.PATH()].key,
+        label: 'Nhân viên',
+        children: [
+          {
+            key: '5',
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.EMPLOYEE.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.EMPLOYEE.PATH()].label}
+              </Link>
+            ),
           },
         ],
       },

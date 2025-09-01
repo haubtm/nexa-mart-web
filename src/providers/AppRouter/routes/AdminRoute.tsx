@@ -3,6 +3,7 @@ import {
   BaseLayout as AdminBaseLayout,
   DashboardPage as AdminDashboardPage,
   ProductPage as AdminProductPage,
+  EmployeePage as AdminEmployeePage,
 } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
@@ -34,6 +35,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.PRODUCT.PATH()}
         element={<AdminProductPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.EMPLOYEE.PATH()}
+        element={<AdminEmployeePage />}
       />
     </Route>
   );
