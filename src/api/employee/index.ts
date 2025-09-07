@@ -1,7 +1,7 @@
 import type {
   IBaseListRequest,
   IEmployeeByIdRequest,
-  IEmployeeByIdResponseData,
+  IEmployeeByIdResponse,
   IEmployeeCreateRequest,
   IEmployeeCreateResponse,
   IEmployeeDeleteRequest,
@@ -27,7 +27,7 @@ export const employeeApi = {
   },
 
   byId: async (body: IEmployeeByIdRequest) => {
-    const response = await apiService.get<IEmployeeByIdResponseData>(
+    const response = await apiService.get<IEmployeeByIdResponse>(
       `${BASE_ENDPOINT}/${body.id}`,
     );
 

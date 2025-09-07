@@ -1,17 +1,35 @@
 import type { IResponse } from '../common';
+import type { IProductResponseData } from './common';
+
+export interface IUnit {
+  unit: string;
+  basePrice: number;
+  cost: number;
+  barcode: string;
+}
+
+export interface IAttribute {
+  attributeId: number;
+  value: string;
+}
+
+export interface IInventory {
+  minQuantity: number;
+  maxQuantity: number;
+  onHand: number;
+}
 
 export interface IProductCreateRequest {
   name: string;
-  code: string;
+  categoryId: number;
+  productType: number;
+  baseUnit: IUnit;
+  additionalUnits?: IUnit[];
+  attributes?: IAttribute[];
+  inventory: IInventory;
+  allowsSale: boolean;
+  description: string;
 }
 
-interface IResponseData {
-  name: string;
-  code: string;
-  id: number;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-}
-
-export interface IProductCreateResponse extends IResponse<IResponseData> {}
+export interface IProductCreateResponse
+  extends IResponse<IProductResponseData> {}

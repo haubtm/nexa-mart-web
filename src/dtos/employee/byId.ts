@@ -15,5 +15,5 @@ export interface IEmployeeByIdResponseData {
   updatedAt: string;
 }
 
-export interface IBranchesByIdResponse
+export interface IEmployeeByIdResponse
   extends IResponse<IEmployeeByIdResponseData> {}
