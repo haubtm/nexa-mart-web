@@ -13,6 +13,9 @@ export const ROUTE_PATH = {
     EMPLOYEE: {
       PATH: () => `/admin/employee`,
     },
+    SETTING: {
+      PATH: () => `/admin/setting`,
+    },
   },
   AUTH: {
     PATH: () => `/auth`,

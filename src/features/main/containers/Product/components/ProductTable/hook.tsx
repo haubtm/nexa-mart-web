@@ -1,5 +1,5 @@
 import { SvgTrashIcon } from '@/assets';
-import { employeeKeys, useEmployeeDelete } from '@/features/main/react-query';
+import { productKeys, useProductDelete } from '@/features/main/react-query';
 import {
   Button,
   Flex,
@@ -10,18 +10,18 @@ import {
 } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { useState } from 'react';
-import { useCommonHook } from '@/features/main/containers/Employee/hook';
-import type { IEmployeeListResponse } from '@/dtos';
-import UpdateEmployeeModal from '../UpdateEmployeeModal';
+import { useCommonHook } from '@/features/main/containers/Product/hook';
+import type { IProductListResponse } from '@/dtos';
+import UpdateProductModal from '../UpdateProductModal';
 
 export const useHook = () => {
   const { notify } = useNotification();
   const { modal } = useModal();
-  const { mutateAsync: deleteBranches } = useEmployeeDelete();
+  const { mutateAsync: deleteBranches } = useProductDelete();
   const { queryParams } = useCommonHook();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
-  const columns: ITableProps<IEmployeeListResponse['data'][number]>['columns'] =
+  const columns: ITableProps<IProductListResponse['data'][number]>['columns'] =
     [
       {
         key: 'id',
@@ -33,33 +33,21 @@ export const useHook = () => {
       },
       {
         key: 'name',
-        title: 'Họ và tên',
+        title: 'Tên sản phẩm',
         width: 120,
         render: (_, record) => record?.name,
-      },
-      {
-        key: 'email',
-        title: 'Email',
-        width: 200,
-        render: (_, record) => record?.email,
-      },
-      {
-        key: 'role',
-        title: 'Vai trò',
-        width: 200,
-        render: (_, record) => record?.role,
       },
       {
         key: 'created_at',
         title: 'Ngày tạo',
         width: 130,
-        render: (_, record) => formatDate(record?.createdAt),
+        render: (_, record) => formatDate(record?.createdDate),
       },
       {
         key: 'updated_at',
         title: 'Ngày cập nhật',
         width: 120,
-        render: (_, record) => formatDate(record?.updatedAt),
+        render: (_, record) => formatDate(record?.modifiedDate),
       },
       {
         key: 'action',
@@ -69,14 +57,14 @@ export const useHook = () => {
         render: (_, record) => (
           <Flex gap={8} style={{ display: 'inline-flex' }}>
             <div onClick={(e) => e.stopPropagation()}>
-              <UpdateEmployeeModal record={record} />
+              <UpdateProductModal record={record} />
             </div>
             <Button
               type="text"
               icon={<SvgTrashIcon width={18} height={18} />}
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete([record?.employeeId], record);
+                handleDelete([record?.id], record);
               }}
             />
           </Flex>
@@ -86,14 +74,14 @@ export const useHook = () => {
 
   const handleDelete = (
     ids: number[],
-    record?: IEmployeeListResponse['data'][number],
+    record?: IProductListResponse['data'][number],
   ) => {
     const isDeleteSelected = !record;
 
-    const title = `Xóa nhân viên`;
+    const title = `Xóa sản phẩm`;
     const content = isDeleteSelected
-      ? `Bạn có chắc chắn muốn xóa các nhân viên này không?`
-      : `Bạn có chắc chắn muốn xóa nhân viên ${record?.name} này không?`;
+      ? `Bạn có chắc chắn muốn xóa các sản phẩm này không?`
+      : `Bạn có chắc chắn muốn xóa sản phẩm ${record?.name} này không?`;
 
     modal('confirm', {
       title,
@@ -108,11 +96,11 @@ export const useHook = () => {
               onSuccess: () => {
                 notify('success', {
                   message: 'Thành công',
-                  description: 'Xóa nhân viên thành công',
+                  description: 'Xóa sản phẩm thành công',
                 });
 
                 queryClient.invalidateQueries({
-                  queryKey: employeeKeys.lists(),
+                  queryKey: productKeys.lists(),
                   refetchType: 'all',
                 });
 

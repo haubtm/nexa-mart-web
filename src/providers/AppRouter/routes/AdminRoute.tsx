@@ -4,6 +4,7 @@ import {
   DashboardPage as AdminDashboardPage,
   ProductPage as AdminProductPage,
   EmployeePage as AdminEmployeePage,
+  SettingPage as AdminSettingPage,
 } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
@@ -39,6 +40,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.EMPLOYEE.PATH()}
         element={<AdminEmployeePage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.SETTING.PATH()}
+        element={<AdminSettingPage />}
       />
     </Route>
   );

@@ -68,7 +68,7 @@ const ModalNew = (props: IModalNewProps) => {
       <AntdModal
         open={visible}
         width={width ?? 600}
-        style={{ top: 80, ...style }}
+        style={{ top: 10, ...style }}
         okText={okText ?? 'Xác nhận'}
         cancelText={cancelText ?? 'Hủy'}
         closable={closable ?? true}

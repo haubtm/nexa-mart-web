@@ -1,26 +1,22 @@
 import { SvgTrashIcon } from '@/assets';
 import { Button, type IModalRef, Table } from '@/lib';
-import { useCommonHook } from '@/features/main/containers/Employee/hook';
+import { useCommonHook } from '@/features/main/containers/Product/hook';
 import { useHook } from './hook';
-import type { IEmployeeListResponse } from '@/dtos';
+import type { IProductListResponse } from '@/dtos';
 
-interface IEmployeeTableProps {
+interface IProductTableProps {
   ref: React.RefObject<IModalRef | null>;
-  setRecord: (record: IEmployeeListResponse['data'][number]) => void;
+  setRecord: (record: IProductListResponse['data'][number]) => void;
 }
 
-const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
+const ProductTable = ({ ref, setRecord }: IProductTableProps) => {
   const { columns, selectedRowKeys, setSelectedRowKeys, handleDelete } =
     useHook();
-  const {
-    queryParams,
-    setQueryParams,
-    employeeListData,
-    isEmployeeListLoading,
-  } = useCommonHook();
+  const { queryParams, setQueryParams, productListData, isProductListLoading } =
+    useCommonHook();
 
   return (
-    <Table<IEmployeeListResponse['data'][number]>
+    <Table<IProductListResponse['data'][number]>
       selectionBar={{
         actionButtons: (
           <Button
@@ -39,10 +35,10 @@ const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
           setSelectedRowKeys(selectedRowKeys as number[]),
       }}
       columns={columns}
-      dataSource={employeeListData?.data}
-      loading={isEmployeeListLoading}
+      dataSource={productListData?.data?.content || []}
+      loading={isProductListLoading}
       pagination={{
-        total: employeeListData?.metadata?.total,
+        total: productListData?.metadata?.total,
         current: queryParams.page + 1,
         pageSize: queryParams.limit,
         onChange: (page, pageSize) => {
@@ -61,7 +57,7 @@ const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
       //     sorts,
       //   });
       // }}
-      onRow={(record: IEmployeeListResponse['data'][number]) => ({
+      onRow={(record: IProductListResponse['data'][number]) => ({
         onClick: () => {
           setRecord(record);
           ref?.current?.open();
@@ -72,4 +68,4 @@ const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
   );
 };
 
-export default EmployeeTable;
+export default ProductTable;

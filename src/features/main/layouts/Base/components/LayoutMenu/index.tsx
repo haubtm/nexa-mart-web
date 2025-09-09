@@ -61,11 +61,11 @@ const LayoutMenu = () => {
         ),
       },
       {
-        key: routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].key,
+        key: 'sub1',
         label: 'Hàng hóa',
         children: [
           {
-            key: routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].key,
+            key: '1-1',
             label: 'Hàng hóa',
             type: 'group',
             children: [
