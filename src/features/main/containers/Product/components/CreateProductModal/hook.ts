@@ -17,7 +17,7 @@ export const useHook = () => {
   };
 
   const handleSubmit = async (values: IProductCreateRequest) => {
-    await createRoom(
+    return await createRoom(
       {
         name: values.name,
         additionalUnits: values.additionalUnits,

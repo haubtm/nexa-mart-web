@@ -28,7 +28,7 @@ export const productImageApi = {
   create: async (body: IProductImageCreateRequest) => {
     const formData = new FormData();
     body.imageFiles.forEach((file) => {
-      formData.append('files', file);
+      formData.append('imageFiles', file);
     });
 
     const response = await apiService.post<IProductImageCreateResponse>(

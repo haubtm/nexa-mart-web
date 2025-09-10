@@ -10,6 +10,13 @@ export const useCategoryList = (filters: IBaseListRequest) => {
   });
 };
 
+export const useCategoryRootList = () => {
+  return useQuery({
+    queryKey: categoryKeys.root(),
+    queryFn: async () => await categoryApi.root(),
+  });
+};
+
 export const useCategoryById = (body: ICategoryByIdRequest) => {
   return useQuery({
     queryKey: categoryKeys.detail(body.id),

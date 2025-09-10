@@ -9,23 +9,20 @@ import {
   Text,
 } from '@/lib';
 import { useHook } from './hook';
-import type { IProductCreateRequest } from '@/dtos';
-import { Card, Col, Image, Row, Upload } from 'antd';
+import type { IProductCreateRequest, IProductCreateResponse } from '@/dtos';
+import { Card, Col, Image, Row, TreeSelect, Upload } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import SetAttributeAndUnitModal from '../SetAtrributeAndUnitModal';
 import { useRef } from 'react';
 
 interface IProductFormProps {
   form: IFormProps<IProductCreateRequest>['form'];
-  handleSubmit: (values: IProductCreateRequest) => void;
-  readonly?: boolean;
+  handleSubmit?: (
+    values: IProductCreateRequest,
+  ) => Promise<IProductCreateResponse | undefined>;
 }
 
-const ProductForm = ({
-  form,
-  handleSubmit,
-  readonly = false,
-}: IProductFormProps) => {
+const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
   const {
     rules,
     onFinish,
@@ -35,6 +32,11 @@ const ProductForm = ({
     setPreviewOpen,
     previewImage,
     setPreviewImage,
+    isCategoriesLoading,
+    categoriesData,
+    isBrandsLoading,
+    brandsData,
+    modalForm,
   } = useHook(handleSubmit);
 
   const modalRef = useRef<IModalRef>(null);
@@ -53,12 +55,12 @@ const ProductForm = ({
           <Row gutter={16}>
             <Col span={24}>
               <FormItem<IProductCreateRequest>
-                label={'Têm sản phẩm'}
+                label={'Tên sản phẩm'}
                 name="name"
                 required
                 rules={[rules]}
               >
-                <Input readOnly={readonly} placeholder={'Tên sản phẩm'} />
+                <Input placeholder={'Tên sản phẩm'} />
               </FormItem>
             </Col>
           </Row>
@@ -70,32 +72,41 @@ const ProductForm = ({
                 required
                 rules={[rules]}
               >
-                <Select
+                <TreeSelect
                   placeholder={'Chọn danh mục'}
-                  options={[
-                    { label: 'Danh mục 1', value: 1 },
-                    { label: 'Danh mục 2', value: 2 },
-                    { label: 'Danh mục 3', value: 3 },
-                    { label: 'Danh mục 4', value: 4 },
-                  ]}
+                  treeDefaultExpandAll
+                  loading={isCategoriesLoading}
+                  treeData={
+                    categoriesData?.data.map((category) => ({
+                      title: category.name,
+                      value: category.id,
+                      key: category.id,
+                      children: category.children?.map((child) => ({
+                        title: child.name,
+                        value: child.id,
+                        key: child.id,
+                      })),
+                    })) ?? []
+                  }
                 />
               </FormItem>
             </Col>
             <Col span={12}>
               <FormItem<IProductCreateRequest>
-                label={'Loại sản phẩm'}
+                label={'Thương hiệu'}
                 name="productType"
                 required
                 rules={[rules]}
               >
                 <Select
-                  placeholder={'Chọn loại sản phẩm'}
-                  options={[
-                    { label: 'Loại 1', value: 1 },
-                    { label: 'Loại 2', value: 2 },
-                    { label: 'Loại 3', value: 3 },
-                    { label: 'Loại 4', value: 4 },
-                  ]}
+                  placeholder={'Chọn thương hiệu'}
+                  options={
+                    brandsData?.data?.map((brand) => ({
+                      label: brand.name,
+                      value: brand.brandId,
+                    })) ?? []
+                  }
+                  loading={isBrandsLoading}
                 />
               </FormItem>
             </Col>
@@ -112,38 +123,42 @@ const ProductForm = ({
           </div>
         </Col>
       </Row>
-      <Card title="Đơn vị tính cơ bản">
+      <Card title="Giá vốn, giá bán">
         <Row gutter={[16, 16]}>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
               label={'Đơn vị tính cơ bản'}
               name={['baseUnit', 'unit']}
+              rules={[rules]}
             >
-              <Input readOnly={readonly} placeholder={'Đơn vị tính cơ bản'} />
+              <Input placeholder={'Đơn vị tính'} />
             </FormItem>
           </Col>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
-              label={'Giá bán lẻ'}
+              label={'Giá bán'}
               name={['baseUnit', 'basePrice']}
+              rules={[rules]}
             >
-              <Input readOnly={readonly} placeholder={'Giá bán lẻ'} />
+              <Input type="number" placeholder={'Giá bán'} />
             </FormItem>
           </Col>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
               label={'Giá vốn'}
               name={['baseUnit', 'cost']}
+              rules={[rules]}
             >
-              <Input readOnly={readonly} placeholder={'Giá vốn'} />
+              <Input placeholder={'Giá vốn'} />
             </FormItem>
           </Col>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
               label={'Mã vạch'}
               name={['baseUnit', 'barcode']}
+              rules={[rules]}
             >
-              <Input readOnly={readonly} placeholder={'Mã vạch'} />
+              <Input placeholder={'Mã vạch'} />
             </FormItem>
           </Col>
         </Row>
@@ -156,7 +171,7 @@ const ProductForm = ({
               name={['inventory', 'onHand']}
               rules={[rules]}
             >
-              <Input readOnly={readonly} />
+              <Input />
             </FormItem>
           </Col>
           <Col span={8}>
@@ -165,7 +180,7 @@ const ProductForm = ({
               name={['inventory', 'minQuantity']}
               rules={[rules]}
             >
-              <Input readOnly={readonly} />
+              <Input />
             </FormItem>
           </Col>
           <Col span={8}>
@@ -174,7 +189,7 @@ const ProductForm = ({
               name={['inventory', 'maxQuantity']}
               rules={[rules]}
             >
-              <Input readOnly={readonly} />
+              <Input />
             </FormItem>
           </Col>
         </Row>
@@ -184,10 +199,18 @@ const ProductForm = ({
         title={
           <Flex justify="space-between" align="center">
             <Text>Quản lý theo đơn vị và thuộc tính</Text>
-            <SetAttributeAndUnitModal ref={modalRef} />
+            <SetAttributeAndUnitModal
+              ref={modalRef}
+              form={form}
+              rules={rules}
+              onFinish={onFinish}
+              modalForm={modalForm}
+            />
           </Flex>
         }
       ></Card>
+      <FormItem noStyle name="additionalUnits" />
+      <FormItem noStyle name="attributes" />
       <Image
         wrapperStyle={{ display: 'none' }}
         preview={{
@@ -195,7 +218,7 @@ const ProductForm = ({
           onVisibleChange: (visible) => setPreviewOpen(visible),
           afterOpenChange: (visible) => !visible && setPreviewImage(''),
         }}
-        src={previewImage}
+        src={previewImage || undefined}
       />
     </Form>
   );

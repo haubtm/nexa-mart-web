@@ -26,6 +26,13 @@ export const categoryApi = {
     return response;
   },
 
+  root: async () => {
+    const response = await apiService.get<ICategoryListResponse>(
+      `${BASE_ENDPOINT}/roots`,
+    );
+    return response;
+  },
+
   byId: async (body: ICategoryByIdRequest) => {
     const response = await apiService.get<ICategoryByIdResponse>(
       `${BASE_ENDPOINT}/${body.id}`,

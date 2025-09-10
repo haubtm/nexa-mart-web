@@ -20,7 +20,7 @@ const DetailProductModal = (props: IDetailProductModalProps) => {
       footer={null}
       openButton={<></>}
     >
-      <ProductForm handleSubmit={form.submit} form={form} readonly={true} />
+      <ProductForm form={form} />
     </ModalNew>
   );
 };

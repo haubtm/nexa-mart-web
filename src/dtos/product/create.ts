@@ -1,10 +1,17 @@
 import type { IResponse } from '../common';
 import type { IProductResponseData } from './common';
 
-export interface IUnit {
+export interface IBaseUnit {
   unit: string;
   basePrice: number;
   cost: number;
+  barcode: string;
+}
+
+export interface IAdditionalUnits {
+  unit: string;
+  basePrice: number;
+  conversionValue: number;
   barcode: string;
 }
 
@@ -23,8 +30,8 @@ export interface IProductCreateRequest {
   name: string;
   categoryId: number;
   productType: number;
-  baseUnit: IUnit;
-  additionalUnits?: IUnit[];
+  baseUnit: IBaseUnit;
+  additionalUnits?: IAdditionalUnits[];
   attributes?: IAttribute[];
   inventory: IInventory;
   allowsSale: boolean;
