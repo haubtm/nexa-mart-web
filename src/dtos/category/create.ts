@@ -3,7 +3,7 @@ import type { ICategoryResponseData } from './common';
 
 export interface ICategoryCreateRequest {
   name: string;
-  description: string;
+  description?: string;
   parentId?: number;
 }
 

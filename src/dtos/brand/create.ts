@@ -3,9 +3,9 @@ import type { IBrandResponseData } from './common';
 
 export interface IBrandCreateRequest {
   name: string;
-  brandCode: string;
+  brandCode?: string;
   logoUrl?: string;
-  description: string;
+  description?: string;
 }
 
 export interface IBrandCreateResponse extends IResponse<IBrandResponseData> {}

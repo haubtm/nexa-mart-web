@@ -41,7 +41,7 @@ const LayoutMenu = () => {
       },
       [ROUTE_PATH.ADMIN.PRODUCT.PATH()]: {
         key: ROUTE_PATH.ADMIN.PRODUCT.PATH(),
-        label: 'Danh sách hàng hóa',
+        label: 'Danh sách sản phẩm',
       },
       [ROUTE_PATH.ADMIN.EMPLOYEE.PATH()]: {
         key: ROUTE_PATH.ADMIN.EMPLOYEE.PATH(),
@@ -62,11 +62,11 @@ const LayoutMenu = () => {
       },
       {
         key: 'sub1',
-        label: 'Hàng hóa',
+        label: 'Sản phẩm',
         children: [
           {
             key: '1-1',
-            label: 'Hàng hóa',
+            label: 'Sản phẩm',
             type: 'group',
             children: [
               {
@@ -77,16 +77,6 @@ const LayoutMenu = () => {
                   </Link>
                 ),
               },
-              { key: '2', label: 'Option 2' },
-            ],
-          },
-          {
-            key: '1-2',
-            label: 'Item 2',
-            type: 'group',
-            children: [
-              { key: '3', label: 'Option 3' },
-              { key: '4', label: 'Option 4' },
             ],
           },
         ],

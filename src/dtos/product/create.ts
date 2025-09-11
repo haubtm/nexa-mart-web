@@ -1,18 +1,12 @@
 import type { IResponse } from '../common';
 import type { IProductResponseData } from './common';
 
-export interface IBaseUnit {
+export interface IUnit {
   unit: string;
   basePrice: number;
   cost: number;
-  barcode: string;
-}
-
-export interface IAdditionalUnits {
-  unit: string;
-  basePrice: number;
+  onHand: number;
   conversionValue: number;
-  barcode: string;
 }
 
 export interface IAttribute {
@@ -20,21 +14,19 @@ export interface IAttribute {
   value: string;
 }
 
-export interface IInventory {
-  minQuantity: number;
-  maxQuantity: number;
-  onHand: number;
+export interface IVariant {
+  sku: string;
+  attributes: IAttribute[];
+  units: IUnit[];
 }
 
 export interface IProductCreateRequest {
   name: string;
   categoryId: number;
+  brandId: number;
+  baseUnit?: IUnit;
   productType: number;
-  baseUnit: IBaseUnit;
-  additionalUnits?: IAdditionalUnits[];
-  attributes?: IAttribute[];
-  inventory: IInventory;
-  allowsSale: boolean;
+  variants?: IVariant[];
   description: string;
 }
 

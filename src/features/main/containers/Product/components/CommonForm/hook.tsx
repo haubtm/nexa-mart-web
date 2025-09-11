@@ -92,68 +92,77 @@ export const useHook = (
       categoryId: z
         .number('Id danh mục phải là số')
         .min(1, 'Vui lòng chọn danh mục'),
+      brandId: z
+        .number('Id thương hiệu phải là số')
+        .min(1, 'Vui lòng chọn thương hiệu'),
       productType: z
         .number('Loại sản phẩm phải là số')
-        .min(1, 'Vui lòng chọn loại'),
-      baseUnit: z.object({
-        unit: z
-          .string('Đơn vị tính phải là chuỗi')
-          .nonempty('Đơn vị tính không được để trống')
-          .trim(),
-        basePrice: z.preprocess(
-          (value) => Number(value),
-          z
-            .number('Giá bán lẻ phải là số')
-            .int('Giá bán lẻ phải là số nguyên')
-            .min(0, 'Giá bán lẻ không được nhỏ hơn 0'),
-        ),
-        cost: z.preprocess(
-          (value) => Number(value),
-          z
-            .number('Giá vốn phải là số')
-            .int('Giá vốn phải là số nguyên')
-            .min(0, 'Giá vốn không được nhỏ hơn 0'),
-        ),
-        barcode: z.string('Mã vạch phải là chuỗi'),
-      }),
-      additionalUnits: z
+        .min(1, 'Vui lòng chọn loại')
+        .optional()
+        .default(1),
+      variants: z
         .array(
           z.object({
-            unit: z
-              .string('Đơn vị tính phải là chuỗi')
-              .nonempty('Đơn vị tính không được để trống')
+            sku: z
+              .string('SKU phải là chuỗi')
+              .nonempty('SKU không được để trống')
               .trim(),
-            basePrice: z.preprocess(
-              (value) => Number(value),
-              z
-                .number('Giá bán lẻ phải là số')
-                .int('Giá bán lẻ phải là số nguyên')
-                .min(0, 'Giá bán lẻ không được nhỏ hơn 0'),
+            attributes: z
+              .array(
+                z.object({
+                  attributeId: z
+                    .number('Id thuộc tính phải là số')
+                    .min(1, 'Vui lòng chọn thuộc tính'),
+                  value: z
+                    .string('Giá trị thuộc tính phải là chuỗi')
+                    .nonempty('Giá trị thuộc tính không được để trống')
+                    .trim(),
+                }),
+              )
+              .optional(),
+            units: z.array(
+              z.object({
+                unit: z
+                  .string('Đơn vị tính phải là chuỗi')
+                  .nonempty('Đơn vị tính không được để trống')
+                  .trim(),
+                basePrice: z.preprocess(
+                  (value) => Number(value),
+                  z
+                    .number('Giá bán lẻ phải là số')
+                    .int('Giá bán lẻ phải là số nguyên')
+                    .min(0, 'Giá bán lẻ không được nhỏ hơn 0'),
+                ),
+                cost: z.preprocess(
+                  (value) => Number(value),
+                  z
+                    .number('Giá vốn phải là số')
+                    .int('Giá vốn phải là số nguyên')
+                    .min(0, 'Giá vốn không được nhỏ hơn 0'),
+                ),
+                barcode: z.string('Mã vạch phải là chuỗi').optional(),
+                conversionValue: z
+                  .preprocess(
+                    (value) => Number(value),
+                    z
+                      .number('Giá trị quy đổi phải là số')
+                      .int('Giá trị quy đổi phải là số nguyên')
+                      .min(1, 'Giá trị quy đổi không được nhỏ hơn 1'),
+                  )
+                  .optional(),
+                onHand: z
+                  .preprocess(
+                    (value) => Number(value),
+                    z
+                      .number('Tồn kho phải là số')
+                      .min(0, 'Tồn kho không được nhỏ hơn 0'),
+                  )
+                  .optional(),
+              }),
             ),
-            conversionValue: z.preprocess(
-              (value) => Number(value),
-              z
-                .number('Giá trị quy đổi phải là số')
-                .int('Giá trị quy đổi phải là số nguyên')
-                .min(1, 'Giá trị quy đổi không được nhỏ hơn 1'),
-            ),
-            barcode: z.string('Mã vạch phải là chuỗi').optional(),
           }),
         )
-        .optional(),
-      attributes: z
-        .array(
-          z.object({
-            attributeId: z
-              .number('Id thuộc tính phải là số')
-              .min(1, 'Vui lòng chọn thuộc tính'),
-            value: z
-              .string('Giá trị thuộc tính phải là chuỗi')
-              .nonempty('Giá trị thuộc tính không được để trống')
-              .trim(),
-          }),
-        )
-        .optional(),
+        .min(1, 'Vui lòng thêm ít nhất một biến thể'),
       inventory: z
         .object({
           minQuantity: z.preprocess(
@@ -187,6 +196,7 @@ export const useHook = (
   }, []);
 
   const onFinish = async (values: IProductCreateRequest) => {
+    console.log('Received values of form: ', values);
     try {
       const parsedValues = Schema.parse(values);
       const res = await handleSubmit?.(parsedValues as IProductCreateRequest);

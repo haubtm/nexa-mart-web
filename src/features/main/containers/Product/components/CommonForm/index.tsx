@@ -11,9 +11,11 @@ import {
 import { useHook } from './hook';
 import type { IProductCreateRequest, IProductCreateResponse } from '@/dtos';
 import { Card, Col, Image, Row, TreeSelect, Upload } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import SetAttributeAndUnitModal from '../SetAtrributeAndUnitModal';
 import { useRef } from 'react';
+import { PlusOutlined } from '@ant-design/icons';
+import CreateCategoryModal from '../CreateCategoryModal';
+import CreateBrandModal from '../CreateBrandModal';
 
 interface IProductFormProps {
   form: IFormProps<IProductCreateRequest>['form'];
@@ -55,25 +57,30 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
           <Row gutter={16}>
             <Col span={24}>
               <FormItem<IProductCreateRequest>
-                label={'Tên sản phẩm'}
+                label="Tên sản phẩm"
                 name="name"
                 required
                 rules={[rules]}
               >
-                <Input placeholder={'Tên sản phẩm'} />
+                <Input placeholder="Tên sản phẩm" />
               </FormItem>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
               <FormItem<IProductCreateRequest>
-                label={'Danh mục'}
+                label={
+                  <Flex align="center" justify="space-between" gap={8}>
+                    Danh mục
+                    <CreateCategoryModal />
+                  </Flex>
+                }
                 name="categoryId"
                 required
                 rules={[rules]}
               >
                 <TreeSelect
-                  placeholder={'Chọn danh mục'}
+                  placeholder="Chọn danh mục"
                   treeDefaultExpandAll
                   loading={isCategoriesLoading}
                   treeData={
@@ -93,15 +100,20 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
             </Col>
             <Col span={12}>
               <FormItem<IProductCreateRequest>
-                label={'Thương hiệu'}
-                name="productType"
+                label={
+                  <Flex align="center" justify="space-between">
+                    Thương hiệu
+                    <CreateBrandModal />
+                  </Flex>
+                }
+                name="brandId"
                 required
                 rules={[rules]}
               >
                 <Select
-                  placeholder={'Chọn thương hiệu'}
+                  placeholder="Chọn thương hiệu"
                   options={
-                    brandsData?.data?.map((brand) => ({
+                    brandsData?.data.map((brand) => ({
                       label: brand.name,
                       value: brand.brandId,
                     })) ?? []
@@ -112,6 +124,7 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
             </Col>
           </Row>
         </Col>
+
         <Col span={12}>
           <label>Hình ảnh sản phẩm</label>
           <Upload {...uploadProps}>
@@ -123,82 +136,65 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
           </div>
         </Col>
       </Row>
-      <Card title="Giá vốn, giá bán">
+
+      <Card title="Đơn vị cơ bản (bắt buộc)">
         <Row gutter={[16, 16]}>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
-              label={'Đơn vị tính cơ bản'}
+              label="Đơn vị"
               name={['baseUnit', 'unit']}
-              rules={[rules]}
+              rules={[{ required: true, message: 'Nhập đơn vị cơ bản' }]}
             >
-              <Input placeholder={'Đơn vị tính'} />
+              <Input placeholder="vd: lon" />
             </FormItem>
           </Col>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
-              label={'Giá bán'}
+              label="Giá bán"
               name={['baseUnit', 'basePrice']}
-              rules={[rules]}
+              rules={[{ required: true, message: 'Nhập giá bán' }]}
             >
-              <Input type="number" placeholder={'Giá bán'} />
+              <Input type="number" placeholder="10000" />
             </FormItem>
           </Col>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
-              label={'Giá vốn'}
+              label="Giá vốn"
               name={['baseUnit', 'cost']}
-              rules={[rules]}
+              rules={[{ required: true, message: 'Nhập giá vốn' }]}
             >
-              <Input placeholder={'Giá vốn'} />
+              <Input type="number" placeholder="0" />
             </FormItem>
           </Col>
           <Col span={6}>
             <FormItem<IProductCreateRequest>
-              label={'Mã vạch'}
-              name={['baseUnit', 'barcode']}
-              rules={[rules]}
+              label="Tồn kho"
+              name={['baseUnit', 'onHand']}
+              rules={[{ required: true, message: 'Nhập tồn kho' }]}
             >
-              <Input placeholder={'Mã vạch'} />
+              <Input type="number" placeholder="10" />
             </FormItem>
           </Col>
+
+          {/* conversionValue = 1 (mặc định, ẩn) */}
+          <FormItem
+            name={['baseUnit', 'conversionValue']}
+            initialValue={1}
+            hidden
+          >
+            <Input type="hidden" />
+          </FormItem>
         </Row>
-      </Card>
-      <Card title="Tồn kho">
-        <Row gutter={[16, 16]}>
-          <Col span={8}>
-            <FormItem<IProductCreateRequest>
-              label={'Tồn kho'}
-              name={['inventory', 'onHand']}
-              rules={[rules]}
-            >
-              <Input />
-            </FormItem>
-          </Col>
-          <Col span={8}>
-            <FormItem<IProductCreateRequest>
-              label={'Định mức tồn thấp nhất'}
-              name={['inventory', 'minQuantity']}
-              rules={[rules]}
-            >
-              <Input />
-            </FormItem>
-          </Col>
-          <Col span={8}>
-            <FormItem<IProductCreateRequest>
-              label={'Định mức tồn tối đa'}
-              name={['inventory', 'maxQuantity']}
-              rules={[rules]}
-            >
-              <Input />
-            </FormItem>
-          </Col>
-        </Row>
+        <Text type="secondary">
+          Đơn vị cơ bản luôn được áp vào tất cả biến thể (quy đổi = 1).
+        </Text>
       </Card>
 
+      {/* KHU VỰC THIẾT LẬP BIẾN THỂ */}
       <Card
         title={
           <Flex justify="space-between" align="center">
-            <Text>Quản lý theo đơn vị và thuộc tính</Text>
+            <Text>Thiết lập biến thể (thuộc tính & đơn vị)</Text>
             <SetAttributeAndUnitModal
               ref={modalRef}
               form={form}
@@ -208,9 +204,33 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
             />
           </Flex>
         }
-      ></Card>
-      <FormItem noStyle name="additionalUnits" />
-      <FormItem noStyle name="attributes" />
+      >
+        <Text type="secondary">
+          Nhấn <b>Thiết lập</b> để chọn thuộc tính (màu, size, ...) và các đơn
+          vị (lon, lốc, thùng, ...). Hệ thống sẽ tự sinh <b>variants[]</b>.
+        </Text>
+      </Card>
+
+      {/* Field ẩn để submit lên server */}
+      <FormItem
+        name="variants"
+        hidden
+        rules={[
+          // Nếu productType = 2 (có biến thể) thì bắt buộc có variants
+          ({ getFieldValue }) => ({
+            validator(_, v) {
+              if (getFieldValue('productType') !== 2) return Promise.resolve();
+              return Array.isArray(v) && v.length > 0
+                ? Promise.resolve()
+                : Promise.reject(new Error('Vui lòng thiết lập biến thể'));
+            },
+          }),
+        ]}
+      >
+        {/* input ẩn để field được “register” */}
+        <Input type="hidden" />
+      </FormItem>
+
       <Image
         wrapperStyle={{ display: 'none' }}
         preview={{

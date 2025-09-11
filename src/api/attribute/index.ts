@@ -9,6 +9,8 @@ import type {
   IAttributeUpdateRequest,
   IAttributeUpdateResponse,
   IAttributeByIdResponse,
+  IAttributeValueByIdRequest,
+  IAttributeValueByIdResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -21,6 +23,14 @@ export const attributeApi = {
       {
         params: body,
       },
+    );
+
+    return response;
+  },
+
+  valueById: async (body: IAttributeValueByIdRequest) => {
+    const response = await apiService.get<IAttributeValueByIdResponse>(
+      `${BASE_ENDPOINT}/${body.id}/values`,
     );
 
     return response;

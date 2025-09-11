@@ -1,3 +1,4 @@
+// useHook.ts
 import type { IProductCreateRequest } from '@/dtos';
 import { productKeys, useProductCreate } from '@/features/main/react-query';
 import { Form, type IModalRef, useNotification } from '@/lib';
@@ -7,7 +8,7 @@ import { useRef } from 'react';
 export const useHook = () => {
   const ref = useRef<IModalRef>(null);
   const [form] = Form.useForm<IProductCreateRequest>();
-  const { mutateAsync: createRoom, isPending: isLoadingCreateRoom } =
+  const { mutateAsync: createProduct, isPending: isLoadingCreateRoom } =
     useProductCreate();
   const { notify } = useNotification();
 
@@ -17,39 +18,50 @@ export const useHook = () => {
   };
 
   const handleSubmit = async (values: IProductCreateRequest) => {
-    return await createRoom(
-      {
-        name: values.name,
-        additionalUnits: values.additionalUnits,
-        attributes: values.attributes,
-        baseUnit: values.baseUnit,
-        categoryId: values.categoryId,
-        inventory: values.inventory,
-        productType: values.productType,
-        allowsSale: values.allowsSale || true,
-        description: values.description,
-      },
-      {
-        onSuccess: () => {
-          notify('success', {
-            message: 'Thành công',
-            description: 'Thêm sản phẩm thành công',
-          });
+    // đảm bảo variants đã được “commit” vào form (trường hợp modal thiết lập vừa set)
+    try {
+      await form?.validateFields?.(['variants']);
+    } catch (error) {
+      // ignore; nếu productType không yêu cầu variants thì vẫn submit được
+      console.error(error);
+    }
 
-          queryClient.invalidateQueries({
-            queryKey: productKeys.all,
-          });
+    const variants = values?.variants;
 
-          handleCancel();
-        },
-        onError: (error) => {
-          notify('error', {
-            message: 'Thất bại',
-            description: error.message || 'Có lỗi xảy ra',
-          });
-        },
+    // build payload đúng theo DTO mới
+    const payload: IProductCreateRequest = {
+      name: values.name,
+      categoryId: Number(values.categoryId),
+      brandId: Number(values.brandId),
+      variants:
+        Array.isArray(variants) && variants.length > 0 ? variants : undefined,
+      productType:
+        Array.isArray(variants) &&
+        variants.length <= 1 &&
+        variants[0].units.length <= 1 &&
+        variants[0].attributes.length === 0
+          ? 1
+          : 2,
+      description: values.description || '',
+    };
+
+    return await createProduct(payload, {
+      onSuccess: () => {
+        notify('success', {
+          message: 'Thành công',
+          description: 'Thêm sản phẩm thành công',
+        });
+
+        queryClient.invalidateQueries({ queryKey: productKeys.all });
+        handleCancel();
       },
-    );
+      onError: (error: any) => {
+        notify('error', {
+          message: 'Thất bại',
+          description: error?.message || 'Có lỗi xảy ra',
+        });
+      },
+    });
   };
 
   return {

@@ -1,22 +1,43 @@
-interface IProductUnit {
-  id: number;
-  code: string;
-  unit: string;
-  basePrice: number;
-  conversionValue: number;
-  allowsSale: boolean;
-  barcode: string;
-}
-
 interface IAttribute {
   id: number;
+  variantId: number;
+  attributeValueId: number;
   attributeName: string;
-  value: string;
+  attributeValue: string;
+  attributeValueDescription: string;
+  createdDate: string;
 }
 
 interface ICategory {
   id: number;
   name: string;
+}
+
+interface IUnit {
+  id: number;
+  code: string;
+  unit: string;
+  conversionValue: number;
+}
+
+interface IVariant {
+  variantId: number;
+  variantName: string;
+  variantCode: string;
+  barcode: string;
+  costPrice: number;
+  basePrice: number;
+  quantityOnHand: number;
+  quantityReserved: number;
+  availableQuantity: number;
+  minQuantity: number;
+  allowsSale: boolean;
+  isActive: boolean;
+  needsReorder: boolean;
+  createdAt: string;
+  updatedAt: string;
+  unit: IUnit;
+  attributes: IAttribute[];
 }
 
 export interface IProductResponseData {
@@ -28,23 +49,9 @@ export interface IProductResponseData {
   productType: number;
   hasVariants: boolean;
   variantCount: number;
-  basePrice: number;
-  cost: number;
-  latestPurchasePrice: number;
-  unit: string;
-  conversionValue: number;
-  onHand: number;
-  onOrder: number;
-  reserved: number;
-  minQuantity: number;
-  maxQuantity: number;
-  barcode: string;
-  tradeMarkName: string;
-  allowsSale: boolean;
   isActive: boolean;
   createdDate: string;
   modifiedDate: string;
   category: ICategory;
-  productUnits?: IProductUnit[];
-  attributes?: IAttribute[];
+  variant: IVariant[];
 }
