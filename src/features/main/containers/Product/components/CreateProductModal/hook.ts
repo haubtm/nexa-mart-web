@@ -19,6 +19,7 @@ export const useHook = () => {
 
   const handleSubmit = async (values: IProductCreateRequest) => {
     // đảm bảo variants đã được “commit” vào form (trường hợp modal thiết lập vừa set)
+    console.log('Submitted values: ', values);
     try {
       await form?.validateFields?.(['variants']);
     } catch (error) {
@@ -39,7 +40,7 @@ export const useHook = () => {
         Array.isArray(variants) &&
         variants.length <= 1 &&
         variants[0].units.length <= 1 &&
-        variants[0].attributes.length === 0
+        !variants[0].attributes
           ? 1
           : 2,
       description: values.description || '',

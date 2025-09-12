@@ -18,11 +18,9 @@ const BASE_ENDPOINT = '/products';
 
 export const productApi = {
   list: async (body: IBaseListRequest) => {
-    const response = await apiService.get<IProductListResponse>(
-      `${BASE_ENDPOINT}`,
-      {
-        params: body,
-      },
+    const response = await apiService.post<IProductListResponse>(
+      `${BASE_ENDPOINT}/list`,
+      body,
     );
 
     return response;

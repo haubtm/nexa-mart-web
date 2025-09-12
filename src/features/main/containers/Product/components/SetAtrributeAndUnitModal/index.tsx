@@ -1,4 +1,4 @@
-// SetAttributeAndUnitModal.tsx
+// SetAttributeAndUnitModal.tsx (dedupe attribute)
 import { SvgPlusIcon } from '@/assets';
 import type { IProductCreateRequest } from '@/dtos';
 import {
@@ -29,6 +29,7 @@ import type { RefObject } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useHook } from './hook';
 import CreateAttributeModal from '../CreateAttributteModal';
+import { useAttributeValueById } from '@/features/main/react-query';
 
 type AttrValue = { attributeId: number; value: string };
 type UnitTemplate = {
@@ -80,18 +81,50 @@ interface ISetAttributeAndUnitModalProps {
   modalForm: FormInstance<any>;
 }
 
+// --- Component phụ để load value theo attributeId của dòng hiện tại ---
+const AttributeValueSelect: React.FC<{
+  form: FormInstance<any>;
+  attrIdPath: (string | number)[];
+  valuePath: (string | number)[];
+  // 👇 nhận từ Form.Item (sẽ được inject tự động)
+  value?: string[];
+  onChange?: (v: string[]) => void;
+}> = ({ form, attrIdPath, valuePath, value, onChange }) => {
+  const attributeId = Form.useWatch(attrIdPath, form);
+  const enabled = !!attributeId;
+
+  const { data, isLoading } = useAttributeValueById({ id: attributeId });
+
+  const options =
+    data?.data?.map((v: any) => ({ label: v.value, value: v.value })) ?? [];
+
+  // Khi đổi attributeId => reset value để tránh giữ value cũ không hợp lệ
+  useEffect(() => {
+    form.setFieldValue(valuePath, []);
+  }, [attributeId]);
+
+  return (
+    <Select
+      placeholder="Giá trị (tags: đỏ, trắng, ...)"
+      mode="tags"
+      style={{ width: 420 }}
+      options={options}
+      loading={isLoading && enabled}
+      disabled={!enabled}
+      // 👇 nhận/forward để Form ghi nhận thay đổi
+      value={value}
+      onChange={onChange as any}
+    />
+  );
+};
+
 const SetAttributeAndUnitModal = ({
   ref,
   form,
   rules,
   modalForm,
 }: ISetAttributeAndUnitModalProps) => {
-  const {
-    attributesData,
-    isAttributesLoading,
-    attributeValueData,
-    isAttributeValueLoading,
-  } = useHook();
+  const { attributesData, isAttributesLoading } = useHook();
 
   // Bảng sinh tự động
   const [matrixRows, setMatrixRows] = useState<MatrixRow[]>([]);
@@ -419,6 +452,24 @@ const SetAttributeAndUnitModal = ({
           type="primary"
           icon={<SvgPlusIcon width={12} height={12} />}
           onClick={() => {
+            const base = form?.getFieldValue?.(['baseUnit']) || {};
+            const missingUnit = !base?.unit;
+            const missingBasePrice =
+              base?.basePrice == null || base?.basePrice === '';
+            const missingCost = base?.cost == null || base?.cost === '';
+            const missingOnHand = base?.onHand == null || base?.onHand === '';
+
+            if (
+              missingUnit ||
+              missingBasePrice ||
+              missingCost ||
+              missingOnHand
+            ) {
+              message.warning(
+                'Vui lòng nhập đầy đủ Đơn vị cơ bản (đơn vị, giá bán, giá vốn, tồn kho) trước khi thiết lập.',
+              );
+              return;
+            }
             const parent = form?.getFieldsValue(['variants', 'baseUnit']) as {
               variants?: IProductCreateRequest['variants'];
               baseUnit?: {
@@ -607,54 +658,89 @@ const SetAttributeAndUnitModal = ({
           <FormList name="attributes" rules={[rules]}>
             {(fields: any[], { add, remove }: any) => (
               <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Space
-                    key={key}
-                    align="baseline"
-                    style={{ display: 'flex', marginBottom: 8 }}
-                  >
-                    <FormItem
-                      {...restField}
-                      name={[name, 'attributeId']}
-                      rules={[rules]}
+                {fields.map(({ key, name, ...restField }) => {
+                  const attrIdPath = ['attributes', name, 'attributeId'];
+                  const valuePath = ['attributes', name, 'value'];
+
+                  // Danh sách attributeId đã chọn để disable option trùng (UI guard)
+                  const all = modalForm.getFieldValue(['attributes']) || [];
+                  const currentValue = all?.[name]?.attributeId;
+                  const usedIds = (all || [])
+                    .map((x: any) => x?.attributeId)
+                    .filter((x: any) => x != null);
+
+                  const attributeOptions =
+                    attributesData?.data?.map((a: any) => ({
+                      label: a.name,
+                      value: a.id,
+                      disabled: usedIds.includes(a.id) && a.id !== currentValue,
+                    })) ?? [];
+
+                  return (
+                    <Space
+                      key={key}
+                      align="baseline"
+                      style={{ display: 'flex', marginBottom: 8 }}
                     >
-                      <Select
-                        loading={isAttributesLoading}
-                        placeholder="Chọn thuộc tính"
-                        popupRender={(menus) => (
-                          <div>
-                            <CreateAttributeModal />
-                            {menus}
-                          </div>
-                        )}
-                        options={attributesData?.data?.map((a) => ({
-                          label: a.name,
-                          value: a.id,
-                        }))}
-                        style={{ width: 240 }}
-                      />
-                    </FormItem>
+                      <FormItem
+                        {...restField}
+                        name={[name, 'attributeId']}
+                        rules={[
+                          { required: true, message: 'Chọn thuộc tính' },
+                          {
+                            // Rule chống trùng trong cùng Form.List
+                            validator: async (_, value) => {
+                              if (!value) return Promise.resolve();
+                              const list =
+                                modalForm.getFieldValue(['attributes']) || [];
+                              const count = list.filter(
+                                (row: any, idx: number) =>
+                                  idx !== name && row?.attributeId === value,
+                              ).length;
+                              if (count > 0) {
+                                return Promise.reject(
+                                  new Error(
+                                    'Thuộc tính này đã được chọn ở dòng khác',
+                                  ),
+                                );
+                              }
+                              return Promise.resolve();
+                            },
+                          },
+                        ]}
+                      >
+                        <Select
+                          loading={isAttributesLoading}
+                          placeholder="Chọn thuộc tính"
+                          popupRender={(menus) => (
+                            <div>
+                              <CreateAttributeModal />
+                              {menus}
+                            </div>
+                          )}
+                          options={attributeOptions}
+                          style={{ width: 240 }}
+                          onChange={() => {
+                            // đổi attribute => reset value tương ứng
+                            modalForm.setFieldValue(valuePath, []);
+                          }}
+                        />
+                      </FormItem>
 
-                    <FormItem {...restField} name={[name, 'value']}>
-                      <Select
-                        placeholder="Giá trị (tags: đỏ, trắng, ...)"
-                        mode="tags"
-                        style={{ width: 420 }}
-                        options={
-                          attributeValueData?.data.map((v) => ({
-                            label: v.value,
-                            value: v.value,
-                          })) || []
-                        }
-                        loading={isAttributeValueLoading}
-                      />
-                    </FormItem>
+                      <FormItem {...restField} name={[name, 'value']}>
+                        <AttributeValueSelect
+                          form={modalForm}
+                          attrIdPath={attrIdPath}
+                          valuePath={valuePath}
+                        />
+                      </FormItem>
 
-                    <Button danger onClick={() => remove(name)}>
-                      Xóa
-                    </Button>
-                  </Space>
-                ))}
+                      <Button danger onClick={() => remove(name)}>
+                        Xóa
+                      </Button>
+                    </Space>
+                  );
+                })}
                 <Button
                   type="dashed"
                   onClick={() => add({ attributeId: undefined, value: [] })}

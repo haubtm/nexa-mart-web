@@ -76,13 +76,13 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
                   </Flex>
                 }
                 name="categoryId"
-                required
                 rules={[rules]}
               >
                 <TreeSelect
                   placeholder="Chọn danh mục"
                   treeDefaultExpandAll
                   loading={isCategoriesLoading}
+                  allowClear
                   treeData={
                     categoriesData?.data.map((category) => ({
                       title: category.name,
@@ -107,7 +107,6 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
                   </Flex>
                 }
                 name="brandId"
-                required
                 rules={[rules]}
               >
                 <Select
@@ -118,6 +117,7 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
                       value: brand.brandId,
                     })) ?? []
                   }
+                  allowClear
                   loading={isBrandsLoading}
                 />
               </FormItem>
@@ -191,24 +191,22 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
       </Card>
 
       {/* KHU VỰC THIẾT LẬP BIẾN THỂ */}
-      <Card
-        title={
-          <Flex justify="space-between" align="center">
-            <Text>Thiết lập biến thể (thuộc tính & đơn vị)</Text>
-            <SetAttributeAndUnitModal
-              ref={modalRef}
-              form={form}
-              rules={rules}
-              onFinish={onFinish}
-              modalForm={modalForm}
-            />
-          </Flex>
-        }
-      >
-        <Text type="secondary">
-          Nhấn <b>Thiết lập</b> để chọn thuộc tính (màu, size, ...) và các đơn
-          vị (lon, lốc, thùng, ...). Hệ thống sẽ tự sinh <b>variants[]</b>.
-        </Text>
+      <Card title={<Text>Thiết lập biến thể (thuộc tính & đơn vị)</Text>}>
+        <Flex align="center" justify="space-between">
+          <Text type="secondary">
+            Nhấn <b>Thiết lập</b> để chọn thuộc tính (màu, size, ...) và các đơn
+            vị (lon, lốc, thùng, ...).
+          </Text>
+
+          {/* Modal vẫn được mount sẵn để ref hoạt động */}
+          <SetAttributeAndUnitModal
+            ref={modalRef}
+            form={form}
+            rules={rules}
+            onFinish={onFinish}
+            modalForm={modalForm}
+          />
+        </Flex>
       </Card>
 
       {/* Field ẩn để submit lên server */}

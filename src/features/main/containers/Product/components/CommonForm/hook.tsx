@@ -91,10 +91,12 @@ export const useHook = (
         .trim(),
       categoryId: z
         .number('Id danh mục phải là số')
-        .min(1, 'Vui lòng chọn danh mục'),
+        .min(1, 'Vui lòng chọn danh mục')
+        .optional(),
       brandId: z
         .number('Id thương hiệu phải là số')
-        .min(1, 'Vui lòng chọn thương hiệu'),
+        .min(1, 'Vui lòng chọn thương hiệu')
+        .optional(),
       productType: z
         .number('Loại sản phẩm phải là số')
         .min(1, 'Vui lòng chọn loại')
@@ -106,7 +108,8 @@ export const useHook = (
             sku: z
               .string('SKU phải là chuỗi')
               .nonempty('SKU không được để trống')
-              .trim(),
+              .trim()
+              .optional(),
             attributes: z
               .array(
                 z.object({
@@ -162,7 +165,8 @@ export const useHook = (
             ),
           }),
         )
-        .min(1, 'Vui lòng thêm ít nhất một biến thể'),
+        .min(1, 'Vui lòng thêm ít nhất một biến thể')
+        .optional(),
       inventory: z
         .object({
           minQuantity: z.preprocess(
@@ -198,6 +202,32 @@ export const useHook = (
   const onFinish = async (values: IProductCreateRequest) => {
     console.log('Received values of form: ', values);
     try {
+      const isSingle = (values.productType ?? 1) !== 2;
+      const hasVariants =
+        Array.isArray(values.variants) && values.variants.length > 0;
+      if (isSingle && !hasVariants) {
+        const base = values.baseUnit as any;
+        if (!base?.unit) {
+          notify('error', {
+            message: 'Thất bại',
+            description: 'Vui lòng nhập đơn vị cơ bản',
+          });
+        }
+
+        values.variants = [
+          {
+            units: [
+              {
+                unit: String(base.unit),
+                basePrice: Number(base.basePrice ?? 0),
+                cost: Number(base.cost ?? 0),
+                onHand: Number(base.onHand ?? 0),
+                conversionValue: 1,
+              },
+            ],
+          } as any,
+        ];
+      }
       const parsedValues = Schema.parse(values);
       const res = await handleSubmit?.(parsedValues as IProductCreateRequest);
       if (res?.data?.id && fileList.length > 0) {
