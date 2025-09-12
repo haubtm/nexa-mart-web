@@ -72,6 +72,66 @@ export const useHook = () => {
       },
     ];
 
+  const variantColumns = [
+    {
+      title: 'Mã biến thể',
+      dataIndex: 'variantCode',
+      key: 'variantCode',
+      width: 140,
+    },
+    { title: 'Tên biến thể', dataIndex: 'variantName', key: 'variantName' },
+    {
+      title: 'Thuộc tính',
+      key: 'attributes',
+      render: (_: any, record: any) =>
+        record?.attributes
+          ?.map((a: any) => `${a.attributeName}: ${a.attributeValue}`)
+          .join(', ') || '-',
+    },
+    {
+      title: 'Đơn vị',
+      key: 'unit',
+      render: (_: any, record: any) => record?.unit?.unit ?? '-',
+      width: 100,
+    },
+    {
+      title: 'Giá bán',
+      dataIndex: 'basePrice',
+      key: 'basePrice',
+      align: 'right' as const,
+      render: (v: number) => v?.toLocaleString() ?? 0,
+      width: 120,
+    },
+    {
+      title: 'Tồn kho',
+      dataIndex: 'quantityOnHand',
+      key: 'quantityOnHand',
+      align: 'right' as const,
+      width: 100,
+    },
+    {
+      title: 'Có thể bán',
+      dataIndex: 'availableQuantity',
+      key: 'availableQuantity',
+      align: 'right' as const,
+      width: 110,
+    },
+    {
+      title: 'Bán',
+      dataIndex: 'allowsSale',
+      key: 'allowsSale',
+      width: 80,
+      render: (v: boolean) => (v ? '✓' : '✗'),
+    },
+    {
+      title: 'Hoạt động',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      width: 100,
+      render: (v: boolean) => (v ? '✓' : '✗'),
+    },
+  ];
+
   const handleDelete = (
     ids: number[],
     record?: IProductListResponse['data'][number],
@@ -125,6 +185,7 @@ export const useHook = () => {
 
   return {
     columns,
+    variantColumns,
     selectedRowKeys,
     setSelectedRowKeys,
     handleDelete,

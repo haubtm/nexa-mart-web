@@ -427,6 +427,7 @@ const SetAttributeAndUnitModal = ({
           onHand: Number(r.onHand) || 0,
           conversionValue:
             r.unit === baseName ? 1 : Number(r.conversionValue) || 1,
+          isBaseUnit: r.unit === baseName,
         })),
       };
     });

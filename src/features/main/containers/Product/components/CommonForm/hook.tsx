@@ -161,6 +161,9 @@ export const useHook = (
                       .min(0, 'Tồn kho không được nhỏ hơn 0'),
                   )
                   .optional(),
+                isBaseUnit: z
+                  .boolean('Đơn vị cơ bản phải là boolean')
+                  .optional(),
               }),
             ),
           }),
