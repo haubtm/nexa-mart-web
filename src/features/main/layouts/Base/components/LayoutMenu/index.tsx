@@ -47,6 +47,11 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.EMPLOYEE.PATH(),
         label: 'Danh sách nhân viên',
       },
+
+      [ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()]: {
+        key: ROUTE_PATH.ADMIN.STOCK_TAKE.PATH(),
+        label: 'Kiểm kho',
+      },
     };
   }, []);
 
@@ -74,6 +79,21 @@ const LayoutMenu = () => {
                 label: (
                   <Link to={ROUTE_PATH.ADMIN.PRODUCT.PATH()}>
                     {routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].label}
+                  </Link>
+                ),
+              },
+            ],
+          },
+          {
+            key: '1-2',
+            label: 'Kho hàng',
+            type: 'group',
+            children: [
+              {
+                key: routePathMapping[ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()].key,
+                label: (
+                  <Link to={ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()}>
+                    {routePathMapping[ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()].label}
                   </Link>
                 ),
               },

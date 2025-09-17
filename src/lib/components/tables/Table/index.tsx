@@ -25,16 +25,18 @@ const Table = <T,>(props: ITableProps<T>) => {
 
   return (
     <Root vertical gap={16}>
-      <SelectionActionsBar
-        align="center"
-        justify="space-between"
-        $hidden={selectedCount <= 0 && !keepShow}
-      >
-        <Text italic>
-          {selectionBar?.selectedText ?? `Đã chọn ${selectedCount} bản ghi`}
-        </Text>
-        <Flex gap={8}>{selectionBar?.actionButtons}</Flex>
-      </SelectionActionsBar>
+      {selectedCount > 0 && (
+        <SelectionActionsBar
+          align="center"
+          justify="space-between"
+          $hidden={selectedCount <= 0 && !keepShow}
+        >
+          <Text italic>
+            {selectionBar?.selectedText ?? `Đã chọn ${selectedCount} bản ghi`}
+          </Text>
+          <Flex gap={8}>{selectionBar?.actionButtons}</Flex>
+        </SelectionActionsBar>
+      )}
       <StyledTable<any>
         rowKey={rowKey ?? 'id'}
         size={size ?? 'small'}
