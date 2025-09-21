@@ -3,7 +3,7 @@ import { Form, type IModalRef } from '@/lib';
 import { type MouseEvent, useEffect } from 'react';
 
 export const useHook = (
-  record?: IProductListResponse['data'][number],
+  record?: IProductListResponse['data']['content'][number],
   ref?: React.RefObject<IModalRef | null>,
 ) => {
   useEffect(() => {

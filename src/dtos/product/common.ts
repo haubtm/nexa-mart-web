@@ -46,7 +46,7 @@ export interface IProductResponseData {
   variantCount: number;
   isActive: boolean;
   createdDate: string;
-  modifiedDate: string;
+  updatedAt: string;
   category: ICategory;
   brand: IBrand;
   variants: IVariant[];

@@ -47,7 +47,7 @@ export const useHook = () => {
       key: 'updated_at',
       title: 'Ngày cập nhật',
       width: 120,
-      render: (_, record) => formatDate(record?.modifiedDate),
+      render: (_, record) => formatDate(record?.updatedAt),
     },
     {
       key: 'action',

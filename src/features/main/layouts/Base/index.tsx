@@ -2,7 +2,7 @@ import { Flex, Layout, LayoutContent, LayoutHeader } from '@/lib';
 
 import { Outlet } from 'react-router-dom';
 import { Root } from './styles';
-import { LayoutMenu } from './components';
+import { LayoutMenu, UserDropDown } from './components';
 import { SvgNexamartHorizontalIcon } from '@/assets';
 
 const BaseLayout = () => {
@@ -18,7 +18,7 @@ const BaseLayout = () => {
             <SvgNexamartHorizontalIcon />
 
             <Flex align="center" gap={12}>
-              Avatar
+              <UserDropDown />
             </Flex>
           </Flex>
         </LayoutHeader>

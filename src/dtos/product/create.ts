@@ -5,6 +5,7 @@ export interface IUnit {
   unit: string;
   conversionValue: number;
   barcode: string;
+  variantCode: string;
   isBaseUnit: boolean;
 }
 
@@ -14,7 +15,6 @@ export interface IAttribute {
 }
 
 export interface IVariant {
-  sku: string;
   attributes: IAttribute[];
   units: IUnit[];
 }

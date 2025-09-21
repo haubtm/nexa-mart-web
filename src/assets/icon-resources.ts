@@ -1,3 +1,7 @@
+export { default as SvgAccountIcon } from './svgs/svg_account_icon.svg?react';
+export { default as SvgDatabaseIcon } from './svgs/svg_database_icon.svg?react';
+export { default as SvgKeyIcon } from './svgs/svg_key_icon.svg?react';
+export { default as SvgLogoutIcon } from './svgs/svg_logout.svg?react';
 export { default as SvgNexamartIcon } from './svgs/svg_nexamart.svg?react';
 export { default as SvgNexamartHorizontalIcon } from './svgs/svg_nexamart_horizontal.svg?react';
 export { default as SvgNexamartVerticalIcon } from './svgs/svg_nexamart_vertical.svg?react';
