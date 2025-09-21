@@ -1,5 +1,9 @@
-import type { IResponse } from '../common';
+import type { IPageable, IResponse } from '../common';
 import type { IProductResponseData } from './common';
 
 export interface IProductListResponse
-  extends IResponse<IProductResponseData[]> {}
+  extends IResponse<
+    {
+      content: IProductResponseData[];
+    } & IPageable
+  > {}

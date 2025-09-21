@@ -25,7 +25,7 @@ const TableSelectionActionsBar = (props: ITableSelectionActionsBarProps) => {
       justify="space-between"
       $hidden={selectedCount <= 0 && !keepShow}
     >
-      <Text italic>{selectedText ?? `Đã chọn ${selectedCount} bản ghi1`}</Text>
+      <Text italic>{selectedText ?? `Đã chọn ${selectedCount} bản ghi`}</Text>
       <Flex gap={8}>{actionButtons}</Flex>
     </Root>
   );

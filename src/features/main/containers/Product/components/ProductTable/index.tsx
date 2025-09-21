@@ -71,7 +71,7 @@ const ProductTable = ({ ref, setRecord }: IProductTableProps) => {
         ),
       }}
       pagination={{
-        total: productListData?.metadata?.total,
+        total: productListData?.data?.totalPages,
         current: (queryParams.page ?? 0) + 1, // antd là 1-based
         pageSize: queryParams.limit,
         onChange: (page, pageSize) => {

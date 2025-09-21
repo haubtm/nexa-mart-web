@@ -20,6 +20,8 @@ const Table = <T,>(props: ITableProps<T>) => {
   useEffect(() => {
     if (selectedCount > 0) {
       setKeepShow(true);
+    } else {
+      setKeepShow(false);
     }
   }, [selectedCount]);
 

@@ -19,6 +19,9 @@ export const ROUTE_PATH = {
     STOCK_TAKE: {
       PATH: () => `/admin/stock-take`,
     },
+    SUPPLIER: {
+      PATH: () => `/admin/supplier`,
+    },
   },
   AUTH: {
     PATH: () => `/auth`,

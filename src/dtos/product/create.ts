@@ -3,10 +3,9 @@ import type { IProductResponseData } from './common';
 
 export interface IUnit {
   unit: string;
-  basePrice: number;
-  cost: number;
-  onHand: number;
   conversionValue: number;
+  barcode: string;
+  isBaseUnit: boolean;
 }
 
 export interface IAttribute {
@@ -22,12 +21,11 @@ export interface IVariant {
 
 export interface IProductCreateRequest {
   name: string;
-  categoryId: number;
-  brandId: number;
-  baseUnit?: IUnit;
-  productType: number;
+  categoryId?: number;
+  brandId?: number;
+  description?: string;
+  allowSale?: boolean;
   variants?: IVariant[];
-  description: string;
 }
 
 export interface IProductCreateResponse

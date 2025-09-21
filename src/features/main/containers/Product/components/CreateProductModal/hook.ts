@@ -36,13 +36,6 @@ export const useHook = () => {
       brandId: Number(values.brandId),
       variants:
         Array.isArray(variants) && variants.length > 0 ? variants : undefined,
-      productType:
-        Array.isArray(variants) &&
-        variants.length <= 1 &&
-        variants[0].units.length <= 1 &&
-        !variants[0].attributes
-          ? 1
-          : 2,
       description: values.description || '',
     };
 

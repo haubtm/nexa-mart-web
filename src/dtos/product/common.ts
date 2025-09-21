@@ -13,11 +13,17 @@ interface ICategory {
   name: string;
 }
 
+interface IBrand {
+  id: number;
+  name: string;
+}
+
 interface IUnit {
   id: number;
   code: string;
   unit: string;
   conversionValue: number;
+  isBaseUnit: boolean;
 }
 
 interface IVariant {
@@ -25,15 +31,8 @@ interface IVariant {
   variantName: string;
   variantCode: string;
   barcode: string;
-  costPrice: number;
-  basePrice: number;
-  quantityOnHand: number;
-  quantityReserved: number;
-  availableQuantity: number;
-  minQuantity: number;
   allowsSale: boolean;
   isActive: boolean;
-  needsReorder: boolean;
   createdAt: string;
   updatedAt: string;
   unit: IUnit;
@@ -42,16 +41,13 @@ interface IVariant {
 
 export interface IProductResponseData {
   id: number;
-  code: string;
   name: string;
-  fullName: string;
   description: string;
-  productType: number;
-  hasVariants: boolean;
   variantCount: number;
   isActive: boolean;
   createdDate: string;
   modifiedDate: string;
   category: ICategory;
-  variant: IVariant[];
+  brand: IBrand;
+  variants: IVariant[];
 }

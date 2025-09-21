@@ -47,10 +47,13 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.EMPLOYEE.PATH(),
         label: 'Danh sách nhân viên',
       },
-
       [ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()]: {
         key: ROUTE_PATH.ADMIN.STOCK_TAKE.PATH(),
         label: 'Kiểm kho',
+      },
+      [ROUTE_PATH.ADMIN.SUPPLIER.PATH()]: {
+        key: ROUTE_PATH.ADMIN.SUPPLIER.PATH(),
+        label: 'Nhà cung cấp',
       },
     };
   }, []);
@@ -98,6 +101,20 @@ const LayoutMenu = () => {
                 ),
               },
             ],
+          },
+        ],
+      },
+      {
+        key: routePathMapping[ROUTE_PATH.ADMIN.SUPPLIER.PATH()].key,
+        label: 'Quản lý kho',
+        children: [
+          {
+            key: '5',
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.SUPPLIER.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.SUPPLIER.PATH()].label}
+              </Link>
+            ),
           },
         ],
       },
