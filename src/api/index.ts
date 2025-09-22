@@ -7,4 +7,6 @@ export * from './employee';
 export * from './inventory';
 export * from './product';
 export * from './productImage';
+export * from './warehouse';
 export * from './supplier';
+export * from './stock-take';

@@ -84,7 +84,7 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
                   loading={isCategoriesLoading}
                   allowClear
                   treeData={
-                    categoriesData?.data.map((category) => ({
+                    categoriesData?.data?.map((category) => ({
                       title: category.name,
                       value: category.id,
                       key: category.id,
@@ -137,77 +137,52 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
         </Col>
       </Row>
 
-      <Card title="Đơn vị cơ bản (bắt buộc)">
-        <Row gutter={[16, 16]}>
-          <Col span={6}>
-            <FormItem<IProductCreateRequest>
-              label="Đơn vị"
-              name={['baseUnit', 'unit']}
-              rules={[{ required: true, message: 'Nhập đơn vị cơ bản' }]}
+      <Flex gap={16}>
+        <Card title="Đơn vị cơ bản (bắt buộc)">
+          <Row gutter={[16, 16]}>
+            <Col span={8}>
+              <FormItem<IProductCreateRequest>
+                label="Đơn vị"
+                name={['baseUnit', 'unit']}
+                rules={[{ required: true, message: 'Nhập đơn vị cơ bản' }]}
+              >
+                <Input placeholder="vd: lon" />
+              </FormItem>
+            </Col>
+            <FormItem
+              name={['baseUnit', 'conversionValue']}
+              initialValue={1}
+              hidden
             >
-              <Input placeholder="vd: lon" />
+              <Input type="hidden" />
             </FormItem>
-          </Col>
-          <Col span={6}>
-            <FormItem<IProductCreateRequest>
-              label="Giá bán"
-              name={['baseUnit', 'basePrice']}
-              rules={[{ required: true, message: 'Nhập giá bán' }]}
-            >
-              <Input type="number" placeholder="10000" />
-            </FormItem>
-          </Col>
-          <Col span={6}>
-            <FormItem<IProductCreateRequest>
-              label="Giá vốn"
-              name={['baseUnit', 'cost']}
-              rules={[{ required: true, message: 'Nhập giá vốn' }]}
-            >
-              <Input type="number" placeholder="0" />
-            </FormItem>
-          </Col>
-          <Col span={6}>
-            <FormItem<IProductCreateRequest>
-              label="Tồn kho"
-              name={['baseUnit', 'onHand']}
-              rules={[{ required: true, message: 'Nhập tồn kho' }]}
-            >
-              <Input type="number" placeholder="10" />
-            </FormItem>
-          </Col>
-
-          {/* conversionValue = 1 (mặc định, ẩn) */}
-          <FormItem
-            name={['baseUnit', 'conversionValue']}
-            initialValue={1}
-            hidden
-          >
-            <Input type="hidden" />
-          </FormItem>
-        </Row>
-        <Text type="secondary">
-          Đơn vị cơ bản luôn được áp vào tất cả biến thể (quy đổi = 1).
-        </Text>
-      </Card>
-
-      {/* KHU VỰC THIẾT LẬP BIẾN THỂ */}
-      <Card title={<Text>Thiết lập biến thể (thuộc tính & đơn vị)</Text>}>
-        <Flex align="center" justify="space-between">
+          </Row>
           <Text type="secondary">
-            Nhấn <b>Thiết lập</b> để chọn thuộc tính (màu, size, ...) và các đơn
-            vị (lon, lốc, thùng, ...).
+            Đơn vị cơ bản luôn được áp vào tất cả biến thể (quy đổi = 1).
+            Barcode & mã sản phẩm nhập trong bảng
+            <b> Hàng cùng loại</b> theo từng biến thể/đơn vị.
           </Text>
+        </Card>
 
-          {/* Modal vẫn được mount sẵn để ref hoạt động */}
-          <SetAttributeAndUnitModal
-            ref={modalRef}
-            form={form}
-            rules={rules}
-            onFinish={onFinish}
-            modalForm={modalForm}
-          />
-        </Flex>
-      </Card>
+        {/* KHU VỰC THIẾT LẬP BIẾN THỂ */}
+        <Card title={<Text>Thiết lập biến thể (thuộc tính & đơn vị)</Text>}>
+          <Flex vertical align="start" gap={8}>
+            <Text type="secondary">
+              Nhấn <b>Thiết lập</b> để chọn thuộc tính (màu, size, ...) và các
+              đơn vị (lon, lốc, thùng, ...).
+            </Text>
+
+            {/* Modal vẫn được mount sẵn để ref hoạt động */}
+            <SetAttributeAndUnitModal
+              ref={modalRef}
+              form={form}
+              rules={rules}
+              onFinish={onFinish}
+              modalForm={modalForm}
+            />
+          </Flex>
+        </Card>
+      </Flex>
 
       {/* Field ẩn để submit lên server */}
       <FormItem

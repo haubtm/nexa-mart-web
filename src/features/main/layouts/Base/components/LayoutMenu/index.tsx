@@ -87,21 +87,6 @@ const LayoutMenu = () => {
               },
             ],
           },
-          {
-            key: '1-2',
-            label: 'Kho hàng',
-            type: 'group',
-            children: [
-              {
-                key: routePathMapping[ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()].key,
-                label: (
-                  <Link to={ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()}>
-                    {routePathMapping[ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()].label}
-                  </Link>
-                ),
-              },
-            ],
-          },
         ],
       },
       {
@@ -113,6 +98,14 @@ const LayoutMenu = () => {
             label: (
               <Link to={ROUTE_PATH.ADMIN.SUPPLIER.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.SUPPLIER.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()].label}
               </Link>
             ),
           },

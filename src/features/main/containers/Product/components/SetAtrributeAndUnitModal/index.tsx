@@ -12,18 +12,9 @@ import {
   Select,
   Flex,
   Text,
-  slug,
   cartesian,
 } from '@/lib';
-import {
-  Card,
-  FormInstance,
-  Space,
-  Table,
-  Popover,
-  Divider,
-  message,
-} from 'antd';
+import { Card, FormInstance, Space, Table, message } from 'antd';
 import type { RuleRender } from 'antd/es/form';
 import type { RefObject } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -34,9 +25,6 @@ import { useAttributeValueById } from '@/features/main/react-query';
 type AttrValue = { attributeId: number; value: string };
 type UnitTemplate = {
   unit?: string;
-  basePrice?: number | string;
-  cost?: number | string;
-  onHand?: number | string;
   conversionValue?: number | string;
 };
 
@@ -47,10 +35,8 @@ type MatrixRow = {
   attributes: AttrValue[];
   unit: string;
   conversionValue: number;
-  sku?: string;
-  cost: number;
-  basePrice: number;
-  onHand: number;
+  barcode?: string;
+  variantCode?: string;
 };
 
 const makeComboKey = (attrs: AttrValue[]) =>
@@ -129,12 +115,6 @@ const SetAttributeAndUnitModal = ({
   // Bảng sinh tự động
   const [matrixRows, setMatrixRows] = useState<MatrixRow[]>([]);
 
-  // Quick set giá theo ĐƠN VỊ
-  const [quickOpen, setQuickOpen] = useState(false);
-  const [quickUnit, setQuickUnit] = useState<string>();
-  const [quickBasePrice, setQuickBasePrice] = useState<string>('');
-  const [quickCost, setQuickCost] = useState<string>('');
-
   // số dòng đơn vị / mỗi combo (để đánh dấu hàng đầu combo)
   const unitCount = useMemo(() => {
     if (matrixRows.length === 0) return 0;
@@ -144,7 +124,6 @@ const SetAttributeAndUnitModal = ({
 
   // ---- Hàm rebuild ma trận từ allValues + baseUnit của form cha ----
   const rebuildMatrixFrom = (allValues: any) => {
-    // 1) Thuộc tính
     const rawAttrs = (allValues?.attributes ?? []) as {
       attributeId?: number;
       value?: string[];
@@ -153,23 +132,14 @@ const SetAttributeAndUnitModal = ({
       (g) => g && g.attributeId && Array.isArray(g.value),
     ) as { attributeId: number; value: string[] }[];
 
-    // 2) Đơn vị cơ bản từ Form cha
     const parentBase = form?.getFieldValue?.(['baseUnit']) || {};
-    const baseUnit: UnitTemplate = {
-      unit: parentBase?.unit,
-      basePrice: parentBase?.basePrice,
-      cost: parentBase?.cost,
-      onHand: parentBase?.onHand,
-      conversionValue: 1, // cố định 1
-    };
-    const baseUnitName = String(baseUnit.unit || '');
+    const baseUnitName = String(parentBase?.unit || '');
 
-    // 3) Đơn vị bổ sung ở modal
     const rawUnits = (allValues?.additionalUnits ?? []) as UnitTemplate[];
 
-    // 4) Ghép baseUnit + additionalUnits, loại trùng theo 'unit' (ưu tiên baseUnit)
     const unitMap = new Map<string, UnitTemplate>();
-    if (baseUnitName) unitMap.set(baseUnitName, baseUnit);
+    if (baseUnitName)
+      unitMap.set(baseUnitName, { unit: baseUnitName, conversionValue: 1 });
     (rawUnits ?? []).forEach((u) => {
       if (!u?.unit) return;
       const key = String(u.unit);
@@ -177,7 +147,6 @@ const SetAttributeAndUnitModal = ({
     });
     const validUnits = Array.from(unitMap.values());
 
-    // preserve chỉnh sửa hiện tại trong bảng (dựa rowKey)
     const prev = (allValues?.matrix ?? []) as MatrixRow[];
     const prevMap = new Map(prev.map((r) => [r.rowKey, r]));
 
@@ -210,22 +179,11 @@ const SetAttributeAndUnitModal = ({
           comboLabel,
           attributes: combo,
           unit,
-          // ✅ baseUnit luôn 1 và sync từ ngoài (không lấy prev)
           conversionValue: isBase
             ? 1
             : Number(prevRow?.conversionValue ?? u.conversionValue ?? 1) || 1,
-          // ✅ Giá/ vốn/ tồn kho của baseUnit lấy từ form cha (luôn sync)
-          cost: isBase
-            ? Number(baseUnit.cost ?? 0) || 0
-            : Number(prevRow?.cost ?? u.cost ?? 0) || 0,
-          basePrice: isBase
-            ? Number(baseUnit.basePrice ?? 0) || 0
-            : Number(prevRow?.basePrice ?? u.basePrice ?? 0) || 0,
-          onHand: isBase
-            ? Number(baseUnit.onHand ?? 0) || 0
-            : Number(prevRow?.onHand ?? u.onHand ?? 0) || 0,
-          // SKU giữ theo prev (chỉ nhập ở hàng đầu combo)
-          sku: prevRow?.sku,
+          barcode: prevRow?.barcode,
+          variantCode: prevRow?.variantCode,
         });
       });
     });
@@ -238,8 +196,8 @@ const SetAttributeAndUnitModal = ({
   useEffect(() => {
     try {
       rebuildMatrixFrom(modalForm.getFieldsValue());
-    } catch (error) {
-      console.error('Lỗi khi rebuild matrix:', error);
+    } catch (e) {
+      console.error(e);
     }
   }, []);
 
@@ -269,7 +227,7 @@ const SetAttributeAndUnitModal = ({
         title: 'Đơn vị',
         dataIndex: 'unit',
         width: 120,
-        render: (_: any, record: MatrixRow, idx: number) => (
+        render: (_: any, __: MatrixRow, idx: number) => (
           <FormItem noStyle name={['matrix', idx, 'unit']}>
             <Input readOnly />
           </FormItem>
@@ -279,71 +237,37 @@ const SetAttributeAndUnitModal = ({
         title: 'Quy đổi',
         dataIndex: 'conversionValue',
         width: 110,
-        render: (_: any, record: MatrixRow, idx: number) => {
-          const isBase = record.unit === baseUnitName && !!baseUnitName;
-          return (
-            <FormItem
-              noStyle
-              name={['matrix', idx, 'conversionValue']}
-              rules={[{ required: true, message: 'Nhập quy đổi' }]}
-            >
-              <Input type="number" min={1} disabled={isBase} />
-            </FormItem>
-          );
-        },
+        render: (_: any, record: MatrixRow, idx: number) => (
+          <FormItem
+            noStyle
+            name={['matrix', idx, 'conversionValue']}
+            rules={[{ required: true, message: 'Nhập quy đổi' }]}
+          >
+            <Input
+              type="number"
+              min={1}
+              disabled={record.unit === baseUnitName && !!baseUnitName}
+            />
+          </FormItem>
+        ),
       },
       {
-        title: 'Mã hàng (SKU biến thể)',
-        dataIndex: 'sku',
+        title: 'Mã vạch (barcode)',
+        dataIndex: 'barcode',
+        width: 180,
+        render: (_: any, __: MatrixRow, idx: number) => (
+          <FormItem noStyle name={['matrix', idx, 'barcode']}>
+            <Input placeholder="VD: 893xxxx" />
+          </FormItem>
+        ),
+      },
+      {
+        title: 'Mã sản phẩm (variantCode)',
+        dataIndex: 'variantCode',
         width: 200,
-        render: (_: any, __: MatrixRow, idx: number) => {
-          const isFirst = unitCount > 0 ? idx % unitCount === 0 : true;
-          return (
-            <FormItem noStyle name={['matrix', idx, 'sku']}>
-              <Input placeholder="Tự động" disabled={!isFirst} />
-            </FormItem>
-          );
-        },
-      },
-      {
-        title: 'Giá vốn',
-        dataIndex: 'cost',
-        width: 120,
-        render: (_: any, record: MatrixRow, idx: number) => (
-          <FormItem noStyle name={['matrix', idx, 'cost']}>
-            <Input
-              type="number"
-              min={0}
-              disabled={record.unit === baseUnitName && !!baseUnitName}
-            />
-          </FormItem>
-        ),
-      },
-      {
-        title: 'Giá bán',
-        dataIndex: 'basePrice',
-        width: 140,
-        render: (_: any, record: MatrixRow, idx: number) => (
-          <FormItem noStyle name={['matrix', idx, 'basePrice']}>
-            <Input
-              type="number"
-              min={0}
-              disabled={record.unit === baseUnitName && !!baseUnitName}
-            />
-          </FormItem>
-        ),
-      },
-      {
-        title: 'Tồn kho',
-        dataIndex: 'onHand',
-        width: 120,
-        render: (_: any, record: MatrixRow, idx: number) => (
-          <FormItem noStyle name={['matrix', idx, 'onHand']}>
-            <Input
-              type="number"
-              min={0}
-              disabled={record.unit === baseUnitName && !!baseUnitName}
-            />
+        render: (_: any, __: MatrixRow, idx: number) => (
+          <FormItem noStyle name={['matrix', idx, 'variantCode']}>
+            <Input placeholder="VD: sp123" />
           </FormItem>
         ),
       },
@@ -351,38 +275,9 @@ const SetAttributeAndUnitModal = ({
     [matrixRows, unitCount, baseUnitName],
   );
 
-  // Quick apply theo đơn vị (bao gồm đơn vị cơ bản)
-  const unitOptionsForQuick = useMemo(() => {
-    const opts = new Set<string>();
-    const parentBase = form?.getFieldValue?.(['baseUnit', 'unit']);
-    if (parentBase) opts.add(String(parentBase));
-    const additional = (modalForm.getFieldValue('additionalUnits') ||
-      []) as UnitTemplate[];
-    additional.forEach((u) => u?.unit && opts.add(String(u.unit)));
-    return Array.from(opts).map((u) => ({ label: u, value: u }));
-  }, [form, modalForm]);
-
-  const applyQuickPrice = () => {
-    const unit = quickUnit;
-    if (!unit) return;
-    const next = (modalForm.getFieldValue('matrix') as MatrixRow[]).map((r) =>
-      r.unit === unit
-        ? {
-            ...r,
-            basePrice:
-              quickBasePrice !== '' ? Number(quickBasePrice) || 0 : r.basePrice,
-            cost: quickCost !== '' ? Number(quickCost) || 0 : r.cost,
-          }
-        : r,
-    );
-    modalForm.setFieldsValue({ matrix: next });
-    setQuickOpen(false);
-  };
-
   const handleOk = async () => {
     await modalForm.validateFields();
 
-    // Đảm bảo có ít nhất baseUnit
     const parentBase = form?.getFieldValue?.(['baseUnit']) || {};
     if (!parentBase?.unit) {
       message.warning('Vui lòng nhập Đơn vị cơ bản ở ngoài trước.');
@@ -402,15 +297,9 @@ const SetAttributeAndUnitModal = ({
       group.get(r.comboKey)!.rows.push(r);
     });
 
-    const variants = Array.from(group.values()).map(({ attributes, rows }) => {
-      const firstSKU = rows.find((r) => r.sku && r.sku.trim())?.sku?.trim();
-      const autoSku =
-        attributes.length > 0
-          ? attributes.map((a) => slug(String(a.value))).join('-')
-          : 'default';
+    const baseName = String(parentBase?.unit || '');
 
-      // ⚠️ Bảo đảm đơn vị cơ bản đứng đầu danh sách units
-      const baseName = String(parentBase?.unit || '');
+    const variants = Array.from(group.values()).map(({ attributes, rows }) => {
       const sortedRows = rows.slice().sort((a, b) => {
         const ai = a.unit === baseName ? -1 : 0;
         const bi = b.unit === baseName ? -1 : 0;
@@ -418,21 +307,18 @@ const SetAttributeAndUnitModal = ({
       });
 
       return {
-        sku: firstSKU || autoSku,
         attributes,
         units: sortedRows.map((r) => ({
           unit: r.unit,
-          basePrice: Number(r.basePrice) || 0,
-          cost: Number(r.cost) || 0,
-          onHand: Number(r.onHand) || 0,
           conversionValue:
             r.unit === baseName ? 1 : Number(r.conversionValue) || 1,
+          barcode: r.barcode?.trim() || undefined,
+          variantCode: r.variantCode?.trim() || undefined,
           isBaseUnit: r.unit === baseName,
         })),
       };
     });
 
-    // set vào Form cha (và commit field)
     form?.setFields?.([{ name: 'variants', value: variants }]);
     form?.setFieldValue?.('variants', variants);
     form?.setFieldsValue?.({ variants });
@@ -454,20 +340,9 @@ const SetAttributeAndUnitModal = ({
           icon={<SvgPlusIcon width={12} height={12} />}
           onClick={() => {
             const base = form?.getFieldValue?.(['baseUnit']) || {};
-            const missingUnit = !base?.unit;
-            const missingBasePrice =
-              base?.basePrice == null || base?.basePrice === '';
-            const missingCost = base?.cost == null || base?.cost === '';
-            const missingOnHand = base?.onHand == null || base?.onHand === '';
-
-            if (
-              missingUnit ||
-              missingBasePrice ||
-              missingCost ||
-              missingOnHand
-            ) {
+            if (!base?.unit) {
               message.warning(
-                'Vui lòng nhập đầy đủ Đơn vị cơ bản (đơn vị, giá bán, giá vốn, tồn kho) trước khi thiết lập.',
+                'Vui lòng nhập Đơn vị cơ bản trước khi thiết lập.',
               );
               return;
             }
@@ -475,10 +350,6 @@ const SetAttributeAndUnitModal = ({
               variants?: IProductCreateRequest['variants'];
               baseUnit?: {
                 unit?: string;
-                basePrice?: number;
-                cost?: number;
-                onHand?: number;
-                conversionValue?: number;
               };
             };
 
@@ -525,51 +396,7 @@ const SetAttributeAndUnitModal = ({
         }}
       >
         {/* ĐƠN VỊ BỔ SUNG */}
-        <Card
-          title={
-            <Flex align="center" justify="space-between">
-              <Text strong>Đơn vị bổ sung</Text>
-              <Popover
-                trigger="click"
-                open={quickOpen}
-                onOpenChange={setQuickOpen}
-                content={
-                  <div style={{ width: 280 }}>
-                    <Text strong>Thiết lập giá nhanh theo đơn vị</Text>
-                    <Divider style={{ margin: '8px 0' }} />
-                    <FormItem label="Đơn vị">
-                      <Select
-                        placeholder="Chọn đơn vị"
-                        value={quickUnit}
-                        onChange={setQuickUnit as any}
-                        options={unitOptionsForQuick}
-                      />
-                    </FormItem>
-                    <FormItem label="Giá bán (áp dụng)">
-                      <Input
-                        placeholder="không đổi nếu bỏ trống"
-                        value={quickBasePrice}
-                        onChange={(e) => setQuickBasePrice(e.target.value)}
-                      />
-                    </FormItem>
-                    <FormItem label="Giá vốn (áp dụng)">
-                      <Input
-                        placeholder="không đổi nếu bỏ trống"
-                        value={quickCost}
-                        onChange={(e) => setQuickCost(e.target.value)}
-                      />
-                    </FormItem>
-                    <Button type="primary" block onClick={applyQuickPrice}>
-                      Áp dụng
-                    </Button>
-                  </div>
-                }
-              >
-                <Button type="link">Thiết lập giá</Button>
-              </Popover>
-            </Flex>
-          }
-        >
+        <Card title={<Text strong>Đơn vị bổ sung</Text>}>
           <FormList name="additionalUnits">
             {(fields: any[], { add, remove }: any) => (
               <>
@@ -605,47 +432,16 @@ const SetAttributeAndUnitModal = ({
                       >
                         <Input placeholder="Quy đổi" style={{ width: 96 }} />
                       </FormItem>
-                      <FormItem
-                        label="Giá bán"
-                        {...restField}
-                        name={[name, 'basePrice']}
-                      >
-                        <Input placeholder="Giá bán" style={{ width: 110 }} />
-                      </FormItem>
-                      <FormItem
-                        label="Giá vốn"
-                        {...restField}
-                        name={[name, 'cost']}
-                      >
-                        <Input placeholder="Giá vốn" style={{ width: 100 }} />
-                      </FormItem>
-                      <FormItem
-                        label="Tồn kho"
-                        {...restField}
-                        name={[name, 'onHand']}
-                      >
-                        <Input placeholder="Tồn kho" style={{ width: 100 }} />
-                      </FormItem>
                       <Button danger onClick={() => remove(name)}>
                         Xóa
                       </Button>
                     </div>
                   ))}
                 </Space>
-
-                <Divider />
-
                 <Button
                   type="dashed"
-                  onClick={() =>
-                    add({
-                      unit: '',
-                      conversionValue: 1,
-                      basePrice: 0,
-                      cost: 0,
-                      onHand: 0,
-                    })
-                  }
+                  onClick={() => add({ unit: '', conversionValue: 1 })}
+                  style={{ marginTop: 8 }}
                 >
                   + Thêm đơn vị
                 </Button>
@@ -663,7 +459,6 @@ const SetAttributeAndUnitModal = ({
                   const attrIdPath = ['attributes', name, 'attributeId'];
                   const valuePath = ['attributes', name, 'value'];
 
-                  // Danh sách attributeId đã chọn để disable option trùng (UI guard)
                   const all = modalForm.getFieldValue(['attributes']) || [];
                   const currentValue = all?.[name]?.attributeId;
                   const usedIds = (all || [])
@@ -689,23 +484,17 @@ const SetAttributeAndUnitModal = ({
                         rules={[
                           { required: true, message: 'Chọn thuộc tính' },
                           {
-                            // Rule chống trùng trong cùng Form.List
-                            validator: async (_, value) => {
-                              if (!value) return Promise.resolve();
+                            validator: async (_, _value) => {
                               const list =
                                 modalForm.getFieldValue(['attributes']) || [];
                               const count = list.filter(
                                 (row: any, idx: number) =>
-                                  idx !== name && row?.attributeId === value,
+                                  idx !== name && row?.attributeId === _value,
                               ).length;
-                              if (count > 0) {
-                                return Promise.reject(
-                                  new Error(
-                                    'Thuộc tính này đã được chọn ở dòng khác',
-                                  ),
+                              if (count > 0)
+                                throw new Error(
+                                  'Thuộc tính này đã được chọn ở dòng khác',
                                 );
-                              }
-                              return Promise.resolve();
                             },
                           },
                         ]}
@@ -720,22 +509,19 @@ const SetAttributeAndUnitModal = ({
                             </div>
                           )}
                           options={attributeOptions}
-                          style={{ width: 240 }}
-                          onChange={() => {
-                            // đổi attribute => reset value tương ứng
-                            modalForm.setFieldValue(valuePath, []);
-                          }}
                         />
                       </FormItem>
-
-                      <FormItem {...restField} name={[name, 'value']}>
+                      <FormItem
+                        {...restField}
+                        name={[name, 'value']}
+                        rules={[{ required: true, message: 'Chọn giá trị' }]}
+                      >
                         <AttributeValueSelect
                           form={modalForm}
                           attrIdPath={attrIdPath}
                           valuePath={valuePath}
                         />
                       </FormItem>
-
                       <Button danger onClick={() => remove(name)}>
                         Xóa
                       </Button>

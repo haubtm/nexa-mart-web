@@ -25,6 +25,10 @@ export interface IProductCreateRequest {
   brandId?: number;
   description?: string;
   allowSale?: boolean;
+  baseUnit?: {
+    unit: string;
+  };
+  productType?: number;
   variants?: IVariant[];
 }
 

@@ -84,131 +84,55 @@ export const useHook = (
   const { data: brandsData, isLoading: isBrandsLoading } = useBrandList({});
 
   const [rules, Schema] = useMemo(() => {
-    const Schema = z.object({
-      name: z
-        .string('Tên phải là chuỗi')
-        .nonempty('Tên không được để trống')
+    const UnitSchema = z.object({
+      unit: z
+        .string('Đơn vị tính phải là chuỗi')
+        .nonempty('Đơn vị tính không được để trống')
         .trim(),
-      categoryId: z
-        .number('Id danh mục phải là số')
-        .min(1, 'Vui lòng chọn danh mục')
+      conversionValue: z
+        .preprocess(
+          (v) => Number(v),
+          z.number().int('Giá trị quy đổi phải là số nguyên').min(1),
+        )
         .optional(),
-      brandId: z
-        .number('Id thương hiệu phải là số')
-        .min(1, 'Vui lòng chọn thương hiệu')
-        .optional(),
-      productType: z
-        .number('Loại sản phẩm phải là số')
-        .min(1, 'Vui lòng chọn loại')
-        .optional()
-        .default(1),
+      barcode: z.string().trim().optional(),
+      variantCode: z.string().trim().optional(),
+      isBaseUnit: z.boolean().optional(),
+    });
+
+    const Schema = z.object({
+      name: z.string().nonempty('Tên không được để trống').trim(),
+      categoryId: z.number().min(1, 'Vui lòng chọn danh mục').optional(),
+      brandId: z.number().min(1, 'Vui lòng chọn thương hiệu').optional(),
+      productType: z.number().min(1).optional().default(1),
       variants: z
         .array(
           z.object({
-            sku: z
-              .string('SKU phải là chuỗi')
-              .nonempty('SKU không được để trống')
-              .trim()
-              .optional(),
             attributes: z
               .array(
                 z.object({
-                  attributeId: z
-                    .number('Id thuộc tính phải là số')
-                    .min(1, 'Vui lòng chọn thuộc tính'),
-                  value: z
-                    .string('Giá trị thuộc tính phải là chuỗi')
-                    .nonempty('Giá trị thuộc tính không được để trống')
-                    .trim(),
+                  attributeId: z.number().min(1),
+                  value: z.string().nonempty().trim(),
                 }),
               )
               .optional(),
-            units: z.array(
-              z.object({
-                unit: z
-                  .string('Đơn vị tính phải là chuỗi')
-                  .nonempty('Đơn vị tính không được để trống')
-                  .trim(),
-                basePrice: z.preprocess(
-                  (value) => Number(value),
-                  z
-                    .number('Giá bán lẻ phải là số')
-                    .int('Giá bán lẻ phải là số nguyên')
-                    .min(0, 'Giá bán lẻ không được nhỏ hơn 0'),
-                ),
-                cost: z.preprocess(
-                  (value) => Number(value),
-                  z
-                    .number('Giá vốn phải là số')
-                    .int('Giá vốn phải là số nguyên')
-                    .min(0, 'Giá vốn không được nhỏ hơn 0'),
-                ),
-                barcode: z.string('Mã vạch phải là chuỗi').optional(),
-                conversionValue: z
-                  .preprocess(
-                    (value) => Number(value),
-                    z
-                      .number('Giá trị quy đổi phải là số')
-                      .int('Giá trị quy đổi phải là số nguyên')
-                      .min(1, 'Giá trị quy đổi không được nhỏ hơn 1'),
-                  )
-                  .optional(),
-                onHand: z
-                  .preprocess(
-                    (value) => Number(value),
-                    z
-                      .number('Tồn kho phải là số')
-                      .min(0, 'Tồn kho không được nhỏ hơn 0'),
-                  )
-                  .optional(),
-                isBaseUnit: z
-                  .boolean('Đơn vị cơ bản phải là boolean')
-                  .optional(),
-              }),
-            ),
+            units: z.array(UnitSchema),
           }),
         )
         .min(1, 'Vui lòng thêm ít nhất một biến thể')
         .optional(),
-      inventory: z
-        .object({
-          minQuantity: z.preprocess(
-            (value) => Number(value),
-            z
-              .number('Số lượng tối thiểu phải là số')
-              .min(0, 'Số lượng tối thiểu không được nhỏ hơn 0'),
-          ),
-          maxQuantity: z.preprocess(
-            (value) => Number(value),
-            z
-              .number('Số lượng tối đa phải là số')
-              .min(0, 'Số lượng tối đa không được nhỏ hơn 0'),
-          ),
-          onHand: z.preprocess(
-            (value) => Number(value),
-            z
-              .number('Tồn kho phải là số')
-              .min(0, 'Tồn kho không được nhỏ hơn 0'),
-          ),
-        })
-        .optional(),
-      allowsSale: z
-        .boolean('Cho phép bán phải là boolean')
-        .default(true)
-        .optional(),
-      description: z.string('Mô tả phải là chuỗi').trim().optional(),
+      description: z.string().trim().optional(),
     });
 
-    return [createSchemaFieldRule(Schema), Schema];
+    return [createSchemaFieldRule(Schema), Schema] as const;
   }, []);
 
   const onFinish = async (values: IProductCreateRequest) => {
     console.log('Received values of form: ', values);
     try {
-      const isSingle = (values.productType ?? 1) !== 2;
       const hasVariants =
         Array.isArray(values.variants) && values.variants.length > 0;
-      if (isSingle && !hasVariants) {
+      if (!hasVariants) {
         const base = values.baseUnit as any;
         if (!base?.unit) {
           notify('error', {
@@ -219,13 +143,12 @@ export const useHook = (
 
         values.variants = [
           {
+            attributes: [],
             units: [
               {
                 unit: String(base.unit),
-                basePrice: Number(base.basePrice ?? 0),
-                cost: Number(base.cost ?? 0),
-                onHand: Number(base.onHand ?? 0),
                 conversionValue: 1,
+                isBaseUnit: true,
               },
             ],
           } as any,
