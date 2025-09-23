@@ -1,10 +1,10 @@
 import { SvgReloadIcon, SvgSearchIcon } from '@/assets';
-import { inventoryKeys } from '@/features/main/react-query';
+import { stockTakeKeys } from '@/features/main/react-query';
 import { Button } from '@/lib';
 import BasePageLayout from '@/lib/components/BasePageLayout';
 import { queryClient } from '@/providers/ReactQuery';
 import { useCommonHook } from './hook';
-import { StockTakeHistoryTable } from './components';
+import { StockTakeHistoryTable, CreateStockTakeModal } from './components';
 
 const StockTakeContainer = () => {
   const {
@@ -12,7 +12,7 @@ const StockTakeContainer = () => {
     setRecord,
     queryParams,
     setQueryParams,
-    isInventoryListLoading,
+    isStockTakeListLoading,
   } = useCommonHook();
 
   return (
@@ -32,13 +32,14 @@ const StockTakeContainer = () => {
         <>
           <Button
             icon={<SvgReloadIcon width={16} height={16} />}
-            disabled={isInventoryListLoading}
+            disabled={isStockTakeListLoading}
             onClick={() => {
               queryClient.invalidateQueries({
-                queryKey: inventoryKeys.all,
+                queryKey: stockTakeKeys.all,
               });
             }}
           />
+          <CreateStockTakeModal />
         </>
       }
       tableArea={

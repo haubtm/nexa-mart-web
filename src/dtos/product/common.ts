@@ -25,8 +25,17 @@ interface IUnit {
   conversionValue: number;
   isBaseUnit: boolean;
 }
+interface IImage {
+  imageId: number;
+  imageUrl: string;
+  imageAlt: string;
+  sortOrder: number;
+  createdAt: string;
+  productId: number;
+  variantId: number;
+}
 
-interface IVariant {
+export interface IVariant {
   variantId: number;
   variantName: string;
   variantCode: string;
@@ -37,6 +46,7 @@ interface IVariant {
   updatedAt: string;
   unit: IUnit;
   attributes: IAttribute[];
+  images: IImage[];
 }
 
 export interface IProductResponseData {

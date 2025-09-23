@@ -5,6 +5,8 @@ export const productKeys = {
   lists: () => [...productKeys.all, 'list'] as const,
   list: (filters: IBaseListRequest) =>
     [...productKeys.lists(), { filters }] as const,
+  listVariants: (filters: IBaseListRequest) =>
+    [...productKeys.lists(), 'variants', { filters }] as const,
   details: () => [...productKeys.all, 'detail'] as const,
   detail: (id: number) => [...productKeys.details(), id] as const,
   category: () => [...productKeys.all, 'category'] as const,

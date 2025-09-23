@@ -1,8 +1,9 @@
-import { type IModalRef, Table } from '@/lib';
+import { Button, type IModalRef, Table } from '@/lib';
 import { useCommonHook } from '@/features/main/containers/StockTake/hook';
 import { useHook } from './hook';
-import type { IInventoryHistoryResponse } from '@/dtos';
+import type { IInventoryHistoryResponse, IStockTakeListResponse } from '@/dtos';
 import React from 'react';
+import { SvgTrashIcon } from '@/assets';
 
 interface IStockTakeHistoryTableProps {
   ref: React.RefObject<IModalRef | null>;
@@ -19,34 +20,34 @@ const StockTakeHistoryTable = ({
   const {
     queryParams,
     setQueryParams,
-    inventoryListData,
-    isInventoryListLoading,
+    stockTakeListData,
+    isStockTakeListLoading,
   } = useCommonHook();
 
   return (
-    <Table<IInventoryHistoryResponse['data']['content'][number]>
-      rowKey="id"
-      //   selectionBar={{
-      //     actionButtons: (
-      //       <Button
-      //         type="primary"
-      //         danger
-      //         icon={<SvgTrashIcon width={12} height={12} />}
-      //         onClick={() => handleDelete(selectedRowKeys)}
-      //       >
-      //         Xóa
-      //       </Button>
-      //     ),
-      //   }}
+    <Table<IStockTakeListResponse['data']['content'][number]>
+      rowKey="stocktakeId"
+      // selectionBar={{
+      //   actionButtons: (
+      //     <Button
+      //       type="primary"
+      //       danger
+      //       icon={<SvgTrashIcon width={12} height={12} />}
+      //       onClick={() => handleDelete(selectedRowKeys)}
+      //     >
+      //       Xóa
+      //     </Button>
+      //   ),
+      // }}
       rowSelection={{
         selectedRowKeys: selectedRowKeys,
         onChange: (keys) => setSelectedRowKeys(keys as number[]),
       }}
       columns={columns}
-      dataSource={inventoryListData?.data?.content || []}
-      loading={isInventoryListLoading}
+      dataSource={stockTakeListData?.data?.content || []}
+      loading={isStockTakeListLoading}
       pagination={{
-        total: inventoryListData?.data?.totalPages,
+        total: stockTakeListData?.data?.totalPages,
         current: (queryParams.page ?? 0) + 1,
         pageSize: queryParams.limit,
         onChange: (page, pageSize) => {

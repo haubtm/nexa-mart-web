@@ -1,14 +1,15 @@
 import { formatDate, type ITableProps } from '@/lib';
 import { useState } from 'react';
 import { useCommonHook } from '@/features/main/containers/StockTake/hook';
-import type { IInventoryHistoryResponse } from '@/dtos';
+import type { IStockTakeListResponse } from '@/dtos';
+import { Tag } from 'antd';
 
 export const useHook = () => {
   const { queryParams } = useCommonHook();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
   const columns: ITableProps<
-    IInventoryHistoryResponse['data']['content'][number]
+    IStockTakeListResponse['data']['content'][number]
   >['columns'] = [
     {
       key: 'id',
@@ -22,43 +23,35 @@ export const useHook = () => {
       key: 'referenceId',
       title: 'Mã kiểm kho',
       width: 120,
-      render: (_, record) => record?.referenceId,
+      render: (_, record) => record?.stocktakeCode,
     },
     {
-      key: 'time',
-      title: 'Thời gian',
-      width: 130,
-      render: (_, record) => formatDate(record?.time),
-    },
-    {
-      key: 'actualQuantity',
-      title: 'SL thực tế',
+      key: 'createdAt',
+      title: 'Ngày tạo',
       width: 120,
-      render: (_, record) => record?.actualQuantity,
+      render: (_, record) => formatDate(record?.createdAt),
     },
     {
-      key: 'totalDifference',
-      title: 'Tổng chênh lệch',
+      key: 'status',
+      title: 'Trạng thái',
       width: 120,
-      render: (_, record) => record?.totalDifference,
+      render: (_, record) => (
+        <Tag color={record?.status === 'COMPLETED' ? 'green' : 'blue'}>
+          {record?.status === 'COMPLETED' ? 'Hoàn thành' : 'Đang chờ'}
+        </Tag>
+      ),
     },
     {
-      key: 'increaseQuantity',
-      title: 'SL tăng',
+      key: 'updatedAt',
+      title: 'Ngày cập nhật',
       width: 120,
-      render: (_, record) => record?.increaseQuantity,
-    },
-    {
-      key: 'decreaseQuantity',
-      title: 'SL giảm',
-      width: 120,
-      render: (_, record) => record?.decreaseQuantity,
+      render: (_, record) => formatDate(record?.updatedAt),
     },
     {
       key: 'note',
       title: 'Ghi chú',
       width: 120,
-      render: (_, record) => record?.note,
+      render: (_, record) => record?.notes,
     },
   ];
 

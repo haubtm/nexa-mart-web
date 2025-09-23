@@ -11,6 +11,7 @@ import type {
   IProductByIdResponse,
   IProductByCategoryIdResponse,
   IProductByCategoryIdRequest,
+  IProductVariantListResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -21,6 +22,14 @@ export const productApi = {
     const response = await apiService.post<IProductListResponse>(
       `${BASE_ENDPOINT}/list`,
       body,
+    );
+
+    return response;
+  },
+
+  listVariants: async (body: IBaseListRequest) => {
+    const response = await apiService.get<IProductVariantListResponse>(
+      `${BASE_ENDPOINT}/variants/search?keyword=${body.search}`,
     );
 
     return response;

@@ -1,6 +1,6 @@
 import type { IInventoryHistoryResponse } from '@/dtos';
-import { useInventoryList } from '@/features/main/react-query';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, type IModalRef } from '@/lib';
+import { useStockTakeList } from '@/features/main/react-query';
+import { DEFAULT_PAGE_SIZE, type IModalRef } from '@/lib';
 import { useRef, useState } from 'react';
 import {
   JsonParam,
@@ -16,13 +16,13 @@ export const useCommonHook = () => {
     useState<IInventoryHistoryResponse['data']['content'][number]>();
 
   const [queryParams, setQueryParams] = useQueryParams({
-    page: withDefault(NumberParam, DEFAULT_PAGE),
+    page: withDefault(NumberParam, 0),
     limit: withDefault(NumberParam, DEFAULT_PAGE_SIZE),
     search: withDefault(StringParam, undefined),
     sorts: withDefault(JsonParam, undefined),
   });
-  const { data: inventoryListData, isFetching: isInventoryListLoading } =
-    useInventoryList(queryParams);
+  const { data: stockTakeListData, isFetching: isStockTakeListLoading } =
+    useStockTakeList(queryParams);
 
   return {
     ref,
@@ -30,7 +30,7 @@ export const useCommonHook = () => {
     setRecord,
     queryParams,
     setQueryParams,
-    inventoryListData,
-    isInventoryListLoading,
+    stockTakeListData,
+    isStockTakeListLoading,
   };
 };

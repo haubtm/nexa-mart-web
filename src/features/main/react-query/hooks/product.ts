@@ -14,6 +14,13 @@ export const useProductList = (filters: IBaseListRequest) => {
   });
 };
 
+export const useProductListVariants = (filters: IBaseListRequest) => {
+  return useQuery({
+    queryKey: productKeys.listVariants(filters),
+    queryFn: async () => await productApi.listVariants(filters),
+  });
+};
+
 export const useProductById = (body: IProductByIdRequest) => {
   return useQuery({
     queryKey: productKeys.detail(body.id),

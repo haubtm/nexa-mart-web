@@ -17,7 +17,7 @@ import { apiService } from '../axiosService';
 
 const BASE_ENDPOINT = '/stocktakes';
 
-export const StockTakeApi = {
+export const stockTakeApi = {
   list: async (body: IBaseListRequest) => {
     const response = await apiService.get<IStockTakeListResponse>(
       `${BASE_ENDPOINT}`,

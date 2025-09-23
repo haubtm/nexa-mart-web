@@ -9,7 +9,7 @@ import type {
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
-const BASE_ENDPOINT = '/warehouses';
+const BASE_ENDPOINT = '/warehouse';
 
 export const warehouseApi = {
   byProductId: async (body: IWarehouseByProductIdRequest) => {
@@ -39,7 +39,7 @@ export const warehouseApi = {
 
   stockByVariantId: async (body: IWarehouseStockByVariantIdRequest) => {
     const response = await apiService.get<IWarehouseStockByVariantIdResponse>(
-      `${BASE_ENDPOINT}/warehouse/variant/${body.variantId}/stock`,
+      `${BASE_ENDPOINT}/variant/${body.variantId}/stock`,
     );
 
     return response;
