@@ -3,7 +3,9 @@ import {
   BaseLayout as AdminBaseLayout,
   DashboardPage as AdminDashboardPage,
   ProductPage as AdminProductPage,
+  ImportsPage as AdminImportsPage,
   EmployeePage as AdminEmployeePage,
+  TransactionPage as AdminTransactionPage,
   SettingPage as AdminSettingPage,
   StockTakePage as AdminStockTakePage,
   SupplierPage as AdminSupplierPage,
@@ -40,6 +42,10 @@ export const AdminRoute = () => {
         element={<AdminProductPage />}
       />
       <Route
+        path={ROUTE_PATH.ADMIN.IMPORTS.PATH()}
+        element={<AdminImportsPage />}
+      />
+      <Route
         path={ROUTE_PATH.ADMIN.EMPLOYEE.PATH()}
         element={<AdminEmployeePage />}
       />
@@ -54,6 +60,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.SUPPLIER.PATH()}
         element={<AdminSupplierPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.TRANSACTION.PATH()}
+        element={<AdminTransactionPage />}
       />
     </Route>
   );

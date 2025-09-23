@@ -9,6 +9,8 @@ export interface IImportsByIdResponse extends IResponse<IImportsResponseData> {}
 
 export interface IImportsBySupplierIdRequest {
   supplierId: number;
+  page?: number;
+  size?: number;
 }
 
 export interface IImportsBySupplierIdResponse

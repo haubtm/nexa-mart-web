@@ -47,6 +47,10 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.EMPLOYEE.PATH(),
         label: 'Danh sách nhân viên',
       },
+      [ROUTE_PATH.ADMIN.TRANSACTION.PATH()]: {
+        key: ROUTE_PATH.ADMIN.TRANSACTION.PATH(),
+        label: 'Lịch sử kho',
+      },
       [ROUTE_PATH.ADMIN.STOCK_TAKE.PATH()]: {
         key: ROUTE_PATH.ADMIN.STOCK_TAKE.PATH(),
         label: 'Kiểm kho',
@@ -54,6 +58,10 @@ const LayoutMenu = () => {
       [ROUTE_PATH.ADMIN.SUPPLIER.PATH()]: {
         key: ROUTE_PATH.ADMIN.SUPPLIER.PATH(),
         label: 'Nhà cung cấp',
+      },
+      [ROUTE_PATH.ADMIN.IMPORTS.PATH()]: {
+        key: ROUTE_PATH.ADMIN.IMPORTS.PATH(),
+        label: 'Nhập kho',
       },
     };
   }, []);
@@ -69,32 +77,25 @@ const LayoutMenu = () => {
         ),
       },
       {
-        key: 'sub1',
+        key: 'product',
         label: 'Sản phẩm',
         children: [
           {
-            key: '1-1',
-            label: 'Sản phẩm',
-            type: 'group',
-            children: [
-              {
-                key: routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].key,
-                label: (
-                  <Link to={ROUTE_PATH.ADMIN.PRODUCT.PATH()}>
-                    {routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].label}
-                  </Link>
-                ),
-              },
-            ],
+            key: routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.PRODUCT.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].label}
+              </Link>
+            ),
           },
         ],
       },
       {
-        key: routePathMapping[ROUTE_PATH.ADMIN.SUPPLIER.PATH()].key,
+        key: 'stock_management',
         label: 'Quản lý kho',
         children: [
           {
-            key: '5',
+            key: routePathMapping[ROUTE_PATH.ADMIN.SUPPLIER.PATH()].key,
             label: (
               <Link to={ROUTE_PATH.ADMIN.SUPPLIER.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.SUPPLIER.PATH()].label}
@@ -109,14 +110,30 @@ const LayoutMenu = () => {
               </Link>
             ),
           },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.IMPORTS.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.IMPORTS.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.IMPORTS.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.TRANSACTION.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.TRANSACTION.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.TRANSACTION.PATH()].label}
+              </Link>
+            ),
+          },
         ],
       },
       {
-        key: routePathMapping[ROUTE_PATH.ADMIN.EMPLOYEE.PATH()].key,
+        key: 'employee',
         label: 'Nhân viên',
         children: [
           {
-            key: '5',
+            key: routePathMapping[ROUTE_PATH.ADMIN.EMPLOYEE.PATH()].key,
             label: (
               <Link to={ROUTE_PATH.ADMIN.EMPLOYEE.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.EMPLOYEE.PATH()].label}

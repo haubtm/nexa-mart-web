@@ -13,6 +13,12 @@ export const ROUTE_PATH = {
     EMPLOYEE: {
       PATH: () => `/admin/employee`,
     },
+    IMPORTS: {
+      PATH: () => `/admin/imports`,
+    },
+    TRANSACTION: {
+      PATH: () => `/admin/transaction`,
+    },
     SETTING: {
       PATH: () => `/admin/setting`,
     },

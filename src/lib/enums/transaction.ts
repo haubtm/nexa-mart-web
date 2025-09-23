@@ -3,6 +3,4 @@ export enum ETransaction {
   RETURN = 'RETURN',
   SALE = 'SALE',
   STOCK_IN = 'STOCK_IN',
-  TRANSFER_IN = 'TRANSFER_IN',
-  TRANSFER_OUT = 'TRANSFER_OUT',
 }

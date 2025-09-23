@@ -6,6 +6,7 @@ import type {
   IWarehouseByVariantIdResponse,
   IWarehouseStockByVariantIdRequest,
   IWarehouseStockByVariantIdResponse,
+  IWarehouseTransactionResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -22,8 +23,8 @@ export const warehouseApi = {
   },
 
   transaction: async (body: IBaseListRequest) => {
-    const response = await apiService.get<IWarehouseByVariantIdResponse>(
-      `${BASE_ENDPOINT}/transactions/variant/?page=${body.page}&size=${body.limit}`,
+    const response = await apiService.get<IWarehouseTransactionResponse>(
+      `${BASE_ENDPOINT}/transactions?page=${body.page}&size=${body.limit}`,
     );
 
     return response;

@@ -128,7 +128,6 @@ export const useHook = (
   }, []);
 
   const onFinish = async (values: IProductCreateRequest) => {
-    console.log('Received values of form: ', values);
     try {
       const hasVariants =
         Array.isArray(values.variants) && values.variants.length > 0;
