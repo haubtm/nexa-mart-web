@@ -104,7 +104,6 @@ export const useHook = (
       name: z.string().nonempty('Tên không được để trống').trim(),
       categoryId: z.number().min(1, 'Vui lòng chọn danh mục').optional(),
       brandId: z.number().min(1, 'Vui lòng chọn thương hiệu').optional(),
-      productType: z.number().min(1).optional().default(1),
       variants: z
         .array(
           z.object({

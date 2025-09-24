@@ -47,6 +47,10 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.EMPLOYEE.PATH(),
         label: 'Danh sách nhân viên',
       },
+      [ROUTE_PATH.ADMIN.PRICE.PATH()]: {
+        key: ROUTE_PATH.ADMIN.PRICE.PATH(),
+        label: 'Thiết lập giá',
+      },
       [ROUTE_PATH.ADMIN.TRANSACTION.PATH()]: {
         key: ROUTE_PATH.ADMIN.TRANSACTION.PATH(),
         label: 'Lịch sử kho',
@@ -85,6 +89,14 @@ const LayoutMenu = () => {
             label: (
               <Link to={ROUTE_PATH.ADMIN.PRODUCT.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.PRODUCT.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.PRICE.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.PRICE.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.PRICE.PATH()].label}
               </Link>
             ),
           },

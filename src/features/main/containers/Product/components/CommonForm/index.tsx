@@ -112,7 +112,7 @@ const ProductForm = ({ form, handleSubmit }: IProductFormProps) => {
                 <Select
                   placeholder="Chọn thương hiệu"
                   options={
-                    brandsData?.data.map((brand) => ({
+                    brandsData?.data?.map((brand) => ({
                       label: brand.name,
                       value: brand.brandId,
                     })) ?? []

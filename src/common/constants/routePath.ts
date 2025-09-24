@@ -16,6 +16,9 @@ export const ROUTE_PATH = {
     IMPORTS: {
       PATH: () => `/admin/imports`,
     },
+    PRICE: {
+      PATH: () => `/admin/price`,
+    },
     TRANSACTION: {
       PATH: () => `/admin/transaction`,
     },
