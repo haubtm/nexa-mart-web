@@ -1,13 +1,3 @@
-interface IAttribute {
-  id: number;
-  variantId: number;
-  attributeValueId: number;
-  attributeName: string;
-  attributeValue: string;
-  attributeValueDescription: string;
-  createdDate: string;
-}
-
 interface ICategory {
   id: number;
   name: string;
@@ -19,45 +9,46 @@ interface IBrand {
 }
 
 interface IUnit {
-  id: number;
-  code: string;
-  unit: string;
+  id?: number;
+  code?: string;
+  barcode?: string;
   conversionValue: number;
   isBaseUnit: boolean;
-}
-interface IImage {
-  imageId: number;
-  imageUrl: string;
-  imageAlt: string;
-  sortOrder: number;
-  createdAt: string;
-  productId: number;
-  variantId: number;
-}
-
-export interface IVariant {
-  variantId: number;
-  variantName: string;
-  variantCode: string;
-  barcode: string;
-  allowsSale: boolean;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  unit: IUnit;
-  attributes: IAttribute[];
-  images: IImage[];
+  unitName: string;
 }
 
 export interface IProductResponseData {
   id: number;
   name: string;
   description: string;
-  variantCount: number;
   isActive: boolean;
   createdDate: string;
   updatedAt: string;
   category: ICategory;
   brand: IBrand;
-  variants: IVariant[];
+  unitCount: number;
+  imageCount: number;
+  mainImageUrl: string;
+  units: IUnit[];
+}
+
+export interface IUnitResponseData {
+  id: number;
+  code: string;
+  barcode: string;
+  conversionValue: number;
+  isBaseUnit: boolean;
+  isActive: boolean;
+  unit: {
+    id: number;
+    name: string;
+    isActive: boolean;
+    isDeleted: boolean;
+    createAt: string;
+    updateAt: string;
+  };
+  productId: number;
+  createdAt: string;
+  updatedAt: string;
 }

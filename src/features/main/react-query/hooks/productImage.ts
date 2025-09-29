@@ -7,6 +7,7 @@ export const useProductImageById = (body: IProductImageByIdRequest) => {
   return useQuery({
     queryKey: productImageKeys.detail(body.productId),
     queryFn: async () => await productImageApi.byId(body),
+    enabled: !!body.productId,
   });
 };
 

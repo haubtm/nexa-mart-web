@@ -3,10 +3,7 @@ import { createSchemaFieldRule } from 'antd-zod';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useDebounce } from '@/lib';
-import {
-  useProductListVariants,
-  useSupplierList,
-} from '@/features/main/react-query';
+import { useProductList, useSupplierList } from '@/features/main/react-query';
 
 export const useHook = (
   handleSubmit: (values: IImportsCreateRequest) => Promise<any> | any,
@@ -44,7 +41,7 @@ export const useHook = (
   const [search, setSearch] = useState<string>('');
   const searchDebounce = useDebounce(search, 500);
   const { data: productVariants, isLoading: isLoadingVariants } =
-    useProductListVariants({ search: searchDebounce });
+    useProductList({ searchTerm: searchDebounce });
 
   const onFinish = async (values: IImportsCreateRequest) => {
     try {

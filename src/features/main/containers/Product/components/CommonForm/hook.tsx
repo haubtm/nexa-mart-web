@@ -3,19 +3,21 @@ import {
   productImageKeys,
   useBrandList,
   useCategoryRootList,
+  useProductImageById,
   useProductImageCreate,
 } from '@/features/main/react-query';
 import { Form, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { message, Upload, UploadFile, UploadProps } from 'antd';
 import { createSchemaFieldRule } from 'antd-zod';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 
 export const useHook = (
   handleSubmit?: (
     values: IProductCreateRequest,
   ) => Promise<IProductCreateResponse | undefined>,
+  productId?: number,
 ) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -23,6 +25,30 @@ export const useHook = (
   const [modalForm] = Form.useForm<IProductCreateRequest>();
   const { mutateAsync: uploadImages } = useProductImageCreate();
   const { notify } = useNotification();
+
+  const { data: imageData, isSuccess } = useProductImageById({
+    productId: productId!,
+  });
+
+  const preloadedOnceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!productId) return;
+    if (!isSuccess) return; // ⬅️ Chờ có dữ liệu thật sự
+    if (preloadedOnceRef.current === productId) return;
+
+    const images = imageData?.data ?? [];
+    if (Array.isArray(images) && images.length > 0) {
+      const mapped: UploadFile[] = images.slice(0, 4).map((img) => ({
+        uid: String(img.imageId),
+        name: img.imageAlt ?? `image-${img.imageId}`,
+        status: 'done',
+        url: img.imageUrl,
+      }));
+      setFileList((curr) => (curr.length === 0 ? mapped : curr));
+    }
+    preloadedOnceRef.current = productId;
+  }, [productId, imageData, isSuccess]);
 
   const uploadProps: UploadProps = {
     name: 'file',
@@ -84,43 +110,28 @@ export const useHook = (
   const { data: brandsData, isLoading: isBrandsLoading } = useBrandList({});
 
   const [rules, Schema] = useMemo(() => {
-    const UnitSchema = z.object({
-      unit: z
-        .string('Đơn vị tính phải là chuỗi')
-        .nonempty('Đơn vị tính không được để trống')
-        .trim(),
-      conversionValue: z
-        .preprocess(
-          (v) => Number(v),
-          z.number().int('Giá trị quy đổi phải là số nguyên').min(1),
-        )
-        .optional(),
-      barcode: z.string().trim().optional(),
-      variantCode: z.string().trim().optional(),
-      isBaseUnit: z.boolean().optional(),
-    });
-
     const Schema = z.object({
       name: z.string().nonempty('Tên không được để trống').trim(),
       categoryId: z.number().min(1, 'Vui lòng chọn danh mục').optional(),
       brandId: z.number().min(1, 'Vui lòng chọn thương hiệu').optional(),
-      variants: z
+      description: z.string().trim().optional(),
+      units: z
         .array(
           z.object({
-            attributes: z
-              .array(
-                z.object({
-                  attributeId: z.number().min(1),
-                  value: z.string().nonempty().trim(),
-                }),
-              )
-              .optional(),
-            units: z.array(UnitSchema),
+            id: z.number().optional(),
+            unitName: z
+              .string()
+              .nonempty('Tên đơn vị không được để trống')
+              .trim(),
+            conversionValue: z
+              .number('Hệ số quy đổi phải là số')
+              .min(1, 'Hệ số quy đổi phải lớn hơn 0'),
+            isBaseUnit: z.boolean().optional(),
+            code: z.string().trim().optional(),
+            barcode: z.string().trim().optional(),
           }),
         )
-        .min(1, 'Vui lòng thêm ít nhất một biến thể')
-        .optional(),
-      description: z.string().trim().optional(),
+        .min(1, 'Vui lòng thêm ít nhất một đơn vị'),
     });
 
     return [createSchemaFieldRule(Schema), Schema] as const;
@@ -128,63 +139,44 @@ export const useHook = (
 
   const onFinish = async (values: IProductCreateRequest) => {
     try {
-      const hasVariants =
-        Array.isArray(values.variants) && values.variants.length > 0;
-      if (!hasVariants) {
-        const base = values.baseUnit as any;
-        if (!base?.unit) {
-          notify('error', {
-            message: 'Thất bại',
-            description: 'Vui lòng nhập đơn vị cơ bản',
-          });
-        }
-
-        values.variants = [
-          {
-            attributes: [],
-            units: [
-              {
-                unit: String(base.unit),
-                conversionValue: 1,
-                isBaseUnit: true,
-              },
-            ],
-          } as any,
-        ];
-      }
       const parsedValues = Schema.parse(values);
       const res = await handleSubmit?.(parsedValues as IProductCreateRequest);
-      if (res?.data?.id && fileList.length > 0) {
-        const files = fileList
-          .map((f) => f.originFileObj as File | undefined)
-          .filter((f): f is File => !!f);
+
+      const targetProductId = res?.data?.id ?? productId;
+
+      // chỉ upload file mới (có originFileObj); file cũ (status: 'done', url) sẽ bỏ qua
+      const newFiles = fileList
+        .map((f) => f.originFileObj as File | undefined)
+        .filter((f): f is File => !!f);
+
+      if (targetProductId && newFiles.length > 0) {
         await uploadImages(
-          {
-            productId: res.data.id,
-            imageFiles: files,
-          },
+          { productId: targetProductId, imageFiles: newFiles },
           {
             onSuccess: () => {
               notify('success', {
                 message: 'Thành công',
-                description: 'Thêm sản phẩm thành công',
+                description: 'Tải ảnh lên thành công',
               });
-
               queryClient.invalidateQueries({
-                queryKey: productImageKeys.all,
+                queryKey: productImageKeys.detail(targetProductId),
               });
             },
-            onError: (error) => {
+            onError: (error: any) => {
               notify('error', {
                 message: 'Thất bại',
-                description: error.message || 'Có lỗi xảy ra',
+                description: error?.message || 'Có lỗi xảy ra khi tải ảnh',
               });
             },
           },
         );
       }
-      modalForm?.resetFields();
-      setFileList([]);
+
+      // reset form khi tạo mới; nếu là update thì tuỳ bạn muốn giữ hay reset
+      if (!productId) {
+        modalForm?.resetFields();
+        setFileList([]);
+      }
     } catch (error) {
       console.error(error);
     }

@@ -28,11 +28,12 @@ export const productImageApi = {
   create: async (body: IProductImageCreateRequest) => {
     const formData = new FormData();
     body.imageFiles.forEach((file) => {
-      formData.append('imageFiles', file);
+      formData.append('files', file);
     });
+    formData.append('productId', body.productId.toString());
 
     const response = await apiService.post<IProductImageCreateResponse>(
-      `${BASE_ENDPOINT}/upload-multiple?productId=${body.productId}`,
+      `${BASE_ENDPOINT}/multiple`,
       formData,
       {
         headers: {

@@ -1,5 +1,4 @@
 import type {
-  IBaseListRequest,
   IProductByIdRequest,
   IProductCreateRequest,
   IProductCreateResponse,
@@ -9,27 +8,32 @@ import type {
   IProductUpdateRequest,
   IProductUpdateResponse,
   IProductByIdResponse,
-  IProductByCategoryIdResponse,
-  IProductByCategoryIdRequest,
-  IProductVariantListResponse,
+  IProductListRequest,
+  IProductAddUnitsRequest,
+  IProductAddUnitsResponse,
+  IProductUnitUpdateRequest,
+  IProductUnitUpdateResponse,
+  IProductUnitDeleteRequest,
+  IProductUnitDeleteResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
 const BASE_ENDPOINT = '/products';
 
 export const productApi = {
-  list: async (body: IBaseListRequest) => {
+  list: async (body: IProductListRequest) => {
     const response = await apiService.post<IProductListResponse>(
-      `${BASE_ENDPOINT}/list`,
+      `${BASE_ENDPOINT}/search`,
       body,
     );
 
     return response;
   },
 
-  listVariants: async (body: IBaseListRequest) => {
-    const response = await apiService.get<IProductVariantListResponse>(
-      `${BASE_ENDPOINT}/variants/search?keyword=${body.search}`,
+  addUnits: async (body: IProductAddUnitsRequest) => {
+    const response = await apiService.post<IProductAddUnitsResponse>(
+      `${BASE_ENDPOINT}/${body.productId}/units`,
+      body.unit,
     );
 
     return response;
@@ -38,14 +42,6 @@ export const productApi = {
   byId: async (body: IProductByIdRequest) => {
     const response = await apiService.get<IProductByIdResponse>(
       `${BASE_ENDPOINT}/${body.id}`,
-    );
-
-    return response;
-  },
-
-  byCategoryId: async (body: IProductByCategoryIdRequest) => {
-    const response = await apiService.get<IProductByCategoryIdResponse>(
-      `${BASE_ENDPOINT}/category/${body.categoryId}`,
     );
 
     return response;
@@ -69,11 +65,27 @@ export const productApi = {
     return response;
   },
 
+  updateUnits: async (body: IProductUnitUpdateRequest) => {
+    const response = await apiService.put<IProductUnitUpdateResponse>(
+      `${BASE_ENDPOINT}/${body.productId}/units/${body.unitId}`,
+      body,
+    );
+    return response;
+  },
+
   delete: async (body: IProductDeleteRequest) => {
     const response = await apiService.delete<IProductDeleteResponse>(
-      `${BASE_ENDPOINT}/${body.ids}`,
+      `${BASE_ENDPOINT}/batch`,
+      { data: body.ids },
     );
 
+    return response;
+  },
+
+  deleteUnit: async (body: IProductUnitDeleteRequest) => {
+    const response = await apiService.delete<IProductUnitDeleteResponse>(
+      `${BASE_ENDPOINT}/${body.productId}/units/${body.unitId}`,
+    );
     return response;
   },
 };

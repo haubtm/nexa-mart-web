@@ -22,7 +22,7 @@ export const useHook = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
   const columns: ITableProps<
-    IProductListResponse['data']['content'][number]
+    IProductListResponse['data']['products'][number]
   >['columns'] = [
     {
       key: 'id',

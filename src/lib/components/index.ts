@@ -20,3 +20,4 @@ export type { IModalNewProps, IModalRef } from './ModalNew';
 export { default as Menu } from './Menu';
 export type { IMenuProps } from './Menu';
 export { default as BaseText } from './BaseText';
+export { default as RichText } from './RichText';

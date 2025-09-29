@@ -6,4 +6,4 @@ export interface IProductImageByIdRequest {
 }
 
 export interface IProductImageByIdResponse
-  extends IResponse<IProductImageResponseData> {}
+  extends IResponse<IProductImageResponseData[]> {}

@@ -1,11 +1,31 @@
-import type { IPageable, IResponse } from '../common';
-import type { IProductResponseData, IVariant } from './common';
+import type { IResponse } from '../common';
+import type { IProductResponseData } from './common';
+interface IPageable {
+  pageInfo: {
+    currentPage: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+    isFirst: boolean;
+    isLast: boolean;
+    hasPrevious: boolean;
+    hasNext: boolean;
+  };
+}
+
+export interface IProductListRequest {
+  page?: number;
+  size?: number;
+  searchTerm?: string;
+  categoryId?: number;
+  brandId?: number;
+  isActive?: boolean;
+  sort?: string[];
+}
 
 export interface IProductListResponse
   extends IResponse<
     {
-      content: IProductResponseData[];
+      products: IProductResponseData[];
     } & IPageable
   > {}
-
-export interface IProductVariantListResponse extends IResponse<IVariant[]> {}

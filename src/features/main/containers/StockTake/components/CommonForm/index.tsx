@@ -11,7 +11,7 @@ import {
 } from 'antd';
 import { IFormProps, useDebounce } from '@/lib';
 import {
-  useProductListVariants,
+  useProductList,
   useWarehouseStockByVariantId,
 } from '@/features/main/react-query';
 import type { IStockTakeCreateRequest } from '@/dtos';
@@ -50,10 +50,9 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
   const [lastAddedId, setLastAddedId] = useState<number | null>(null);
 
   // search variants
-  const { data: variantsResp, isLoading: isLoadingVariants } =
-    useProductListVariants({
-      search: debounced,
-    });
+  const { data: variantsResp, isLoading: isLoadingVariants } = useProductList({
+    searchTerm: debounced,
+  });
 
   // chỉ query tồn kho cho dòng vừa thêm (hook chỉ nhận 1 id)
   const { data: variantStock, isLoading: isVariantStockLoading } =

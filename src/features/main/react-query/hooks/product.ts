@@ -1,23 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { productKeys } from '../query-keys';
-import type {
-  IBaseListRequest,
-  IProductByCategoryIdRequest,
-  IProductByIdRequest,
-} from '@/dtos';
+import type { IProductByIdRequest, IProductListRequest } from '@/dtos';
 import { productApi } from '@/api';
 
-export const useProductList = (filters: IBaseListRequest) => {
+export const useProductList = (filters: IProductListRequest) => {
   return useQuery({
     queryKey: productKeys.list(filters),
     queryFn: async () => await productApi.list(filters),
-  });
-};
-
-export const useProductListVariants = (filters: IBaseListRequest) => {
-  return useQuery({
-    queryKey: productKeys.listVariants(filters),
-    queryFn: async () => await productApi.listVariants(filters),
   });
 };
 
@@ -25,13 +14,6 @@ export const useProductById = (body: IProductByIdRequest) => {
   return useQuery({
     queryKey: productKeys.detail(body.id),
     queryFn: async () => await productApi.byId(body),
-  });
-};
-
-export const useProductByCategoryId = (body: IProductByCategoryIdRequest) => {
-  return useQuery({
-    queryKey: productKeys.categoryDetail(body.categoryId),
-    queryFn: async () => await productApi.byCategoryId(body),
   });
 };
 
@@ -50,5 +32,23 @@ export const useProductUpdate = () => {
 export const useProductDelete = () => {
   return useMutation({
     mutationFn: productApi.delete,
+  });
+};
+
+export const useProductAddUnits = () => {
+  return useMutation({
+    mutationFn: productApi.addUnits,
+  });
+};
+
+export const useProductUnitUpdate = () => {
+  return useMutation({
+    mutationFn: productApi.updateUnits,
+  });
+};
+
+export const useProductUnitDelete = () => {
+  return useMutation({
+    mutationFn: productApi.deleteUnit,
   });
 };

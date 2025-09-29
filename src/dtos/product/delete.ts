@@ -5,3 +5,10 @@ export interface IProductDeleteRequest {
 }
 
 export interface IProductDeleteResponse extends IResponse<null> {}
+
+export interface IProductUnitDeleteRequest {
+  productId: number;
+  unitId: number;
+}
+
+export interface IProductUnitDeleteResponse extends IResponse<string> {}

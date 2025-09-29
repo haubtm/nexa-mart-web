@@ -1,36 +1,37 @@
 import type { IResponse } from '../common';
-import type { IProductResponseData } from './common';
+import type { IProductResponseData, IUnitResponseData } from './common';
 
 export interface IUnit {
-  unit: string;
+  id?: number;
+  unitName: string;
   conversionValue: number;
-  barcode: string;
-  variantCode: string;
   isBaseUnit: boolean;
-}
-
-export interface IAttribute {
-  attributeId: number;
-  value: string;
-}
-
-export interface IVariant {
-  attributes: IAttribute[];
-  units: IUnit[];
+  code?: string;
+  barcode?: string;
 }
 
 export interface IProductCreateRequest {
   name: string;
-  categoryId?: number;
-  brandId?: number;
   description?: string;
-  allowSale?: boolean;
-  baseUnit?: {
-    unit: string;
-  };
-  productType?: number;
-  variants?: IVariant[];
+  brandId?: number;
+  categoryId?: number;
+  isActive?: boolean;
+  units: IUnit[];
 }
 
 export interface IProductCreateResponse
   extends IResponse<IProductResponseData> {}
+
+export interface IProductAddUnitsRequest {
+  productId: number;
+  unit: {
+    unitName: string;
+    conversionValue: number;
+    isBaseUnit: boolean;
+    code: string;
+    barcode: string;
+  };
+}
+
+export interface IProductAddUnitsResponse
+  extends IResponse<IUnitResponseData> {}

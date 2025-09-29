@@ -5,7 +5,7 @@ import ProductForm from '../CommonForm';
 import { useHook } from './hook';
 
 interface IUpdateProductModalProps {
-  record?: IProductListResponse['data'][number] | null;
+  record?: IProductListResponse['data']['products'][number] | null;
 }
 
 const UpdateProductModal = ({ record }: IUpdateProductModalProps) => {
@@ -34,7 +34,11 @@ const UpdateProductModal = ({ record }: IUpdateProductModalProps) => {
         />
       }
     >
-      <ProductForm form={form} handleSubmit={handleSubmit} />
+      <ProductForm
+        form={form}
+        handleSubmit={handleSubmit}
+        productId={record?.id}
+      />
     </ModalNew>
   );
 };

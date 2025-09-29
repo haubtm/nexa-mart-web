@@ -1,4 +1,3 @@
-// useHook.ts
 import type { IProductCreateRequest } from '@/dtos';
 import { productKeys, useProductCreate } from '@/features/main/react-query';
 import { Form, type IModalRef, useNotification } from '@/lib';
@@ -18,24 +17,13 @@ export const useHook = () => {
   };
 
   const handleSubmit = async (values: IProductCreateRequest) => {
-    // đảm bảo variants đã được “commit” vào form (trường hợp modal thiết lập vừa set)
     console.log('Submitted values: ', values);
-    try {
-      await form?.validateFields?.(['variants']);
-    } catch (error) {
-      // ignore; nếu productType không yêu cầu variants thì vẫn submit được
-      console.error(error);
-    }
 
-    const variants = values?.variants;
-
-    // build payload đúng theo DTO mới
     const payload: IProductCreateRequest = {
       name: values.name,
       categoryId: Number(values.categoryId),
       brandId: Number(values.brandId),
-      variants:
-        Array.isArray(variants) && variants.length > 0 ? variants : undefined,
+      units: values.units,
       description: values.description || '',
     };
 

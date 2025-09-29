@@ -1,5 +1,4 @@
 import type { IPriceCreateRequest } from '@/dtos';
-import { useProductListVariants } from '@/features/main/react-query';
 import { useDebounce } from '@/lib';
 import { createSchemaFieldRule } from 'antd-zod';
 import { useMemo, useState } from 'react';
@@ -7,6 +6,7 @@ import { z } from 'zod';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { useProductList } from '@/features/main/react-query';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -89,7 +89,7 @@ export const useHook = (
   const [search, setSearch] = useState<string>('');
   const searchDebounce = useDebounce(search, 500);
   const { data: productVariants, isLoading: isLoadingVariants } =
-    useProductListVariants({ search: searchDebounce });
+    useProductList({ searchTerm: searchDebounce });
 
   return {
     rules,
