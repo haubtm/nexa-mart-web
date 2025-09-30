@@ -2,6 +2,7 @@ export * from './auth';
 export * from './attribute';
 export * from './axiosService';
 export * from './brand';
+export * from './customer';
 export * from './category';
 export * from './employee';
 export * from './imports';

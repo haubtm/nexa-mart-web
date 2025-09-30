@@ -7,17 +7,12 @@ import React from 'react';
 
 interface IProductTableProps {
   ref: React.RefObject<IModalRef | null>;
-  setRecord: (record: IProductListResponse['data']['content'][number]) => void;
+  setRecord: (record: IProductListResponse['data']['products'][number]) => void;
 }
 
 const ProductTable = ({ ref, setRecord }: IProductTableProps) => {
-  const {
-    columns,
-    variantColumns,
-    selectedRowKeys,
-    setSelectedRowKeys,
-    handleDelete,
-  } = useHook();
+  const { columns, selectedRowKeys, setSelectedRowKeys, handleDelete } =
+    useHook();
   const { queryParams, setQueryParams, productListData, isProductListLoading } =
     useCommonHook();
 

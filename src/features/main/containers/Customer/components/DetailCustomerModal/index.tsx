@@ -1,29 +1,29 @@
-import type { IEmployeeListResponse } from '@/dtos';
+import type { ICustomerListResponse } from '@/dtos';
 import { type IModalRef, ModalNew } from '@/lib';
 import { useHook } from './hook';
-import EmployeeForm from '../CommonForm';
+import CustomerForm from '../CommonForm';
 
-interface IDetailEmployeeModalProps {
-  record?: IEmployeeListResponse['data'][number];
+interface IDetailCustomerModalProps {
+  record?: ICustomerListResponse['data']['content'][number];
   ref?: React.RefObject<IModalRef | null>;
 }
 
-const DetailEmployeeModal = (props: IDetailEmployeeModalProps) => {
+const DetailCustomerModal = (props: IDetailCustomerModalProps) => {
   const { ref, record } = props;
   const { form, handleCancel } = useHook(record, ref);
   return (
     <ModalNew
       ref={ref}
       width={1000}
-      title={'Xem nhân viên'}
+      title={'Xem khách hàng'}
       onOk={form.submit}
       onCancel={handleCancel}
       footer={null}
       openButton={<></>}
     >
-      <EmployeeForm handleSubmit={form.submit} form={form} readonly={true} />
+      <CustomerForm handleSubmit={form.submit} form={form} readonly={true} />
     </ModalNew>
   );
 };
 
-export default DetailEmployeeModal;
+export default DetailCustomerModal;

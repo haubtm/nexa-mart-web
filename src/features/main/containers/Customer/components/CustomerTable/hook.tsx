@@ -1,7 +1,9 @@
 import { SvgTrashIcon } from '@/assets';
-import { productKeys, useProductDelete } from '@/features/main/react-query';
+import { customerKeys, useCustomerDelete } from '@/features/main/react-query';
 import {
   Button,
+  ECustomerType,
+  EGender,
   Flex,
   formatDate,
   type ITableProps,
@@ -10,17 +12,18 @@ import {
 } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { useState } from 'react';
-import type { IProductListResponse } from '@/dtos';
-import UpdateProductModal from '../UpdateProductModal';
+import type { ICustomerListResponse } from '@/dtos';
+import UpdateCustomerModal from '../UpdateCustomerModal';
+import { Tag } from 'antd';
 
 export const useHook = () => {
   const { notify } = useNotification();
   const { modal } = useModal();
-  const { mutateAsync: deleteBranches } = useProductDelete();
+  const { mutateAsync: deleteBranches } = useCustomerDelete();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
   const columns: ITableProps<
-    IProductListResponse['data']['products'][number]
+    ICustomerListResponse['data']['content'][number]
   >['columns'] = [
     {
       key: 'id',
@@ -31,15 +34,60 @@ export const useHook = () => {
     },
     {
       key: 'name',
-      title: 'Tên sản phẩm',
+      fixed: 'left',
+      title: 'Họ và tên',
       width: 120,
       render: (_, record) => record?.name,
+    },
+    {
+      key: 'email',
+      title: 'Email',
+      width: 200,
+      render: (_, record) => record?.email,
+    },
+    {
+      key: 'phone',
+      title: 'Số điện thoại',
+      width: 150,
+      render: (_, record) => record?.phone,
+    },
+    {
+      key: 'dateofbirth',
+      title: 'Ngày sinh',
+      width: 100,
+      render: (_, record) => formatDate(record?.dateOfBirth),
+    },
+    {
+      key: 'address',
+      title: 'Địa chỉ',
+      width: 200,
+      render: (_, record) => record?.address,
+    },
+    {
+      key: 'gender',
+      title: 'Giới tính',
+      width: 100,
+      render: (_, record) => (record?.gender === EGender.MALE ? 'Nam' : 'Nữ'),
+    },
+    {
+      key: 'role',
+      title: 'Nhóm khách hàng',
+      width: 200,
+      render: (_, record) => (
+        <Tag
+          color={
+            record?.customerType === ECustomerType.REGULAR ? 'green' : 'blue'
+          }
+        >
+          {record?.customerType === ECustomerType.REGULAR ? 'Thường' : 'VIP'}
+        </Tag>
+      ),
     },
     {
       key: 'created_at',
       title: 'Ngày tạo',
       width: 130,
-      render: (_, record) => formatDate(record?.createdDate),
+      render: (_, record) => formatDate(record?.createdAt),
     },
     {
       key: 'updated_at',
@@ -55,14 +103,14 @@ export const useHook = () => {
       render: (_, record) => (
         <Flex gap={8} style={{ display: 'inline-flex' }}>
           <div onClick={(e) => e.stopPropagation()}>
-            <UpdateProductModal record={record} />
+            <UpdateCustomerModal record={record} />
           </div>
           <Button
             type="text"
             icon={<SvgTrashIcon width={18} height={18} />}
             onClick={(e) => {
               e.stopPropagation();
-              handleDelete([record?.id], record);
+              handleDelete([record?.customerId], record);
             }}
           />
         </Flex>
@@ -72,14 +120,14 @@ export const useHook = () => {
 
   const handleDelete = (
     ids: number[],
-    record?: IProductListResponse['data']['products'][number],
+    record?: ICustomerListResponse['data']['content'][number],
   ) => {
     const isDeleteSelected = !record;
 
-    const title = `Xóa sản phẩm`;
+    const title = `Xóa khách hàng`;
     const content = isDeleteSelected
-      ? `Bạn có chắc chắn muốn xóa các sản phẩm này không?`
-      : `Bạn có chắc chắn muốn xóa sản phẩm ${record?.name} này không?`;
+      ? `Bạn có chắc chắn muốn xóa các khách hàng này không?`
+      : `Bạn có chắc chắn muốn xóa khách hàng ${record?.name} này không?`;
 
     modal('confirm', {
       title,
@@ -88,17 +136,17 @@ export const useHook = () => {
         try {
           await deleteBranches(
             {
-              ids,
+              customerIds: ids,
             },
             {
               onSuccess: () => {
                 notify('success', {
                   message: 'Thành công',
-                  description: 'Xóa sản phẩm thành công',
+                  description: 'Xóa khách hàng thành công',
                 });
 
                 queryClient.invalidateQueries({
-                  queryKey: productKeys.lists(),
+                  queryKey: customerKeys.lists(),
                   refetchType: 'all',
                 });
 

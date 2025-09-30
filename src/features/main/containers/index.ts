@@ -1,4 +1,5 @@
 export * from './Employee';
+export * from './Customer';
 export * from './Product';
 export * from './Imports';
 export * from './Transaction';

@@ -12,7 +12,11 @@ import {
   Checkbox,
 } from 'antd';
 import type { FormInstance } from 'antd';
-import type { IPriceCreateRequest, IPriceListResponse } from '@/dtos';
+import type {
+  IPriceCreateRequest,
+  IPriceListResponse,
+  IProductListResponse,
+} from '@/dtos';
 import { useHook } from './hook';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -29,14 +33,6 @@ const nowVN = () => dayjs().tz('Asia/Ho_Chi_Minh');
 type Props = {
   form: FormInstance<IPriceCreateRequest>;
   handleSubmit: (values: IPriceCreateRequest) => Promise<void>;
-};
-
-type VariantItem = {
-  variantId: number;
-  variantName: string;
-  variantCode?: string;
-  unit?: { unit: string };
-  sku?: string;
 };
 
 type Row = {
@@ -89,16 +85,13 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
 
   // options cho AutoComplete
   const options = useMemo(() => {
-    const items: VariantItem[] = productVariants?.data ?? [];
+    const items: IProductListResponse['data']['products'] =
+      productVariants?.data?.products ?? [];
     return items.map((v) => ({
-      value: String(v.variantId),
+      value: String(v.id),
       label: (
         <Space direction="vertical" size={0}>
-          <strong>{v.variantName}</strong>
-          <span style={{ color: '#666', fontSize: 12 }}>
-            {(v.variantCode && `Mã: ${v.variantCode} • `) || ''}
-            {v.unit?.unit ?? ''}
-          </span>
+          <strong>{v.name}</strong>
         </Space>
       ),
       raw: v,

@@ -16,7 +16,7 @@ export const useCommonHook = () => {
     useState<IInventoryHistoryResponse['data']['content'][number]>();
 
   const [queryParams, setQueryParams] = useQueryParams({
-    page: withDefault(NumberParam, 0),
+    page: withDefault(NumberParam, DEFAULT_PAGE_SIZE + 1),
     limit: withDefault(NumberParam, DEFAULT_PAGE_SIZE),
     search: withDefault(StringParam, undefined),
     sorts: withDefault(JsonParam, undefined),

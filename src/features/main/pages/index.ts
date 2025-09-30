@@ -1,5 +1,6 @@
 export { default as DashboardPage } from './Dashboard';
 export { default as ProductPage } from './Product';
+export { default as CustomerPage } from './Customer';
 export { default as ImportsPage } from './Imports';
 export { default as EmployeePage } from './Employee';
 export { default as TransactionPage } from './Transaction';

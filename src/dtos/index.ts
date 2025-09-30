@@ -1,6 +1,7 @@
 export * from './attribute';
 export * from './auth';
 export * from './brand';
+export * from './customer';
 export * from './category';
 export * from './common';
 export * from './employee';
