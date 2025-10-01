@@ -7,7 +7,7 @@ import { useRef } from 'react';
 export const useHook = () => {
   const ref = useRef<IModalRef>(null);
   const [form] = Form.useForm<IPriceCreateRequest>();
-  const { mutateAsync: createImport, isPending: isLoadingCreateImport } =
+  const { mutateAsync: createPrice, isPending: isLoadingCreatePrice } =
     usePriceCreate();
   const { notify } = useNotification();
 
@@ -18,7 +18,7 @@ export const useHook = () => {
 
   const handleSubmit = async (values: IPriceCreateRequest) => {
     console.log('values', values);
-    await createImport(
+    await createPrice(
       {
         priceName: values.priceName,
         priceCode: values.priceCode,
@@ -26,6 +26,7 @@ export const useHook = () => {
         endDate: values.endDate,
         description: values.description,
         priceDetails: values.priceDetails,
+        status: values.status,
       },
       {
         onSuccess: () => {
@@ -53,7 +54,7 @@ export const useHook = () => {
   return {
     ref,
     form,
-    isLoadingCreateImport,
+    isLoadingCreatePrice,
     handleSubmit,
     handleCancel,
   };

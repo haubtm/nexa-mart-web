@@ -1,6 +1,7 @@
 import { PriceStatus } from '@/lib';
 import type { IResponse } from '../common';
 import type { IPriceResponseData } from './common';
+import { Dayjs } from 'dayjs';
 
 interface IPriceDetail {
   priceDetailId: number;
@@ -12,8 +13,8 @@ interface IPriceDetail {
 export interface IPriceUpdateRequest {
   priceId: number;
   priceName: string;
-  startDate: string;
-  endDate: string;
+  startDate: string | Dayjs;
+  endDate: string | Dayjs;
   description?: string;
   status: PriceStatus;
   priceDetails: IPriceDetail[];

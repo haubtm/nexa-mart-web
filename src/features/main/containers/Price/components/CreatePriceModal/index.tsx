@@ -4,7 +4,7 @@ import PriceForm from '../CommonForm';
 import { useHook } from './hook';
 
 const CreatePriceModal = () => {
-  const { ref, form, isLoadingCreateImport, handleSubmit, handleCancel } =
+  const { ref, form, isLoadingCreatePrice, handleSubmit, handleCancel } =
     useHook();
 
   return (
@@ -12,7 +12,7 @@ const CreatePriceModal = () => {
       ref={ref}
       width={1000}
       title={'Thêm bảng giá'}
-      confirmLoading={isLoadingCreateImport}
+      confirmLoading={isLoadingCreatePrice}
       onOk={form.submit}
       onCancel={handleCancel}
       openButton={
@@ -25,7 +25,11 @@ const CreatePriceModal = () => {
         </Button>
       }
     >
-      <PriceForm form={form} handleSubmit={handleSubmit} />
+      <PriceForm
+        form={form}
+        handleSubmit={handleSubmit}
+        enableDetails={false}
+      />
     </ModalNew>
   );
 };

@@ -1,6 +1,6 @@
 import type { IPriceCreateRequest, IPriceListResponse } from '@/dtos';
 import { priceKeys, usePriceUpdate } from '@/features/main/react-query';
-import { Form, type IModalRef, useNotification } from '@/lib';
+import { Form, type IModalRef, PriceStatus, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -10,6 +10,56 @@ dayjs.extend(timezone);
 
 const VN_TZ = 'Asia/Ho_Chi_Minh';
 import { type MouseEvent, useRef } from 'react';
+
+type CurrentDetail = { variantId: number; salePrice: number };
+type OldDetail = {
+  priceDetailId: number;
+  variantId: number;
+  salePrice: number;
+};
+
+const buildPriceDetailsForUpdate = (
+  current: CurrentDetail[],
+  oldItems: OldDetail[],
+) => {
+  const oldByVar = new Map(oldItems.map((o) => [o.variantId, o]));
+  const curByVar = new Map(current.map((c) => [c.variantId, c]));
+
+  // Giữ/cập nhật item còn tồn tại
+  const updatedOrSame = current
+    .filter((c) => oldByVar.has(c.variantId))
+    .map((c) => {
+      const old = oldByVar.get(c.variantId)!;
+      return {
+        priceDetailId: old.priceDetailId ?? undefined,
+        variantId: c.variantId, // = units.id
+        salePrice: Number(c.salePrice ?? 0),
+        deleted: false,
+      };
+    });
+
+  // Tạo mới
+  const created = current
+    .filter((c) => !oldByVar.has(c.variantId))
+    .map((c) => ({
+      priceDetailId: undefined, // đổi thành null nếu BE thích null
+      variantId: c.variantId, // = units.id
+      salePrice: Number(c.salePrice ?? 0),
+      deleted: false,
+    }));
+
+  // Đánh dấu xoá
+  const deleted = oldItems
+    .filter((o) => !curByVar.has(o.variantId))
+    .map((o) => ({
+      priceDetailId: o.priceDetailId ?? undefined,
+      variantId: o.variantId, // = units.id
+      salePrice: Number(o.salePrice ?? 0), // gửi kèm (an toàn nếu BE kiểm tra)
+      deleted: true,
+    }));
+
+  return [...updatedOrSame, ...created, ...deleted];
+};
 
 export const useHook = (
   record?: IPriceListResponse['data']['content'][number] | null,
@@ -26,29 +76,52 @@ export const useHook = (
   };
 
   const handleSubmit = async (values: IPriceCreateRequest) => {
-    if (!record) {
-      return;
-    }
+    if (!record) return;
 
+    // Lấy danh sách hiện tại từ form (variantId = units.id)
+    const currentDetails: CurrentDetail[] = (values.priceDetails ?? []).map(
+      (d: any) => ({
+        variantId: Number(d.variantId),
+        salePrice: Number(d.salePrice ?? 0),
+      }),
+    );
+
+    // Bản cũ từ record
+    const oldItems: OldDetail[] =
+      record.priceDetails?.map((d) => ({
+        priceDetailId: Number(d.priceDetailId ?? undefined),
+        variantId: Number(d.variantId),
+        salePrice: Number(d.salePrice ?? 0),
+      })) ?? [];
+
+    // Diff để sinh priceDetails đúng shape
+    const priceDetails = buildPriceDetailsForUpdate(currentDetails, oldItems);
+
+    // Tính endDateValid
+    const startIso = values.startDate;
+    const endIso = values.endDate;
+    const endDateValid = endIso ? true : false;
+
+    // Gọi API update
     return await updatePrice(
       {
         priceId: record.priceId,
         priceName: values.priceName,
-        startDate: values.startDate,
-        endDate: values.endDate,
+        priceCode: values.priceCode,
+        startDate: startIso,
+        endDate: endIso,
         description: values.description,
-        priceDetails: values?.priceDetails,
-      },
+        status: (values as any).status ?? record.status ?? PriceStatus.UPCOMING,
+        priceDetails, // [{ priceDetailId, variantId(=units.id), salePrice, deleted }]
+        endDateValid, // theo yêu cầu payload
+      } as any,
       {
         onSuccess: () => {
           notify('success', {
             message: 'Thành công',
             description: 'Cập nhật bảng giá thành công',
           });
-
-          queryClient.invalidateQueries({
-            queryKey: priceKeys.all,
-          });
+          queryClient.invalidateQueries({ queryKey: priceKeys.all });
           handleCancel();
         },
       },
@@ -63,18 +136,21 @@ export const useHook = (
     form.setFieldsValue({
       priceName: record.priceName,
       priceCode: record.priceCode,
+      status: record.status,
       startDate: record.startDate
         ? dayjs.tz(record.startDate, VN_TZ)
         : undefined,
       endDate: record.endDate ? dayjs.tz(record.endDate, VN_TZ) : undefined,
       description: record.description,
-      // chỉ cần variantId + salePrice (đúng shape IPriceCreateRequest)
+      // gán vào form để user chỉnh: chỉ cần variantId + salePrice cho submit,
+      // giữ thêm variantCode/variantName nếu UI cần hiển thị
       priceDetails:
         record.priceDetails?.map((d) => ({
-          variantId: d.variantId,
+          priceDetailId: d.priceDetailId, // để UI có thể hiển thị nếu cần (không bắt buộc)
+          variantId: d.variantId, // = units.id
           salePrice: d.salePrice,
-          variantCode: d.variantCode,
-          variantName: d.variantName,
+          variantCode: (d as any).variantCode,
+          variantName: (d as any).variantName,
         })) ?? [],
     });
   };

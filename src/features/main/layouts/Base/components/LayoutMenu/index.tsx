@@ -37,7 +37,7 @@ const LayoutMenu = () => {
     return {
       [ROUTE_PATH.ADMIN.DASHBOARD.PATH()]: {
         key: ROUTE_PATH.ADMIN.DASHBOARD.PATH(),
-        label: 'dashboard',
+        label: 'Tổng quan',
       },
       [ROUTE_PATH.ADMIN.PRODUCT.PATH()]: {
         key: ROUTE_PATH.ADMIN.PRODUCT.PATH(),

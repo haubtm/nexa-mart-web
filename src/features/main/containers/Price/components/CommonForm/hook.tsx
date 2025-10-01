@@ -23,6 +23,8 @@ const toIsoWithVNOffset = (v: unknown) => {
 export const useHook = (
   handleSubmit: (values: IPriceCreateRequest) => Promise<void>,
 ) => {
+  const [hasEnd, setHasEnd] = useState<boolean>(true);
+
   const [rules, Schema] = useMemo(() => {
     const Schema = z
       .object({
@@ -38,7 +40,7 @@ export const useHook = (
             message: 'Ngày bắt đầu không hợp lệ',
           }),
         ),
-
+        status: z.string().optional(),
         endDate: z.preprocess(
           (v) => (v == null || v === '' ? undefined : toIsoWithVNOffset(v)),
           z
@@ -79,6 +81,10 @@ export const useHook = (
 
   const onFinish = async (values: IPriceCreateRequest) => {
     try {
+      //hasEnd = false thì xóa endDate
+      if (!hasEnd) {
+        values.endDate = undefined;
+      }
       const parsed = (Schema as any).parse(values);
       await handleSubmit(parsed);
     } catch (error) {
@@ -88,16 +94,19 @@ export const useHook = (
 
   const [search, setSearch] = useState<string>('');
   const searchDebounce = useDebounce(search, 500);
-  const { data: productVariants, isLoading: isLoadingVariants } =
-    useProductList({ searchTerm: searchDebounce });
+  const { data: productData, isLoading: isLoadingProduct } = useProductList({
+    searchTerm: searchDebounce,
+  });
 
   return {
     rules,
     onFinish,
     Schema,
-    productVariants,
-    isLoadingVariants,
+    productData,
+    isLoadingProduct,
     search,
     setSearch,
+    hasEnd,
+    setHasEnd,
   };
 };

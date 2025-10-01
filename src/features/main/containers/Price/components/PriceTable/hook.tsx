@@ -44,16 +44,16 @@ export const useHook = () => {
         index + 1 + queryParams.page * queryParams.limit,
     },
     {
-      key: 'priceCode',
-      title: 'Mã bảng giá',
-      width: 120,
-      render: (_, record) => record?.priceCode,
-    },
-    {
       key: 'priceName',
       title: 'Tên bảng giá',
       width: 120,
       render: (_, record) => record?.priceName,
+    },
+    {
+      key: 'priceCode',
+      title: 'Mã bảng giá',
+      width: 120,
+      render: (_, record) => record?.priceCode,
     },
     {
       key: 'startDate',

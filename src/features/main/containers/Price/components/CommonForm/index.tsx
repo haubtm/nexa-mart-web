@@ -21,6 +21,7 @@ import { useHook } from './hook';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { PriceStatus, Select } from '@/lib';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const VN_TZ = 'Asia/Ho_Chi_Minh';
@@ -33,21 +34,31 @@ const nowVN = () => dayjs().tz('Asia/Ho_Chi_Minh');
 type Props = {
   form: FormInstance<IPriceCreateRequest>;
   handleSubmit: (values: IPriceCreateRequest) => Promise<void>;
+  enableDetails?: boolean;
+};
+
+type VariantItem = {
+  variantId: number; // = unit.id
+  variantName: string; // ví dụ: "Coca Cola 123 - lon (x12)"
+  productName: string; // = product.name
+  unitName: string; // = unit.unitName
+  code?: string; // = unit.code
+  barcode?: string; // = unit.barcode
+  conversionValue: number; // = unit.conversionValue
 };
 
 type Row = {
   variantId: number;
   name: string;
-  code?: string;
-  variantCode?: string;
+  code?: string; // giữ lại để hiển thị "Mã"
+  barcode?: string; // NEW: barcode riêng cột
   unitName?: string;
   sku?: string;
   salePrice?: number;
 };
 
-const PriceForm = ({ form, handleSubmit }: Props) => {
+const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
   const [rows, setRows] = useState<Row[]>([]);
-  const [hasEnd, setHasEnd] = useState<boolean>(true);
 
   const disablePast = (current?: dayjs.Dayjs) =>
     !!current && current.tz(VN_TZ).isBefore(nowVN().startOf('day'));
@@ -71,32 +82,69 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
   const {
     rules,
     onFinish, // đã parse Zod ở hook
-    productVariants,
-    isLoadingVariants,
+    productData,
+    isLoadingProduct,
     setSearch,
+    hasEnd,
+    setHasEnd,
   } = useHook(async (values) => {
     // ghép details trước khi gửi
-    const payload: IPriceCreateRequest = {
-      ...values,
-      priceDetails: getDetails(),
-    };
+    const payload: IPriceCreateRequest = enableDetails
+      ? {
+          ...values,
+          priceDetails: getDetails(),
+        }
+      : {
+          ...values,
+          priceDetails: undefined,
+        };
     await handleSubmit(payload);
   });
 
   // options cho AutoComplete
   const options = useMemo(() => {
-    const items: IProductListResponse['data']['products'] =
-      productVariants?.data?.products ?? [];
-    return items.map((v) => ({
-      value: String(v.id),
-      label: (
-        <Space direction="vertical" size={0}>
-          <strong>{v.name}</strong>
-        </Space>
-      ),
-      raw: v,
-    }));
-  }, [productVariants]);
+    const products: IProductListResponse['data']['products'] =
+      productData?.data?.products ?? [];
+
+    return products.flatMap((p) =>
+      (p.units ?? []).map((u) => {
+        const variantName =
+          `${p.name} - ${u.unitName}` +
+          (u.isBaseUnit ? '' : ` (x${u.conversionValue})`);
+
+        const subLine = [
+          u.code ? `Mã: ${u.code}` : null,
+          u.barcode ? `Barcode: ${u.barcode}` : null,
+          p.brandName ? `Brand: ${p.brandName}` : null,
+        ]
+          .filter(Boolean)
+          .join(' • ');
+
+        const raw: VariantItem = {
+          variantId: u.id!,
+          variantName,
+          productName: p.name,
+          unitName: u.unitName,
+          code: u.code,
+          barcode: u.barcode,
+          conversionValue: u.conversionValue,
+        };
+
+        return {
+          value: `${p.id}:${u.id}`, // giá trị hiển thị
+          label: (
+            <Space direction="vertical" size={0}>
+              <strong>{variantName}</strong>
+              {subLine && (
+                <span style={{ color: '#666', fontSize: 12 }}>{subLine}</span>
+              )}
+            </Space>
+          ),
+          raw, // để onSelect addRow(opt.raw)
+        };
+      }),
+    );
+  }, [productData]);
 
   const getUnitFromVariantName = (name?: string) => {
     if (!name) return undefined;
@@ -118,6 +166,7 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
           name: d?.variantName,
           salePrice: d?.salePrice,
           code: d?.variantCode,
+          barcode: d?.variantCode,
           unitName: getUnitFromVariantName(d.variantName),
         })),
       );
@@ -140,9 +189,9 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
             {
               variantId: v.variantId,
               name: v.variantName,
-              code: v.variantCode,
-              unitName: v.unit?.unit,
-              sku: v.sku,
+              code: v.code, // Mã (unit.code)
+              barcode: v.barcode, // Barcode (unit.barcode)
+              unitName: v.unitName, // ĐVT
               salePrice: undefined,
             },
           ],
@@ -163,7 +212,13 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
       onFinish={onFinish}
     >
       {/* Thông tin cơ bản */}
-      <div className="rounded-xl border p-4">
+      <div
+        style={{
+          borderRadius: '12px',
+          border: '1px solid #eee',
+          padding: '16px',
+        }}
+      >
         <Space size={16} wrap>
           <Form.Item
             label="Tên bảng giá"
@@ -180,7 +235,7 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
             rules={[rules]}
             style={{ minWidth: 220 }}
           >
-            <Input placeholder="Tùy chọn" />
+            <Input placeholder="Tự động" />
           </Form.Item>
 
           <Form.Item
@@ -220,6 +275,20 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
               disabledDate={disableEnd}
             />
           </Form.Item>
+
+          <Form.Item
+            label="Trạng thái"
+            name="status"
+            rules={hasEnd ? [rules] : []}
+            style={{ minWidth: 180 }}
+          >
+            <Select
+              options={[
+                { label: 'Áp dụng', value: PriceStatus.UPCOMING },
+                { label: 'Tạm ngưng', value: PriceStatus.PAUSED },
+              ]}
+            />
+          </Form.Item>
         </Space>
 
         <Form.Item name="description" label="Mô tả" style={{ marginTop: 8 }}>
@@ -230,79 +299,88 @@ const PriceForm = ({ form, handleSubmit }: Props) => {
         </Form.Item>
       </div>
 
-      {/* Tìm & thêm sản phẩm */}
-      <Form.Item label="Tìm sản phẩm / biến thể" style={{ marginTop: 16 }}>
-        <AutoComplete
-          style={{ width: 520 }}
-          options={isLoadingVariants ? [] : options}
-          onSearch={setSearch}
-          onSelect={(_, opt: any) => addRow(opt.raw)}
-          filterOption={false}
-          notFoundContent={isLoadingVariants ? <Spin size="small" /> : null}
-        >
-          <Input allowClear placeholder="Nhập tên/mã/barcode..." />
-        </AutoComplete>
-      </Form.Item>
+      {enableDetails && (
+        <>
+          {/* Tìm & thêm sản phẩm */}
+          <Form.Item label="Tìm sản phẩm / biến thể" style={{ marginTop: 16 }}>
+            <AutoComplete
+              style={{ width: 520 }}
+              options={isLoadingProduct ? [] : options}
+              onSearch={setSearch}
+              onSelect={(_, opt: any) => addRow(opt.raw)} // <-- quan trọng
+              filterOption={false}
+              notFoundContent={isLoadingProduct ? <Spin size="small" /> : null}
+            >
+              <Input allowClear placeholder="Nhập tên/mã/barcode..." />
+            </AutoComplete>
+          </Form.Item>
 
-      {/* Bảng sản phẩm áp dụng */}
-      <Table<Row>
-        rowKey="variantId"
-        dataSource={rows}
-        pagination={false}
-        size="middle"
-        columns={[
-          {
-            title: 'Sản phẩm',
-            dataIndex: 'name',
-            render: (v, r) => (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <strong>{v}</strong>
-                <span style={{ color: '#666', fontSize: 12 }}>
-                  {(r.code && `Mã: ${r.code} • `) || ''}
-                  {(r.variantCode && `Barcode: ${r.variantCode} • `) || ''}
-                  {r.unitName || ''}
-                </span>
-              </div>
-            ),
-          },
-          { title: 'Mã vạch', dataIndex: 'code', width: 160 },
-          { title: 'ĐVT', dataIndex: 'unitName', width: 120 },
-          {
-            title: 'Giá bán',
-            dataIndex: 'salePrice',
-            width: 180,
-            align: 'right' as const,
-            render: (_: any, r: Row) => (
-              <InputNumber
-                min={0}
-                value={r.salePrice}
-                onChange={(v) =>
-                  updateRow(r.variantId, { salePrice: Number(v ?? 0) })
-                }
-                style={{ width: '100%' }}
-                formatter={(val) =>
-                  `${(val ?? '')
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
-                }
-                parser={(val) =>
-                  Number((val ?? '').toString().replace(/,/g, ''))
-                }
-                placeholder="Nhập giá"
-              />
-            ),
-          },
-          {
-            title: '',
-            width: 70,
-            render: (_: any, r: Row) => (
-              <Button type="link" danger onClick={() => removeRow(r.variantId)}>
-                Xoá
-              </Button>
-            ),
-          },
-        ]}
-      />
+          {/* Bảng sản phẩm áp dụng */}
+          <Table<Row>
+            rowKey="variantId"
+            dataSource={rows}
+            pagination={false}
+            size="middle"
+            columns={[
+              {
+                title: 'Sản phẩm',
+                dataIndex: 'name',
+                render: (v, r) => (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <strong>{v}</strong>
+                    <span style={{ color: '#666', fontSize: 12 }}>
+                      {(r.code && `Mã: ${r.code} • `) || ''}
+                      {(r.barcode && `Barcode: ${r.barcode} • `) || ''}
+                      {r.unitName || ''}
+                    </span>
+                  </div>
+                ),
+              },
+              { title: 'Mã', dataIndex: 'code', width: 160 }, // unit.code
+              { title: 'Barcode', dataIndex: 'barcode', width: 160 }, // unit.barcode
+              { title: 'ĐVT', dataIndex: 'unitName', width: 120 },
+              {
+                title: 'Giá bán',
+                dataIndex: 'salePrice',
+                width: 180,
+                align: 'right' as const,
+                render: (_: any, r: Row) => (
+                  <InputNumber
+                    min={0}
+                    value={r.salePrice}
+                    onChange={(v) =>
+                      updateRow(r.variantId, { salePrice: Number(v ?? 0) })
+                    }
+                    style={{ width: '100%' }}
+                    formatter={(val) =>
+                      `${(val ?? '')
+                        .toString()
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+                    }
+                    parser={(val) =>
+                      Number((val ?? '').toString().replace(/,/g, ''))
+                    }
+                    placeholder="Nhập giá"
+                  />
+                ),
+              },
+              {
+                title: '',
+                width: 70,
+                render: (_: any, r: Row) => (
+                  <Button
+                    type="link"
+                    danger
+                    onClick={() => removeRow(r.variantId)}
+                  >
+                    Xoá
+                  </Button>
+                ),
+              },
+            ]}
+          />
+        </>
+      )}
     </Form>
   );
 };
