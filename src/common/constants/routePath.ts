@@ -10,6 +10,9 @@ export const ROUTE_PATH = {
     PRODUCT: {
       PATH: () => `/admin/product`,
     },
+    PROMOTION: {
+      PATH: () => `/admin/promotion`,
+    },
     CUSTOMER: {
       PATH: () => `/admin/customer`,
     },

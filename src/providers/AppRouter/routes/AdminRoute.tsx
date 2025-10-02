@@ -12,6 +12,7 @@ import {
   StockTakePage as AdminStockTakePage,
   SupplierPage as AdminSupplierPage,
   WarehousePage as AdminWarehousePage,
+  PromotionPage as AdminPromotionPage,
 } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
@@ -43,6 +44,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.PRODUCT.PATH()}
         element={<AdminProductPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.PROMOTION.PATH()}
+        element={<AdminPromotionPage />}
       />
       <Route
         path={ROUTE_PATH.ADMIN.CUSTOMER.PATH()}

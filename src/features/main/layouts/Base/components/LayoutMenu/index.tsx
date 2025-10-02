@@ -43,6 +43,10 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.PRODUCT.PATH(),
         label: 'Danh sách sản phẩm',
       },
+      [ROUTE_PATH.ADMIN.PROMOTION.PATH()]: {
+        key: ROUTE_PATH.ADMIN.PROMOTION.PATH(),
+        label: 'Khuyến mãi',
+      },
       [ROUTE_PATH.ADMIN.CUSTOMER.PATH()]: {
         key: ROUTE_PATH.ADMIN.CUSTOMER.PATH(),
         label: 'Danh sách khách hàng',
@@ -109,6 +113,14 @@ const LayoutMenu = () => {
             label: (
               <Link to={ROUTE_PATH.ADMIN.PRICE.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.PRICE.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.PROMOTION.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.PROMOTION.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.PROMOTION.PATH()].label}
               </Link>
             ),
           },

@@ -3,7 +3,7 @@ import { ProductContainer } from '@/features/main';
 const ProductPage = () => {
   return (
     <>
-      <title>Product</title>
+      <title>Sản phẩm</title>
       <ProductContainer />
     </>
   );

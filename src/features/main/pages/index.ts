@@ -3,6 +3,7 @@ export { default as ProductPage } from './Product';
 export { default as CustomerPage } from './Customer';
 export { default as ImportsPage } from './Imports';
 export { default as EmployeePage } from './Employee';
+export { default as PromotionPage } from './Promotion';
 export { default as TransactionPage } from './Transaction';
 export { default as PricePage } from './Price';
 export { default as SettingPage } from './Setting';

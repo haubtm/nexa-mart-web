@@ -8,6 +8,7 @@ export * from './inventory';
 export * from './price';
 export * from './product';
 export * from './productImage';
+export * from './promotion';
 export * from './stock-take';
 export * from './supplier';
 export * from './warehouse';

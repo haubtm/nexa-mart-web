@@ -10,6 +10,7 @@ export * from './inventory';
 export * from './price';
 export * from './product';
 export * from './productImage';
+export * from './promotion';
 export * from './warehouse';
 export * from './supplier';
 export * from './stock-take';

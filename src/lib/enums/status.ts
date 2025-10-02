@@ -9,3 +9,11 @@ export enum PriceStatus {
   PAUSED = 'PAUSED',
   UPCOMING = 'UPCOMING',
 }
+
+export enum EPromotionStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  PAUSED = 'PAUSED',
+  UPCOMING = 'UPCOMING',
+  CANCELLED = 'CANCELLED',
+}

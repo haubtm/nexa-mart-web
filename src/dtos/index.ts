@@ -13,3 +13,4 @@ export * from './productImage';
 export * from './warehouse';
 export * from './supplier';
 export * from './stock-take';
+export * from './promotion';
