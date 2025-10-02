@@ -3,7 +3,6 @@ import { SvgPencilIcon } from '@/assets';
 import { Button, ModalNew } from '@/lib';
 import PriceForm from '../CommonForm';
 import { useHook } from './hook';
-import { EyeOutlined } from '@ant-design/icons';
 
 interface IUpdatePriceModalProps {
   record?: IPriceListResponse['data']['content'][number] | null;
@@ -30,7 +29,7 @@ const UpdatePriceModal = ({ record }: IUpdatePriceModalProps) => {
       openButton={
         <Button
           type="text"
-          icon={<EyeOutlined width={18} height={18} />}
+          icon={<SvgPencilIcon width={18} height={18} />}
           onClick={handleOpen}
         />
       }

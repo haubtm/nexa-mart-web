@@ -3,10 +3,17 @@ import { warehouseKeys } from '../query-keys';
 import type {
   IBaseListRequest,
   IWarehouseByProductIdRequest,
-  IWarehouseByVariantIdRequest,
-  IWarehouseStockByVariantIdRequest,
+  IWarehouseByProductUnitIdRequest,
+  IWarehouseStockByProductUnitIdRequest,
 } from '@/dtos';
 import { warehouseApi } from '@/api';
+
+export const useWarehouseList = (filters: IBaseListRequest) => {
+  return useQuery({
+    queryKey: warehouseKeys.list(filters),
+    queryFn: async () => await warehouseApi.list(filters),
+  });
+};
 
 export const useWarehouseTransactions = (filters: IBaseListRequest) => {
   return useQuery({
@@ -24,20 +31,20 @@ export const useWarehouseTransactionsByProductId = (
   });
 };
 
-export const useWarehouseTransactionByVariants = (
-  body: IWarehouseByVariantIdRequest,
+export const useWarehouseTransactionByProductUnitId = (
+  body: IWarehouseByProductUnitIdRequest,
 ) => {
   return useQuery({
-    queryKey: warehouseKeys.transactionByVariantId(body.variantId),
-    queryFn: async () => await warehouseApi.transactionByVariantId(body),
+    queryKey: warehouseKeys.transactionByProductUnitId(body.productUnitId),
+    queryFn: async () => await warehouseApi.transactionByProductUnitId(body),
   });
 };
 
-export const useWarehouseStockByVariantId = (
-  body: IWarehouseStockByVariantIdRequest,
+export const useWarehouseStockByProductUnitId = (
+  body: IWarehouseStockByProductUnitIdRequest,
 ) => {
   return useQuery({
-    queryKey: warehouseKeys.stockByVariantId(body.variantId),
-    queryFn: async () => await warehouseApi.stockByVariantId(body),
+    queryKey: warehouseKeys.stockByProductUnitId(body.productUnitId),
+    queryFn: async () => await warehouseApi.stockByProductUnitId(body),
   });
 };

@@ -1,10 +1,11 @@
 import { ETransaction } from '@/lib';
 
-interface IVariant {
-  variantId: number;
-  variantName: string;
-  variantCode?: string | null;
+interface IProductUnit {
+  productUnitId: number;
+  code?: string | null;
   barcode?: string | null;
+  conversionValue: number;
+  isBaseUnit: boolean;
   productName: string;
   unit: string;
 }
@@ -13,7 +14,7 @@ export interface IWarehouseResponseData {
   warehouseId: number;
   quantityOnHand: number;
   updatedAt: string;
-  variant: IVariant;
+  productUnit: IProductUnit;
 }
 
 export interface IWarehouseTransactionResponseData {
@@ -25,5 +26,5 @@ export interface IWarehouseTransactionResponseData {
   referenceId?: number;
   notes?: string;
   transactionDate: string;
-  variant: IVariant;
+  productUnit: IProductUnit;
 }

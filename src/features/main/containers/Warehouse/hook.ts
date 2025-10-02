@@ -1,6 +1,5 @@
-import type { IInventoryHistoryResponse } from '@/dtos';
-import { useStockTakeList } from '@/features/main/react-query';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, type IModalRef } from '@/lib';
+import type { IWarehouseListResponse } from '@/dtos';
+import { DEFAULT_PAGE_SIZE, type IModalRef } from '@/lib';
 import { useRef, useState } from 'react';
 import {
   JsonParam,
@@ -9,20 +8,21 @@ import {
   useQueryParams,
   withDefault,
 } from 'use-query-params';
+import { useWarehouseList } from '../../react-query';
 
 export const useCommonHook = () => {
   const ref = useRef<IModalRef>(null);
   const [record, setRecord] =
-    useState<IInventoryHistoryResponse['data']['content'][number]>();
+    useState<IWarehouseListResponse['data']['content'][number]>();
 
   const [queryParams, setQueryParams] = useQueryParams({
-    page: withDefault(NumberParam, DEFAULT_PAGE),
+    page: withDefault(NumberParam, 0),
     limit: withDefault(NumberParam, DEFAULT_PAGE_SIZE),
     search: withDefault(StringParam, undefined),
     sorts: withDefault(JsonParam, undefined),
   });
-  const { data: stockTakeListData, isFetching: isStockTakeListLoading } =
-    useStockTakeList(queryParams);
+  const { data: warehouseListData, isFetching: isWarehouseListLoading } =
+    useWarehouseList(queryParams);
 
   return {
     ref,
@@ -30,7 +30,7 @@ export const useCommonHook = () => {
     setRecord,
     queryParams,
     setQueryParams,
-    stockTakeListData,
-    isStockTakeListLoading,
+    warehouseListData,
+    isWarehouseListLoading,
   };
 };

@@ -6,7 +6,7 @@ export interface IImportsCreateRequest {
   supplierId: number;
   notes?: string;
   importDetails: {
-    variantId: number;
+    productUnitId: number;
     quantity: number;
     notes?: string;
   }[];

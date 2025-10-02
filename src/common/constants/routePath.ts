@@ -34,6 +34,9 @@ export const ROUTE_PATH = {
     SUPPLIER: {
       PATH: () => `/admin/supplier`,
     },
+    WAREHOUSE: {
+      PATH: () => `/admin/warehouse`,
+    },
   },
   AUTH: {
     PATH: () => `/auth`,

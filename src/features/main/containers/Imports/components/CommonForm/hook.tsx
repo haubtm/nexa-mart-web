@@ -4,6 +4,21 @@ import { useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useDebounce } from '@/lib';
 import { useProductList, useSupplierList } from '@/features/main/react-query';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const VN_TZ = 'Asia/Ho_Chi_Minh';
+
+const toIsoWithVNOffset = (v: unknown) => {
+  if (dayjs.isDayjs(v)) return v.tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
+  if (v instanceof Date)
+    return dayjs(v).tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
+  return v;
+};
 
 export const useHook = (
   handleSubmit: (values: IImportsCreateRequest) => Promise<any> | any,
@@ -15,16 +30,18 @@ export const useHook = (
       supplierId: z
         .number('Vui lòng chọn nhà cung cấp')
         .min(1, 'Vui lòng chọn nhà cung cấp'),
+      importDate: z.preprocess(
+        toIsoWithVNOffset,
+        z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
+          message: 'Ngày nhập không hợp lệ',
+        }),
+      ),
       notes: z.string().trim().optional(),
-      status: z
-        .enum(['PENDING', 'COMPLETED'], {
-          message: 'Trạng thái không được để trống',
-        })
-        .optional(),
+      status: z.enum(['PENDING', 'COMPLETED']).optional(),
       importDetails: z
         .array(
           z.object({
-            variantId: z.number(),
+            productUnitId: z.number(),
             quantity: z.number(),
             notes: z.string().optional(),
           }),

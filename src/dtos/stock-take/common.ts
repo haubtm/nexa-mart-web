@@ -1,4 +1,4 @@
-import { StockTakeStatus } from '@/lib';
+import { ERole, StockTakeStatus } from '@/lib';
 
 export interface IStockTakeDetail {
   stocktakeDetailId: number;
@@ -9,11 +9,11 @@ export interface IStockTakeDetail {
   quantityDecrease?: number | null;
   reason?: string | null;
   createdAt: string;
-  variant: {
-    variantId: number;
-    variantName: string;
-    variantCode?: string | null;
-    barcode?: string | null;
+  productUnit: {
+    productUnitId: number;
+    code?: string;
+    barcode?: string;
+    conversionValue: number;
     productName: string;
     unit: string;
   };
@@ -31,13 +31,15 @@ export interface IStockTakeResponseData {
     employeeId: number;
     name: string;
     email: string;
+    role: ERole;
   };
   completedBy?: {
     employeeId: number;
     name: string;
     email: string;
-  } | null;
-  stocktakeDetails?: IStockTakeDetail[] | null;
+    role: ERole;
+  };
+  stocktakeDetails?: IStockTakeDetail[];
   summary: {
     totalItems: number;
     itemsWithDifference: number;

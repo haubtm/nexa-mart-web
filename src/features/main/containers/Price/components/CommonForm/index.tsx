@@ -74,7 +74,7 @@ const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
     rows
       .filter((r) => r.salePrice !== undefined && !Number.isNaN(r.salePrice))
       .map((r) => ({
-        variantId: r.variantId,
+        productUnitId: r.variantId, // đổi key gửi lên
         salePrice: Number(r.salePrice),
       }));
 
@@ -162,12 +162,12 @@ const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
       // Nếu chưa có tên/đơn vị, đặt name tạm bằng mã ID
       setRows(
         details?.map((d) => ({
-          variantId: d?.variantId,
-          name: d?.variantName,
+          variantId: d?.productUnitId,
+          name: d?.productUnitName,
           salePrice: d?.salePrice,
-          code: d?.variantCode,
-          barcode: d?.variantCode,
-          unitName: getUnitFromVariantName(d.variantName),
+          code: d?.productUnitCode,
+          barcode: d?.barcode,
+          unitName: getUnitFromVariantName(d.productUnitName),
         })),
       );
       console.log(rows);

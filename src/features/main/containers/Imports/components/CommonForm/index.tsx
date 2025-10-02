@@ -8,10 +8,19 @@ import {
   Form,
   Space,
   Spin,
+  DatePicker,
 } from 'antd';
 import type { FormInstance } from 'antd';
 import type { IImportsCreateRequest } from '@/dtos';
 import { useHook } from './hook';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const VN_TZ = 'Asia/Ho_Chi_Minh';
 
 type Props = {
   form: FormInstance<IImportsCreateRequest>;
@@ -19,11 +28,13 @@ type Props = {
 };
 
 type VariantItem = {
-  variantId: number;
-  variantName: string;
-  variantCode?: string;
-  barcode?: string;
-  unit?: { unit: string };
+  variantId: number; // = unit.id
+  variantName: string; // ví dụ "Coca Cola - lon (x12)"
+  productName: string; // = product.name
+  unitName: string; // = unit.unitName
+  code?: string; // = unit.code
+  barcode?: string; // = unit.barcode
+  conversionValue: number; // = unit.conversionValue
 };
 
 type Row = {
@@ -42,7 +53,7 @@ const ImportForm = ({ form, handleSubmit }: Props) => {
   // details cho payload
   const getDetails = () =>
     rows.map((r) => ({
-      variantId: r.variantId,
+      productUnitId: r.variantId,
       quantity: r.quantity,
       notes: r.notes,
     }));
@@ -60,21 +71,45 @@ const ImportForm = ({ form, handleSubmit }: Props) => {
 
   // build options cho AutoComplete
   const options = useMemo(() => {
-    const items: VariantItem[] = productVariants?.data ?? [];
-    return items.map((v) => ({
-      value: String(v.variantId),
-      label: (
-        <Space direction="vertical" size={0}>
-          <strong>{v.variantName}</strong>
-          <span style={{ color: '#666', fontSize: 12 }}>
-            {(v.variantCode && `Mã: ${v.variantCode} • `) || ''}
-            {(v.barcode && `Barcode: ${v.barcode} • `) || ''}
-            {v.unit?.unit ?? ''}
-          </span>
-        </Space>
-      ),
-      raw: v,
-    }));
+    const products = productVariants?.data?.products ?? []; // <- giống price form
+    return products.flatMap((p: any) =>
+      (p.units ?? []).map((u: any) => {
+        const variantName =
+          `${p.name} - ${u.unitName}` +
+          (u.isBaseUnit ? '' : ` (x${u.conversionValue})`);
+
+        const subLine = [
+          u.code ? `Mã: ${u.code}` : null,
+          u.barcode ? `Barcode: ${u.barcode}` : null,
+          p.brandName ? `Brand: ${p.brandName}` : null,
+        ]
+          .filter(Boolean)
+          .join(' • ');
+
+        const raw: VariantItem = {
+          variantId: u.id!,
+          variantName,
+          productName: p.name,
+          unitName: u.unitName,
+          code: u.code,
+          barcode: u.barcode,
+          conversionValue: u.conversionValue,
+        };
+
+        return {
+          value: `${p.id}:${u.id}`, // chỉ để hiển thị
+          label: (
+            <Space direction="vertical" size={0}>
+              <strong>{variantName}</strong>
+              {subLine && (
+                <span style={{ color: '#666', fontSize: 12 }}>{subLine}</span>
+              )}
+            </Space>
+          ),
+          raw, // để onSelect addRow(opt.raw)
+        };
+      }),
+    );
   }, [productVariants]);
 
   const addRow = (v: VariantItem) =>
@@ -86,10 +121,10 @@ const ImportForm = ({ form, handleSubmit }: Props) => {
             {
               variantId: v.variantId,
               name: v.variantName,
-              code: v.variantCode,
+              code: v.code,
               barcode: v.barcode,
-              unitName: v.unit?.unit,
-              quantity: 1, // mặc định 1
+              unitName: v.unitName,
+              quantity: 1,
             },
           ],
     );
@@ -144,6 +179,21 @@ const ImportForm = ({ form, handleSubmit }: Props) => {
           <Input.TextArea
             placeholder="Ghi chú cho phiếu nhập"
             autoSize={{ minRows: 1, maxRows: 4 }}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Ngày nhập"
+          name="importDate"
+          rules={[rules]}
+          style={{ minWidth: 260 }}
+          initialValue={dayjs().tz(VN_TZ)}
+        >
+          <DatePicker
+            allowClear={false}
+            showTime={{ format: 'HH:mm' }}
+            format="YYYY-MM-DD HH:mm"
+            style={{ width: '100%' }}
           />
         </Form.Item>
       </Space>

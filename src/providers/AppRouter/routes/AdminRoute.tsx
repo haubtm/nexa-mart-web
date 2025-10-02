@@ -11,6 +11,7 @@ import {
   SettingPage as AdminSettingPage,
   StockTakePage as AdminStockTakePage,
   SupplierPage as AdminSupplierPage,
+  WarehousePage as AdminWarehousePage,
 } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
@@ -74,6 +75,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.TRANSACTION.PATH()}
         element={<AdminTransactionPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.WAREHOUSE.PATH()}
+        element={<AdminWarehousePage />}
       />
     </Route>
   );

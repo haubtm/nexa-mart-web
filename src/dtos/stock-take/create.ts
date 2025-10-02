@@ -7,7 +7,7 @@ export interface IStockTakeCreateRequest {
   notes?: string;
   status: StockTakeStatus;
   stocktakeDetails: {
-    variantId: number;
+    productUnitId: number;
     quantityCounted: number;
     reason?: string;
   }[];

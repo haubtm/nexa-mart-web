@@ -7,3 +7,4 @@ export * from './Price';
 export * from './Setting';
 export * from './StockTake';
 export * from './Supplier';
+export * from './Warehouse';

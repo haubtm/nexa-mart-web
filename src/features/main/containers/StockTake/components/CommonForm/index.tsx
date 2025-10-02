@@ -12,7 +12,7 @@ import {
 import { IFormProps, useDebounce } from '@/lib';
 import {
   useProductList,
-  useWarehouseStockByVariantId,
+  useWarehouseStockByProductUnitId,
 } from '@/features/main/react-query';
 import type { IStockTakeCreateRequest } from '@/dtos';
 import { useHook } from './hook';
@@ -23,15 +23,17 @@ interface IStockTakeFormProps {
 }
 
 type VariantItem = {
-  variantId: number;
-  variantName: string;
-  variantCode?: string;
-  barcode?: string;
-  unit?: { unit: string };
+  variantId: number; // = unit.id
+  variantName: string; // "Tên SP - ĐVT (x...)" nếu có
+  productName: string; // product.name
+  unitName: string; // unit.unitName
+  code?: string; // unit.code
+  barcode?: string; // unit.barcode
+  conversionValue: number; // unit.conversionValue
 };
 
 type Row = {
-  variantId: number;
+  variantId: number; // dùng làm rowKey/UI
   name: string;
   code?: string;
   barcode?: string;
@@ -55,12 +57,12 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
   });
 
   // chỉ query tồn kho cho dòng vừa thêm (hook chỉ nhận 1 id)
-  const { data: variantStock, isLoading: isVariantStockLoading } =
-    useWarehouseStockByVariantId({ variantId: lastAddedId ?? 0 });
+  const { data: productUnitStock, isLoading: isProductUnitStockLoading } =
+    useWarehouseStockByProductUnitId({ productUnitId: lastAddedId ?? 0 });
 
   const getDetails = () =>
     rows.map((r) => ({
-      variantId: r.variantId,
+      productUnitId: r.variantId, // ✅ đổi sang productUnitId
       quantityCounted: r.quantityCounted,
       reason: r.reason,
     }));
@@ -76,9 +78,9 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
   // Khi API tồn kho trả về, cập nhật đúng dòng vừa thêm
   useEffect(() => {
     if (lastAddedId == null) return;
-    if (variantStock?.data == null) return;
+    if (productUnitStock?.data == null) return;
 
-    const onHand = Number(variantStock.data) || 0;
+    const onHand = Number(productUnitStock.data) || 0;
 
     setRows((prev) =>
       prev.map((r) =>
@@ -92,41 +94,63 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
           : r,
       ),
     );
-  }, [variantStock, lastAddedId]);
+  }, [productUnitStock, lastAddedId]);
 
   const options = useMemo(() => {
-    const items: VariantItem[] = variantsResp?.data ?? [];
-    return items.map((v) => ({
-      value: String(v.variantId),
-      label: (
-        <Space direction="vertical" size={0}>
-          <strong>{v.variantName}</strong>
-          <span style={{ color: '#666', fontSize: 12 }}>
-            {(v.variantCode && `Mã: ${v.variantCode} • `) || ''}
-            {(v.barcode && `Barcode: ${v.barcode} • `) || ''}
-            {v.unit?.unit ?? ''}
-          </span>
-        </Space>
-      ),
-      raw: v,
-    }));
+    const products = variantsResp?.data?.products ?? [];
+    return products.flatMap((p: any) =>
+      (p.units ?? []).map((u: any) => {
+        const variantName =
+          `${p.name} - ${u.unitName}` +
+          (u.isBaseUnit ? '' : ` (x${u.conversionValue})`);
+        const subLine = [
+          u.code ? `Mã: ${u.code}` : null,
+          u.barcode ? `Barcode: ${u.barcode}` : null,
+          p.brandName ? `Brand: ${p.brandName}` : null,
+        ]
+          .filter(Boolean)
+          .join(' • ');
+
+        const raw: VariantItem = {
+          variantId: u.id!,
+          variantName,
+          productName: p.name,
+          unitName: u.unitName,
+          code: u.code,
+          barcode: u.barcode,
+          conversionValue: u.conversionValue,
+        };
+
+        return {
+          value: `${p.id}:${u.id}`,
+          label: (
+            <Space direction="vertical" size={0}>
+              <strong>{variantName}</strong>
+              {subLine && (
+                <span style={{ color: '#666', fontSize: 12 }}>{subLine}</span>
+              )}
+            </Space>
+          ),
+          raw, // onSelect lấy opt.raw
+        };
+      }),
+    );
   }, [variantsResp]);
 
   const addRow = (v: VariantItem) =>
     setRows((prev) => {
-      if (prev.some((r) => r.variantId === v.variantId)) return prev; // tránh trùng
-      // set id để hook tồn kho query cho dòng vừa thêm
-      setLastAddedId(v.variantId);
+      if (prev.some((r) => r.variantId === v.variantId)) return prev;
+      setLastAddedId(v.variantId); // dùng cho hook tồn kho
       return [
         ...prev,
         {
           variantId: v.variantId,
           name: v.variantName,
-          code: v.variantCode,
+          code: v.code,
           barcode: v.barcode,
-          unitName: v.unit?.unit,
-          onHand: 0, // sẽ được fill bởi effect bên trên
-          quantityCounted: 0, // mặc định 0; sau effect sẽ set = onHand
+          unitName: v.unitName,
+          onHand: 0,
+          quantityCounted: 0,
         },
       ];
     });
@@ -188,7 +212,7 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
       <Table<Row>
         rowKey="variantId"
         dataSource={rows}
-        loading={isVariantStockLoading && lastAddedId != null}
+        loading={isProductUnitStockLoading && lastAddedId != null}
         pagination={false}
         size="middle"
         columns={[

@@ -11,10 +11,10 @@ dayjs.extend(timezone);
 const VN_TZ = 'Asia/Ho_Chi_Minh';
 import { type MouseEvent, useRef } from 'react';
 
-type CurrentDetail = { variantId: number; salePrice: number };
+type CurrentDetail = { productUnitId: number; salePrice: number };
 type OldDetail = {
   priceDetailId: number;
-  variantId: number;
+  productUnitId: number;
   salePrice: number;
 };
 
@@ -22,17 +22,17 @@ const buildPriceDetailsForUpdate = (
   current: CurrentDetail[],
   oldItems: OldDetail[],
 ) => {
-  const oldByVar = new Map(oldItems.map((o) => [o.variantId, o]));
-  const curByVar = new Map(current.map((c) => [c.variantId, c]));
+  const oldByVar = new Map(oldItems.map((o) => [o.productUnitId, o]));
+  const curByVar = new Map(current.map((c) => [c.productUnitId, c]));
 
   // Giữ/cập nhật item còn tồn tại
   const updatedOrSame = current
-    .filter((c) => oldByVar.has(c.variantId))
+    .filter((c) => oldByVar.has(c.productUnitId))
     .map((c) => {
-      const old = oldByVar.get(c.variantId)!;
+      const old = oldByVar.get(c.productUnitId)!;
       return {
         priceDetailId: old.priceDetailId ?? undefined,
-        variantId: c.variantId, // = units.id
+        productUnitId: c.productUnitId, // = units.id
         salePrice: Number(c.salePrice ?? 0),
         deleted: false,
       };
@@ -40,20 +40,20 @@ const buildPriceDetailsForUpdate = (
 
   // Tạo mới
   const created = current
-    .filter((c) => !oldByVar.has(c.variantId))
+    .filter((c) => !oldByVar.has(c.productUnitId))
     .map((c) => ({
       priceDetailId: undefined, // đổi thành null nếu BE thích null
-      variantId: c.variantId, // = units.id
+      productUnitId: c.productUnitId, // = units.id
       salePrice: Number(c.salePrice ?? 0),
       deleted: false,
     }));
 
   // Đánh dấu xoá
   const deleted = oldItems
-    .filter((o) => !curByVar.has(o.variantId))
+    .filter((o) => !curByVar.has(o.productUnitId))
     .map((o) => ({
       priceDetailId: o.priceDetailId ?? undefined,
-      variantId: o.variantId, // = units.id
+      productUnitId: o.productUnitId, // = units.id
       salePrice: Number(o.salePrice ?? 0), // gửi kèm (an toàn nếu BE kiểm tra)
       deleted: true,
     }));
@@ -81,7 +81,7 @@ export const useHook = (
     // Lấy danh sách hiện tại từ form (variantId = units.id)
     const currentDetails: CurrentDetail[] = (values.priceDetails ?? []).map(
       (d: any) => ({
-        variantId: Number(d.variantId),
+        productUnitId: Number(d.productUnitId), // đổi sang productUnitId
         salePrice: Number(d.salePrice ?? 0),
       }),
     );
@@ -90,7 +90,7 @@ export const useHook = (
     const oldItems: OldDetail[] =
       record.priceDetails?.map((d) => ({
         priceDetailId: Number(d.priceDetailId ?? undefined),
-        variantId: Number(d.variantId),
+        productUnitId: Number(d.productUnitId), // đổi sang productUnitId
         salePrice: Number(d.salePrice ?? 0),
       })) ?? [];
 
@@ -147,10 +147,10 @@ export const useHook = (
       priceDetails:
         record.priceDetails?.map((d) => ({
           priceDetailId: d.priceDetailId, // để UI có thể hiển thị nếu cần (không bắt buộc)
-          variantId: d.variantId, // = units.id
+          productUnitId: d.productUnitId, // đổi sang productUnitId
           salePrice: d.salePrice,
-          variantCode: (d as any).variantCode,
-          variantName: (d as any).variantName,
+          productUnitCode: d.productUnitCode,
+          productUnitName: d.productUnitName,
         })) ?? [],
     });
   };

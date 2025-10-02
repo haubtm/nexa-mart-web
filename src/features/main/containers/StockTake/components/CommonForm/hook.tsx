@@ -14,15 +14,11 @@ export const useHook = (
         .nonempty('Mã kiểm kho không được để trống')
         .trim(),
       notes: z.string().trim().optional(),
-      status: z
-        .enum(['PENDING', 'COMPLETED'], {
-          message: 'Trạng thái không được để trống',
-        })
-        .optional(),
+      status: z.enum(['PENDING', 'COMPLETED']).optional(),
       stocktakeDetails: z
         .array(
           z.object({
-            variantId: z.number(),
+            productUnitId: z.number(),
             quantityCounted: z.number(),
             reason: z.string().optional(),
           }),
@@ -34,7 +30,6 @@ export const useHook = (
 
   const onFinish = async (values: IStockTakeCreateRequest) => {
     try {
-      // 👇 GHÉP details từ rows vào trước khi validate
       const withDetails: IStockTakeCreateRequest = {
         ...values,
         stocktakeDetails: getDetails(),

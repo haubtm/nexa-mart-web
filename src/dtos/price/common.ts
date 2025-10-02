@@ -8,9 +8,10 @@ interface IEmployee {
 
 export interface IPriceDetail {
   priceDetailId: number;
-  variantId: number;
-  variantCode: string;
-  variantName: string;
+  productUnitId: number;
+  productUnitCode: string;
+  productUnitName: string;
+  barcode: string;
   salePrice: number;
   createdAt: string;
   updatedAt: string;

@@ -75,6 +75,10 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.IMPORTS.PATH(),
         label: 'Nhập kho',
       },
+      [ROUTE_PATH.ADMIN.WAREHOUSE.PATH()]: {
+        key: ROUTE_PATH.ADMIN.WAREHOUSE.PATH(),
+        label: 'Tồn kho',
+      },
     };
   }, []);
 
@@ -143,6 +147,14 @@ const LayoutMenu = () => {
             label: (
               <Link to={ROUTE_PATH.ADMIN.TRANSACTION.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.TRANSACTION.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.WAREHOUSE.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.WAREHOUSE.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.WAREHOUSE.PATH()].label}
               </Link>
             ),
           },

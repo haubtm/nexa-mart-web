@@ -11,11 +11,11 @@ interface IImportDetail {
   importDetailId: number;
   quantity: number;
   createdAt: string;
-  variant: {
-    variantId: number;
-    variantName: string;
-    variantCode?: string | null;
-    barcode?: string | null;
+  productUnit: {
+    productUnitId: number;
+    code?: string;
+    barcode?: string;
+    conversionValue: number;
     productName: string;
     unit: string;
   };

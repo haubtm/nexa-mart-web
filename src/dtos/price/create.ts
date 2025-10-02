@@ -3,7 +3,7 @@ import type { IResponse } from '../common';
 import type { IPriceResponseData } from './common';
 
 interface IPriceDetail {
-  variantId: number;
+  productUnitId: number;
   salePrice: number;
 }
 
@@ -21,9 +21,9 @@ export interface IPriceCreateResponse extends IResponse<IPriceResponseData> {}
 
 export interface IPriceDetailCreateRequest {
   priceId: number;
-  variants: {
-    variantId: number;
-    price: number;
+  productUnit: {
+    productUnitId: number;
+    salePrice: number;
   }[];
 }
 

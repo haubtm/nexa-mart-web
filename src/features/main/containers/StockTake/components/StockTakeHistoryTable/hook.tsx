@@ -20,7 +20,7 @@ export const useHook = () => {
         index + 1 + queryParams.page * queryParams.limit,
     },
     {
-      key: 'referenceId',
+      key: 'stocktakeCode',
       title: 'Mã kiểm kho',
       width: 120,
       render: (_, record) => record?.stocktakeCode,

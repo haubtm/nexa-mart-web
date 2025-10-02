@@ -53,7 +53,7 @@ export const useHook = (
         priceDetails: z
           .array(
             z.object({
-              variantId: z.number('Mã sản phẩm là bắt buộc'),
+              productUnitId: z.number('Mã đơn vị sản phẩm là bắt buộc'),
               salePrice: z
                 .number('Giá bán phải là số')
                 .min(0, 'Giá bán không được âm'),

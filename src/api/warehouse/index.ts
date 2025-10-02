@@ -2,10 +2,11 @@ import type {
   IBaseListRequest,
   IWarehouseByProductIdRequest,
   IWarehouseByProductIdResponse,
-  IWarehouseByVariantIdRequest,
-  IWarehouseByVariantIdResponse,
-  IWarehouseStockByVariantIdRequest,
-  IWarehouseStockByVariantIdResponse,
+  IWarehouseByProductUnitIdRequest,
+  IWarehouseByProductUnitIdResponse,
+  IWarehouseListResponse,
+  IWarehouseStockByProductUnitIdRequest,
+  IWarehouseStockByProductUnitIdResponse,
   IWarehouseTransactionResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
@@ -13,6 +14,13 @@ import { apiService } from '../axiosService';
 const BASE_ENDPOINT = '/warehouse';
 
 export const warehouseApi = {
+  list: async (body: IBaseListRequest) => {
+    const response = await apiService.get<IWarehouseListResponse>(
+      `${BASE_ENDPOINT}?page=${body.page}&size=${body.limit}`,
+    );
+    return response;
+  },
+
   byProductId: async (body: IWarehouseByProductIdRequest) => {
     const response = await apiService.post<IWarehouseByProductIdResponse>(
       `${BASE_ENDPOINT}/product/${body.productId}`,
@@ -30,18 +38,21 @@ export const warehouseApi = {
     return response;
   },
 
-  transactionByVariantId: async (body: IWarehouseByVariantIdRequest) => {
-    const response = await apiService.get<IWarehouseByVariantIdResponse>(
-      `${BASE_ENDPOINT}/transactions/variant/${body.variantId}`,
+  transactionByProductUnitId: async (
+    body: IWarehouseByProductUnitIdRequest,
+  ) => {
+    const response = await apiService.get<IWarehouseByProductUnitIdResponse>(
+      `${BASE_ENDPOINT}/transactions/product-unit/${body.productUnitId}`,
     );
 
     return response;
   },
 
-  stockByVariantId: async (body: IWarehouseStockByVariantIdRequest) => {
-    const response = await apiService.get<IWarehouseStockByVariantIdResponse>(
-      `${BASE_ENDPOINT}/variant/${body.variantId}/stock`,
-    );
+  stockByProductUnitId: async (body: IWarehouseStockByProductUnitIdRequest) => {
+    const response =
+      await apiService.get<IWarehouseStockByProductUnitIdResponse>(
+        `${BASE_ENDPOINT}/product-unit/${body.productUnitId}/stock`,
+      );
 
     return response;
   },
