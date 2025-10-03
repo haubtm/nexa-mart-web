@@ -6,7 +6,13 @@ import {
   promotionKeys,
   usePromotionLineUpdate,
 } from '@/features/main/react-query';
-import { Form, type IModalRef, useNotification } from '@/lib';
+import {
+  EApplyToType,
+  EPromotionType,
+  Form,
+  type IModalRef,
+  useNotification,
+} from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { type MouseEvent, useRef } from 'react';
 import dayjs from 'dayjs';
@@ -62,11 +68,16 @@ export const useHook = (
           queryClient.invalidateQueries({
             queryKey: promotionKeys.all,
           });
+          handleCancel();
+        },
+        onError: (error: any) => {
+          notify('error', {
+            message: 'Thất bại',
+            description: error.message,
+          });
         },
       },
     );
-
-    handleCancel();
   };
 
   const handleOpen = () => {
@@ -74,7 +85,7 @@ export const useHook = (
     const d = { ...(record?.detail || {}) } as any;
 
     // BUY_X_GET_Y: xác định loại điều kiện mua (product-qty vs category-value)
-    if (record?.promotionType === 'BUY_X_GET_Y') {
+    if (record?.promotionType === EPromotionType.BUY_X_GET_Y) {
       if (d?.buyProduct) {
         // server trả 'buyProduct' dạng object -> form dùng id
         d.buyProductId =
@@ -100,7 +111,7 @@ export const useHook = (
     }
 
     // ORDER_DISCOUNT: auto chọn loại điều kiện tối thiểu
-    if (record?.promotionType === 'ORDER_DISCOUNT') {
+    if (record?.promotionType === EPromotionType.ORDER_DISCOUNT) {
       if (d.orderMinTotalValue) d._orderConditionType = 'MIN_ORDER_VALUE';
       else if (d.orderMinTotalQuantity)
         d._orderConditionType = 'MIN_DISCOUNTED_QTY';
@@ -108,14 +119,14 @@ export const useHook = (
     }
 
     // PRODUCT_DISCOUNT: auto chọn applyTo + điều kiện tối thiểu
-    if (record?.promotionType === 'PRODUCT_DISCOUNT') {
+    if (record?.promotionType === EPromotionType.PRODUCT_DISCOUNT) {
       // applyTo
       if (!d.applyToType) {
         d.applyToType = d.applyToProduct
-          ? 'PRODUCT'
+          ? EApplyToType.PRODUCT
           : d.applyToCategory
-            ? 'CATEGORY'
-            : 'ALL';
+            ? EApplyToType.CATEGORY
+            : EApplyToType.ALL;
       }
       if (d.applyToProduct) {
         d.applyToProductId =

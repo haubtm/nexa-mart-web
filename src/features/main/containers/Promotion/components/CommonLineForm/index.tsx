@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import type { FormInstance } from 'antd';
 import {
   Card,
-  Checkbox,
   Col,
   DatePicker,
   Empty,
@@ -16,12 +15,50 @@ import {
   Spin,
   TreeSelect,
 } from 'antd';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { EPromotionType } from '@/lib';
 import { useHook } from './hook';
 
 const currencyParser = (v?: string) =>
   v ? Number(String(v).replace(/[.,\s]/g, '')) : 0;
+
+const range = (start: number, end: number) =>
+  Array.from({ length: end - start + 1 }, (_, i) => i + start);
+
+// build disabledTime cho 1 ngày cụ thể theo khung [start,end]
+const buildDisabledTime = (start: Dayjs, end: Dayjs) => (current?: Dayjs) => {
+  if (!current) return {};
+  const sameStartDay = current.isSame(start, 'day');
+  const sameEndDay = current.isSame(end, 'day');
+
+  const disabledHours = () => {
+    const hours: number[] = [];
+    if (sameStartDay) hours.push(...range(0, start.hour() - 1));
+    if (sameEndDay) hours.push(...range(end.hour() + 1, 23));
+    // unique
+    return Array.from(new Set(hours)).filter((h) => h >= 0 && h <= 23);
+  };
+
+  const disabledMinutes = (hour: number) => {
+    const mins: number[] = [];
+    if (sameStartDay && hour === start.hour())
+      mins.push(...range(0, start.minute() - 1));
+    if (sameEndDay && hour === end.hour())
+      mins.push(...range(end.minute() + 1, 59));
+    return Array.from(new Set(mins)).filter((m) => m >= 0 && m <= 59);
+  };
+
+  const disabledSeconds = (hour: number, minute: number) => {
+    const secs: number[] = [];
+    if (sameStartDay && hour === start.hour() && minute === start.minute())
+      secs.push(...range(0, start.second() - 1));
+    if (sameEndDay && hour === end.hour() && minute === end.minute())
+      secs.push(...range(end.second() + 1, 59));
+    return Array.from(new Set(secs)).filter((s) => s >= 0 && s <= 59);
+  };
+
+  return { disabledHours, disabledMinutes, disabledSeconds };
+};
 
 /* ---------- Select theo đơn vị (value=productId) ---------- */
 function ProductUnitSelect({
@@ -42,10 +79,20 @@ function ProductUnitSelect({
   const options = useMemo(() => {
     const products = productData?.data?.products ?? [];
     return products.flatMap((p: any) =>
-      (p.units ?? []).map((u: any) => ({
-        label: `${p.name} – ${u.unitName}${u.barcode ? ` (${u.barcode})` : u.code ? ` (${u.code})` : ''}`,
-        value: p.id,
-      })),
+      (p.units ?? []).map((u: any) => {
+        // label hiển thị rõ: Tên SP – Tên đơn vị (barcode|code)
+        const tail = u.barcode
+          ? ` (${u.barcode})`
+          : u.code
+            ? ` (${u.code})`
+            : '';
+        return {
+          label: `${p.name} – ${u.unitName}${tail}`,
+          value: u.id, // ⬅️ dùng unit.id
+          // giúp tìm kiếm chính xác hơn:
+          _kw: `${p.name} ${u.unitName} ${u.barcode ?? ''} ${u.code ?? ''}`.toLowerCase(),
+        };
+      }),
     );
   }, [productData]);
 
@@ -54,13 +101,14 @@ function ProductUnitSelect({
       showSearch
       mode={multiple ? 'multiple' : undefined}
       options={options}
-      placeholder="Tìm sản phẩm…"
+      placeholder="Tìm theo tên SP / đơn vị / barcode / code…"
       value={value as any}
       onChange={onChange}
       onSearch={onSearch}
-      filterOption={(input, opt) =>
-        (opt?.label as string).toLowerCase().includes(input.toLowerCase())
-      }
+      filterOption={(input, opt) => {
+        const t = (opt as any)?._kw ?? (opt?.label as string)?.toLowerCase?.();
+        return t?.includes?.(input.toLowerCase());
+      }}
       notFoundContent={loading ? <Spin size="small" /> : <Empty />}
       style={{ width: '100%' }}
     />
@@ -258,7 +306,6 @@ function ProductCondition({ form }: { form: FormInstance }) {
 function OrderDiscountFields({ form }: { form: FormInstance }) {
   const dType = Form.useWatch(['detail', 'orderDiscountType'], form);
   const isPercent = dType === 'PERCENTAGE';
-  const isFree = dType === 'FREE';
 
   return (
     <>
@@ -272,25 +319,22 @@ function OrderDiscountFields({ form }: { form: FormInstance }) {
           <Space direction="vertical">
             <Radio value="FIXED_AMOUNT">Số tiền</Radio>
             <Radio value="PERCENTAGE">%</Radio>
-            <Radio value="FREE">Miễn phí (FREE)</Radio>
           </Space>
         </Radio.Group>
       </Form.Item>
 
-      {!isFree && (
-        <Form.Item
-          label="Giá trị giảm"
-          name={['detail', 'orderDiscountValue']}
-          rules={[{ required: true, message: 'Nhập giá trị giảm' }]}
-        >
-          <InputNumber
-            min={0}
-            style={{ width: 260 }}
-            parser={currencyParser}
-            addonAfter={isPercent ? '%' : 'đ'}
-          />
-        </Form.Item>
-      )}
+      <Form.Item
+        label="Giá trị giảm"
+        name={['detail', 'orderDiscountValue']}
+        rules={[{ required: true, message: 'Nhập giá trị giảm' }]}
+      >
+        <InputNumber
+          min={0}
+          style={{ width: 260 }}
+          parser={currencyParser}
+          addonAfter={isPercent ? '%' : 'đ'}
+        />
+      </Form.Item>
 
       {isPercent && (
         <Form.Item
@@ -336,25 +380,22 @@ function ProductDiscountFields({
           <Space direction="vertical">
             <Radio value="FIXED_AMOUNT">Số tiền</Radio>
             <Radio value="PERCENTAGE">%</Radio>
-            <Radio value="FREE">Miễn phí (FREE)</Radio>
           </Space>
         </Radio.Group>
       </Form.Item>
 
-      {dType !== 'FREE' && (
-        <Form.Item
-          label="Giá trị giảm"
-          name={['detail', 'productDiscountValue']}
-          rules={[{ required: true, message: 'Nhập giá trị giảm' }]}
-        >
-          <InputNumber
-            min={0}
-            style={{ width: 260 }}
-            parser={currencyParser}
-            addonAfter={isPercent ? '%' : 'đ'}
-          />
-        </Form.Item>
-      )}
+      <Form.Item
+        label="Giá trị giảm"
+        name={['detail', 'productDiscountValue']}
+        rules={[{ required: true, message: 'Nhập giá trị giảm' }]}
+      >
+        <InputNumber
+          min={0}
+          style={{ width: 260 }}
+          parser={currencyParser}
+          addonAfter={isPercent ? '%' : 'đ'}
+        />
+      </Form.Item>
 
       <Form.Item
         label="Áp dụng cho (applyToType)"
@@ -407,14 +448,17 @@ function ProductDiscountFields({
 export default function PromotionCreateForm({
   handleSubmit,
   form,
+  headerStartDate,
+  headerEndDate,
 }: {
   handleSubmit?: (v: any) => Promise<void>;
   form: FormInstance;
+  headerStartDate: string;
+  headerEndDate: string;
 }) {
   const {
+    rules,
     onFinish,
-    hasEnd,
-    setHasEnd,
     productData,
     isLoadingProduct,
     categoriesData,
@@ -425,6 +469,19 @@ export default function PromotionCreateForm({
   const type: EPromotionType | undefined = Form.useWatch('promotionType', form);
   const buyConditionType = Form.useWatch(['detail', '_buyConditionType'], form);
 
+  const hdrStart = headerStartDate ? dayjs(headerStartDate) : null;
+  const hdrEnd = headerEndDate ? dayjs(headerEndDate) : null;
+
+  const disabledDate = (current: Dayjs) => {
+    if (!hdrStart || !hdrEnd) return false;
+    return (
+      current.isBefore(hdrStart.startOf('day')) ||
+      current.isAfter(hdrEnd.endOf('day'))
+    );
+  };
+
+  const disabledTime =
+    hdrStart && hdrEnd ? buildDisabledTime(hdrStart, hdrEnd) : undefined;
   return (
     <Form
       form={form}
@@ -432,7 +489,8 @@ export default function PromotionCreateForm({
       onFinish={onFinish}
       initialValues={{
         promotionType: EPromotionType.ORDER_DISCOUNT,
-        startDate: dayjs(),
+        startDate: hdrStart ?? dayjs(),
+        endDate: hdrEnd ?? dayjs().add(1, 'day'),
         detail: {},
       }}
     >
@@ -441,8 +499,15 @@ export default function PromotionCreateForm({
         <Row gutter={16}>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Mã chương trình (promotionCode)"
+              label="Mã chương trình"
               name="promotionCode"
+              rules={[
+                { required: true, message: 'Nhập mã chương trình' },
+                {
+                  pattern: /^[A-Za-z0-9_-]+$/,
+                  message: 'Mã chương trình không hợp lệ',
+                },
+              ]}
             >
               <Input placeholder="VD: FLASH10" />
             </Form.Item>
@@ -462,7 +527,7 @@ export default function PromotionCreateForm({
           </Col>
         </Row>
 
-        <Form.Item label="Mô tả" name="description">
+        <Form.Item label="Mô tả" name="description" rules={[rules]}>
           <Input placeholder="Mô tả ngắn" />
         </Form.Item>
 
@@ -488,11 +553,12 @@ export default function PromotionCreateForm({
       {/* 2) Thời gian */}
       <Card title="Thời gian" style={{ marginBottom: 16 }}>
         <Row gutter={16}>
-          <Col xs={24} md={8}>
+          <Col xs={24} md={12}>
             <Form.Item
               label="Ngày bắt đầu"
               name="startDate"
               rules={[
+                rules,
                 { required: true, message: 'Vui lòng chọn ngày bắt đầu' },
               ]}
             >
@@ -500,27 +566,28 @@ export default function PromotionCreateForm({
                 showTime
                 format="DD/MM/YYYY HH:mm"
                 style={{ width: '100%' }}
+                disabledDate={disabledDate}
+                disabledTime={disabledTime}
               />
             </Form.Item>
           </Col>
-          <Col xs={24} md={8}>
-            <Form.Item label="Ngày kết thúc" name="endDate">
+
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Ngày kết thúc"
+              name="endDate"
+              rules={[
+                rules,
+                { required: true, message: 'Vui lòng chọn ngày kết thúc' },
+              ]}
+            >
               <DatePicker
                 showTime
-                disabled={!hasEnd}
                 format="DD/MM/YYYY HH:mm"
                 style={{ width: '100%' }}
+                disabledDate={disabledDate}
+                disabledTime={disabledTime}
               />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item label=" ">
-              <Checkbox
-                checked={!hasEnd}
-                onChange={(e) => setHasEnd(!e.target.checked)}
-              >
-                Không có ngày kết thúc
-              </Checkbox>
             </Form.Item>
           </Col>
         </Row>
@@ -530,18 +597,12 @@ export default function PromotionCreateForm({
       <Card title="Giới hạn sử dụng" style={{ marginBottom: 16 }}>
         <Row gutter={16}>
           <Col xs={24} md={12}>
-            <Form.Item
-              label="Tối đa mỗi khách (maxUsagePerCustomer)"
-              name="maxUsagePerCustomer"
-            >
+            <Form.Item label="Tối đa mỗi khách" name="maxUsagePerCustomer">
               <InputNumber min={0} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
-            <Form.Item
-              label="Tổng số lượt (maxUsageTotal)"
-              name="maxUsageTotal"
-            >
+            <Form.Item label="Tổng số lượt" name="maxUsageTotal">
               <InputNumber min={0} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
@@ -588,7 +649,7 @@ export default function PromotionCreateForm({
             <Row gutter={16}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Sản phẩm mua (buyProductId)"
+                  label="Sản phẩm mua"
                   name={['detail', 'buyProductId']}
                   rules={[{ required: true, message: 'Chọn sản phẩm mua' }]}
                 >
@@ -601,7 +662,7 @@ export default function PromotionCreateForm({
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Số lượng mua tối thiểu (buyMinQuantity)"
+                  label="Số lượng mua tối thiểu"
                   name={['detail', 'buyMinQuantity']}
                   rules={[
                     { required: true, message: 'Nhập số lượng' },
@@ -623,7 +684,7 @@ export default function PromotionCreateForm({
             <Row gutter={16}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Danh mục mua (buyCategoryId)"
+                  label="Danh mục mua"
                   name={['detail', 'buyCategoryId']}
                   rules={[{ required: true, message: 'Chọn danh mục' }]}
                 >
@@ -635,7 +696,7 @@ export default function PromotionCreateForm({
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Giá trị mua tối thiểu (buyMinValue)"
+                  label="Giá trị mua tối thiểu"
                   name={['detail', 'buyMinValue']}
                   rules={[
                     { required: true, message: 'Nhập giá trị' },
@@ -661,7 +722,7 @@ export default function PromotionCreateForm({
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
-                label="Sản phẩm tặng (giftProductId)"
+                label="Sản phẩm tặng"
                 name={['detail', 'giftProductId']}
                 rules={[{ required: true, message: 'Chọn sản phẩm tặng' }]}
               >
@@ -674,7 +735,7 @@ export default function PromotionCreateForm({
             </Col>
             <Col xs={24} md={12}>
               <Form.Item
-                label="Số lượng tặng tối đa (giftMaxQuantity)"
+                label="Số lượng tặng tối đa"
                 name={['detail', 'giftMaxQuantity']}
                 rules={[
                   { required: true, message: 'Nhập số lượng' },
@@ -692,7 +753,7 @@ export default function PromotionCreateForm({
           </Row>
 
           <Form.Item
-            label="Ưu đãi cho quà (giftDiscountType)"
+            label="Ưu đãi cho quà"
             name={['detail', 'giftDiscountType']}
             initialValue="FREE"
             rules={[{ required: true, message: 'Chọn hình thức' }]}
@@ -713,7 +774,7 @@ export default function PromotionCreateForm({
               const isPercent = t === 'PERCENTAGE';
               return (
                 <Form.Item
-                  label="Giá trị (giftDiscountValue)"
+                  label="Giá trị"
                   name={['detail', 'giftDiscountValue']}
                   rules={[
                     { required: true, message: 'Nhập giá trị' },

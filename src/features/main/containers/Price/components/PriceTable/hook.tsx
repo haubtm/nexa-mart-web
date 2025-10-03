@@ -3,14 +3,7 @@ import { useState } from 'react';
 import { useCommonHook } from '@/features/main/containers/Price/hook';
 import type { IPriceListResponse } from '@/dtos';
 import UpdatePriceModal from '../UpdatePriceModal';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import { Tag } from 'antd';
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const VN_TZ = 'Asia/Ho_Chi_Minh';
 
 const getStatusColorLabel = (status: string) => {
   switch (status) {
@@ -60,18 +53,13 @@ export const useHook = () => {
       title: 'Ngày bắt đầu',
       width: 120,
       render: (_, record) =>
-        record.startDate
-          ? formatDate(dayjs.tz(record.startDate, VN_TZ).toString())
-          : '',
+        record.startDate ? formatDate(record.startDate) : '',
     },
     {
       key: 'endDate',
       title: 'Ngày kết thúc',
       width: 120,
-      render: (_, record) =>
-        record.endDate
-          ? formatDate(dayjs.tz(record.endDate, VN_TZ).toString())
-          : '',
+      render: (_, record) => (record.endDate ? formatDate(record.endDate) : ''),
     },
     {
       key: 'status',

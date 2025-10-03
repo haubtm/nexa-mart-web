@@ -56,11 +56,16 @@ export const useHook = (
           queryClient.invalidateQueries({
             queryKey: promotionKeys.all,
           });
+          handleCancel();
+        },
+        onError: (error: any) => {
+          notify('error', {
+            message: 'Thất bại',
+            description: error.message,
+          });
         },
       },
     );
-
-    handleCancel();
   };
 
   const handleOpen = () => {

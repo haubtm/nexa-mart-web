@@ -5,10 +5,14 @@ import { PlusOutlined } from '@ant-design/icons';
 
 interface ICreatePromotionLineModalProps {
   headerId: number;
+  headerStartDate: string; // ⬅️ thêm
+  headerEndDate: string;
 }
 
 const CreatePromotionLineModal = ({
   headerId,
+  headerStartDate,
+  headerEndDate,
 }: ICreatePromotionLineModalProps) => {
   const { ref, form, isLoadingCreatePromotion, handleSubmit, handleCancel } =
     useHook(headerId);
@@ -31,7 +35,12 @@ const CreatePromotionLineModal = ({
         />
       }
     >
-      <PromotionForm form={form} handleSubmit={handleSubmit} />
+      <PromotionForm
+        form={form}
+        handleSubmit={handleSubmit}
+        headerStartDate={headerStartDate}
+        headerEndDate={headerEndDate}
+      />
     </ModalNew>
   );
 };

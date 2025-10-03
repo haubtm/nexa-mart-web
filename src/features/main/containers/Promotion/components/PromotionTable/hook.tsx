@@ -98,7 +98,11 @@ export const useHook = () => {
         return (
           <Flex gap={8} style={{ display: 'inline-flex' }}>
             <div onClick={(e) => e.stopPropagation()}>
-              <CreatePromotionModal headerId={record?.promotionId} />
+              <CreatePromotionModal
+                headerId={record?.promotionId}
+                headerStartDate={record?.startDate}
+                headerEndDate={record?.endDate}
+              />
             </div>
             <div onClick={(e) => e.stopPropagation()}>
               <UpdatePromotionHeaderModal record={record} />

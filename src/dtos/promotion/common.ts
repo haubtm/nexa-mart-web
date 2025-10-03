@@ -45,7 +45,7 @@ export interface IPromotionDetail {
     barcode: string;
     conversionValue: number;
     productName: string;
-    unit: string;
+    unitName: string;
   };
   buyCategory: {
     categoryId: number;
@@ -60,7 +60,7 @@ export interface IPromotionDetail {
     barcode: string;
     conversionValue: number;
     productName: string;
-    unit: string;
+    unitName: string;
   };
   giftDiscountType: EGiftDiscountType;
   giftDiscountValue: number;
@@ -81,7 +81,7 @@ export interface IPromotionDetail {
     barcode: string;
     conversionValue: number;
     productName: string;
-    unit: string;
+    unitName: string;
   };
   applyToCategory?: {
     categoryId: number;

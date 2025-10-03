@@ -1,11 +1,12 @@
+import { FORMAT_DATE } from '../constants';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { FORMAT_DATE } from '../constants';
-import 'dayjs/locale/vi';
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const VN_TZ = 'Asia/Ho_Chi_Minh';
 
 export const isValidDate = (
   date: string | number | Date | null | undefined,
@@ -20,13 +21,10 @@ export const isValidDate = (
 export const formatDate = (
   date: string | number | Date | null | undefined,
   format: string = FORMAT_DATE,
-  gmtOffset: number = 7,
 ) => {
   if (!isValidDate(date)) {
     return null;
   }
 
-  const targetTz = `Etc/GMT${gmtOffset <= 0 ? '+' + Math.abs(gmtOffset) : '-' + gmtOffset}`;
-
-  return dayjs.utc(date).tz(targetTz).format(format);
+  return dayjs.tz(date, VN_TZ).format(format);
 };

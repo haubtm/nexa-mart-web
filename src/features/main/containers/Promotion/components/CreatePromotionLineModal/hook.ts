@@ -48,6 +48,7 @@ export const useHook = (headerId: number) => {
           handleCancel();
         },
         onError: (error) => {
+          console.log(error);
           notify('error', {
             message: 'Thất bại',
             description: error.message || 'Có lỗi xảy ra',

@@ -10,21 +10,29 @@ import {
 } from '@/features/main/react-query';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const VN_TZ = 'Asia/Ho_Chi_Minh';
 
 // ISO UTC có 'Z'
-const toIsoUTCZ = (v: unknown) => {
-  if (dayjs.isDayjs(v)) return v.utc().toISOString();
-  if (v instanceof Date) return dayjs(v).utc().toISOString();
-  if (typeof v === 'string') return dayjs(v).utc().toISOString();
-  return v as any;
+const toIsoWithVNOffset = (v: unknown) => {
+  if (dayjs.isDayjs(v)) return v.tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
+  if (v instanceof Date)
+    return dayjs(v).tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
+  return v; // nếu đã là string thì giữ nguyên (hoặc tự parse nếu cần)
 };
 
 export type SubmitFn = (values: IPromotionLineCreateRequest) => Promise<void>;
 
-export const useHook = (handleSubmit?: SubmitFn) => {
-  const [hasEnd, setHasEnd] = useState(true);
-
+export const useHook = (
+  handleSubmit?: SubmitFn,
+  headerStartDate?: string,
+  headerEndDate?: string,
+) => {
+  const hdrStart = headerStartDate ? dayjs(headerStartDate) : null;
+  const hdrEnd = headerEndDate ? dayjs(headerEndDate) : null;
   const [rules, Schema] = useMemo(() => {
     const Detail = z
       .object({
@@ -42,18 +50,14 @@ export const useHook = (handleSubmit?: SubmitFn) => {
         giftMaxQuantity: z.number().int().positive().optional(),
 
         // ORDER_DISCOUNT
-        orderDiscountType: z
-          .enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE'])
-          .optional(),
+        orderDiscountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT']).optional(),
         orderDiscountValue: z.number().nonnegative().optional(),
         orderDiscountMaxValue: z.number().nonnegative().optional(),
         orderMinTotalValue: z.number().nonnegative().optional(),
         orderMinTotalQuantity: z.number().int().nonnegative().optional(),
 
         // PRODUCT_DISCOUNT
-        productDiscountType: z
-          .enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE'])
-          .optional(),
+        productDiscountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT']).optional(),
         productDiscountValue: z.number().nonnegative().optional(),
         applyToType: z.enum(['ALL', 'PRODUCT', 'CATEGORY']).optional(),
         applyToProductId: z.number().int().nonnegative().optional(),
@@ -84,22 +88,17 @@ export const useHook = (handleSubmit?: SubmitFn) => {
         promotionType: z.nativeEnum(EPromotionType),
         description: z.string().trim().optional(),
         startDate: z.preprocess(
-          toIsoUTCZ,
-          z
-            .string()
-            .refine((s) => !Number.isNaN(Date.parse(s)), {
-              message: 'Ngày bắt đầu không hợp lệ',
-            }),
+          toIsoWithVNOffset,
+          z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
+            message: 'Ngày bắt đầu không hợp lệ',
+          }),
         ),
         endDate: z
           .preprocess(
-            (v) => (v == null || v === '' ? undefined : toIsoUTCZ(v)),
-            z
-              .string()
-              .optional()
-              .refine((s) => s == null || !Number.isNaN(Date.parse(s!)), {
-                message: 'Ngày kết thúc không hợp lệ',
-              }),
+            toIsoWithVNOffset,
+            z.string().refine((s) => !Number.isNaN(Date.parse(s!)), {
+              message: 'Ngày kết thúc không hợp lệ',
+            }),
           )
           .optional(),
         status: z.enum(['ACTIVE', 'EXPIRED', 'PAUSED', 'UPCOMING']).optional(),
@@ -149,8 +148,8 @@ export const useHook = (handleSubmit?: SubmitFn) => {
               path: ['detail', 'orderDiscountType'],
             });
           } else if (
-            d.orderDiscountType !== 'FREE' &&
-            (d.orderDiscountValue == null || d.orderDiscountValue <= 0)
+            d.orderDiscountValue == null ||
+            d.orderDiscountValue <= 0
           ) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -168,8 +167,8 @@ export const useHook = (handleSubmit?: SubmitFn) => {
               path: ['detail', 'productDiscountType'],
             });
           } else if (
-            d.productDiscountType !== 'FREE' &&
-            (d.productDiscountValue == null || d.productDiscountValue <= 0)
+            d.productDiscountValue == null ||
+            d.productDiscountValue <= 0
           ) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -204,6 +203,25 @@ export const useHook = (handleSubmit?: SubmitFn) => {
           }
         }
 
+        if (hdrStart && hdrEnd) {
+          const s = dayjs(val.startDate);
+          const e = dayjs(val.endDate);
+          if (s.isBefore(hdrStart) || s.isAfter(hdrEnd)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['startDate'],
+              message: 'Ngày bắt đầu Line phải nằm trong thời gian của Header',
+            });
+          }
+          if (e.isBefore(hdrStart) || e.isAfter(hdrEnd)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['endDate'],
+              message: 'Ngày kết thúc Line phải nằm trong thời gian của Header',
+            });
+          }
+        }
+
         if (
           val.startDate &&
           val.endDate &&
@@ -218,18 +236,15 @@ export const useHook = (handleSubmit?: SubmitFn) => {
       });
 
     return [createSchemaFieldRule(Schema), Schema] as const;
-  }, []);
+  }, [headerStartDate, headerEndDate]);
 
   const onFinish = async (rawValues: any) => {
     try {
       const values = { ...rawValues };
 
-      // không có ngày kết thúc -> remove
-      if (!hasEnd) values.endDate = undefined;
-
       // Chuẩn hoá thời gian về ISO UTC 'Z'
-      values.startDate = toIsoUTCZ(values.startDate);
-      if (values.endDate) values.endDate = toIsoUTCZ(values.endDate);
+      values.startDate = toIsoWithVNOffset(values.startDate);
+      values.endDate = toIsoWithVNOffset(values.endDate);
 
       // Mapping điều kiện theo radio nội bộ trong detail
       if (values.detail) {
@@ -303,8 +318,6 @@ export const useHook = (handleSubmit?: SubmitFn) => {
   return {
     rules,
     onFinish,
-    hasEnd,
-    setHasEnd,
     productData,
     isLoadingProduct,
     categoriesData,

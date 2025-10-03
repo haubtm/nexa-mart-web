@@ -8,9 +8,15 @@ interface IUpdatePromotionModalProps {
   record?:
     | IPromotionListResponse['data']['content'][number]['promotionLines'][number]
     | null;
+  headerStartDate: string;
+  headerEndDate: string;
 }
 
-const UpdatePromotionLineModal = ({ record }: IUpdatePromotionModalProps) => {
+const UpdatePromotionLineModal = ({
+  record,
+  headerStartDate,
+  headerEndDate,
+}: IUpdatePromotionModalProps) => {
   const {
     ref,
     form,
@@ -36,7 +42,12 @@ const UpdatePromotionLineModal = ({ record }: IUpdatePromotionModalProps) => {
         />
       }
     >
-      <PromotionLineForm form={form} handleSubmit={handleSubmit} />
+      <PromotionLineForm
+        form={form}
+        handleSubmit={handleSubmit}
+        headerStartDate={headerStartDate}
+        headerEndDate={headerEndDate}
+      />
     </ModalNew>
   );
 };
