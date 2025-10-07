@@ -1,3 +1,4 @@
+import { ESortDirection } from '@/lib';
 import type { IPageable, IResponse } from '../common';
 import type { IPriceResponseData } from './common';
 
@@ -11,7 +12,7 @@ export interface IPriceListRequest {
   endDateFrom?: string;
   endDateTo?: string;
   sortBy?: string;
-  sortDirection?: 'ASC' | 'DESC';
+  sortDirection?: ESortDirection | any;
   includeDetails?: boolean;
   createdBy?: number;
   createdFrom?: string;

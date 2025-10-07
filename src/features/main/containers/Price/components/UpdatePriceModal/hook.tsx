@@ -1,5 +1,9 @@
 import type { IPriceCreateRequest, IPriceListResponse } from '@/dtos';
-import { priceKeys, usePriceUpdate } from '@/features/main/react-query';
+import {
+  priceKeys,
+  usePriceDetailDelete,
+  usePriceUpdate,
+} from '@/features/main/react-query';
 import { Form, type IModalRef, PriceStatus, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import dayjs from 'dayjs';
@@ -68,6 +72,7 @@ export const useHook = (
   const [form] = Form.useForm<IPriceCreateRequest>();
   const { mutateAsync: updatePrice, isPending: isLoadingUpdatePrice } =
     usePriceUpdate();
+  const { mutateAsync: deletePriceDetail } = usePriceDetailDelete();
   const { notify } = useNotification();
 
   const handleCancel = (e?: MouseEvent<HTMLButtonElement>) => {
@@ -97,13 +102,17 @@ export const useHook = (
     // Diff để sinh priceDetails đúng shape
     const priceDetails = buildPriceDetailsForUpdate(currentDetails, oldItems);
 
+    const deletedDetailIds = priceDetails
+      .filter((d) => d.deleted && d.priceDetailId != null)
+      .map((d) => d.priceDetailId!) as number[];
+
     // Tính endDateValid
     const startIso = values.startDate;
     const endIso = values.endDate;
     const endDateValid = endIso ? true : false;
 
     // Gọi API update
-    return await updatePrice(
+    await updatePrice(
       {
         priceId: record.priceId,
         priceName: values.priceName,
@@ -116,13 +125,41 @@ export const useHook = (
         endDateValid, // theo yêu cầu payload
       } as any,
       {
-        onSuccess: () => {
-          notify('success', {
-            message: 'Thành công',
-            description: 'Cập nhật bảng giá thành công',
-          });
+        onSuccess: async () => {
+          await deletePriceDetail(
+            {
+              priceDetailIds: deletedDetailIds,
+              priceId: record.priceId,
+            },
+            {
+              onSuccess: () => {
+                notify('success', {
+                  message: 'Thành công',
+                  description: 'Cập nhật bảng giá thành công',
+                });
+              },
+              onError: (error: any) => {
+                notify('error', {
+                  message: 'Lỗi',
+                  description:
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    'Xoá chi tiết bảng giá thất bại',
+                });
+              },
+            },
+          );
           queryClient.invalidateQueries({ queryKey: priceKeys.all });
           handleCancel();
+        },
+        onError: (error: any) => {
+          notify('error', {
+            message: 'Lỗi',
+            description:
+              error?.response?.data?.message ||
+              error?.message ||
+              'Cập nhật bảng giá thất bại',
+          });
         },
       },
     );

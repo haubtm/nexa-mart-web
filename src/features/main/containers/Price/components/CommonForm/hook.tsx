@@ -1,5 +1,4 @@
 import type { IPriceCreateRequest } from '@/dtos';
-import { useDebounce } from '@/lib';
 import { createSchemaFieldRule } from 'antd-zod';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
@@ -92,10 +91,9 @@ export const useHook = (
     }
   };
 
-  const [search, setSearch] = useState<string>('');
-  const searchDebounce = useDebounce(search, 500);
   const { data: productData, isLoading: isLoadingProduct } = useProductList({
-    searchTerm: searchDebounce,
+    page: 0,
+    size: 100,
   });
 
   return {
@@ -104,8 +102,6 @@ export const useHook = (
     Schema,
     productData,
     isLoadingProduct,
-    search,
-    setSearch,
     hasEnd,
     setHasEnd,
   };

@@ -1,16 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import {
-  AutoComplete,
-  Input,
-  Table,
-  InputNumber,
-  Form,
-  Space,
-  Spin,
-  DatePicker,
-  Button,
-  Checkbox,
-} from 'antd';
+import { useEffect, useState } from 'react';
+import { Form, DatePicker, Checkbox } from 'antd';
 import type { FormInstance } from 'antd';
 import type {
   IPriceCreateRequest,
@@ -21,14 +10,19 @@ import { useHook } from './hook';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { PriceStatus, Select } from '@/lib';
+import {
+  Input,
+  InputNumber,
+  PriceStatus,
+  Select,
+  Table,
+  TextArea,
+} from '@/lib';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const VN_TZ = 'Asia/Ho_Chi_Minh';
-// (tuỳ chọn) đặt default
 dayjs.tz.setDefault(VN_TZ);
-
-// helpers
 const nowVN = () => dayjs().tz('Asia/Ho_Chi_Minh');
 
 type Props = {
@@ -37,28 +31,30 @@ type Props = {
   enableDetails?: boolean;
 };
 
-type VariantItem = {
-  variantId: number; // = unit.id
-  variantName: string; // ví dụ: "Coca Cola 123 - lon (x12)"
-  productName: string; // = product.name
-  unitName: string; // = unit.unitName
-  code?: string; // = unit.code
-  barcode?: string; // = unit.barcode
-  conversionValue: number; // = unit.conversionValue
+type UnitRow = {
+  id: number;
+  unitName: string;
+  code?: string;
+  barcode?: string;
+  conversionValue: number;
+  isBaseUnit?: boolean;
 };
 
 type Row = {
-  variantId: number;
-  name: string;
-  code?: string; // giữ lại để hiển thị "Mã"
-  barcode?: string; // NEW: barcode riêng cột
-  unitName?: string;
-  sku?: string;
+  productId: number;
+  productName: string;
+  productUnitId: number;
+  unitName: string;
+  conversionValue?: number;
+  code?: string;
+  barcode?: string;
   salePrice?: number;
+  checked: boolean;
 };
 
 const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
   const [rows, setRows] = useState<Row[]>([]);
+  const [checkAll, setCheckAll] = useState<boolean>(true);
 
   const disablePast = (current?: dayjs.Dayjs) =>
     !!current && current.tz(VN_TZ).isBefore(nowVN().startOf('day'));
@@ -69,141 +65,103 @@ const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
     const minEnd = start.tz(VN_TZ).startOf('day').add(1, 'day');
     return !!current && current.tz(VN_TZ).isBefore(minEnd);
   };
-  // map -> priceDetails cho payload
+
+  const [tableY, setTableY] = useState<number>(420);
+
+  useEffect(() => {
+    const calc = () => {
+      // chừa không gian cho form + khoảng đệm
+      const h = window.innerHeight;
+      // bảng cao ~55% viewport, tối thiểu 260px
+      setTableY(Math.max(260, Math.round(h * 0.45)));
+    };
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
+
+  // Lấy chi tiết gửi lên từ state rows
   const getDetails = (): IPriceCreateRequest['priceDetails'] =>
     rows
-      .filter((r) => r.salePrice !== undefined && !Number.isNaN(r.salePrice))
+      .filter(
+        (r) =>
+          r.checked && r.salePrice !== undefined && !Number.isNaN(r.salePrice),
+      )
       .map((r) => ({
-        productUnitId: r.variantId, // đổi key gửi lên
+        productUnitId: r.productUnitId,
         salePrice: Number(r.salePrice),
       }));
 
-  // hook validate + search biến thể
-  const {
-    rules,
-    onFinish, // đã parse Zod ở hook
-    productData,
-    isLoadingProduct,
-    setSearch,
-    hasEnd,
-    setHasEnd,
-  } = useHook(async (values) => {
-    // ghép details trước khi gửi
-    const payload: IPriceCreateRequest = enableDetails
-      ? {
-          ...values,
-          priceDetails: getDetails(),
-        }
-      : {
-          ...values,
-          priceDetails: undefined,
-        };
-    await handleSubmit(payload);
-  });
+  const { rules, onFinish, productData, isLoadingProduct, hasEnd, setHasEnd } =
+    useHook(async (values) => {
+      const payload: IPriceCreateRequest = enableDetails
+        ? { ...values, priceDetails: getDetails() }
+        : { ...values, priceDetails: undefined };
+      await handleSubmit(payload);
+    });
 
-  // options cho AutoComplete
-  const options = useMemo(() => {
+  // Tạo rows từ productData (toàn bộ sản phẩm)
+  useEffect(() => {
     const products: IProductListResponse['data']['products'] =
       productData?.data?.products ?? [];
 
-    return products.flatMap((p) =>
-      (p.units ?? []).map((u) => {
-        const variantName =
-          `${p.name} - ${u.unitName}` +
-          (u.isBaseUnit ? '' : ` (x${u.conversionValue})`);
+    // Nếu có dữ liệu cũ (edit), map trước để ưu tiên salePrice/đơn vị đã chọn
+    const prevDetails = (form.getFieldValue('priceDetails') ??
+      []) as IPriceListResponse['data']['content'][number]['priceDetails'];
 
-        const subLine = [
-          u.code ? `Mã: ${u.code}` : null,
-          u.barcode ? `Barcode: ${u.barcode}` : null,
-          p.brandName ? `Brand: ${p.brandName}` : null,
-        ]
-          .filter(Boolean)
-          .join(' • ');
+    const detailByUnitId = new Map<number, { salePrice?: number }>();
+    prevDetails?.forEach((d) => {
+      if (d?.productUnitId != null) {
+        detailByUnitId.set(d.productUnitId, { salePrice: d.salePrice });
+      }
+    });
 
-        const raw: VariantItem = {
-          variantId: u.id!,
-          variantName,
-          productName: p.name,
-          unitName: u.unitName,
-          code: u.code,
-          barcode: u.barcode,
-          conversionValue: u.conversionValue,
-        };
+    const isUpdate = detailByUnitId.size > 0;
 
-        return {
-          value: `${p.id}:${u.id}`, // giá trị hiển thị
-          label: (
-            <Space direction="vertical" size={0}>
-              <strong>{variantName}</strong>
-              {subLine && (
-                <span style={{ color: '#666', fontSize: 12 }}>{subLine}</span>
-              )}
-            </Space>
-          ),
-          raw, // để onSelect addRow(opt.raw)
-        };
-      }),
-    );
-  }, [productData]);
+    const nextRows: Row[] = products.flatMap((p) => {
+      const units: UnitRow[] = (p.units ?? []).map((u) => ({
+        id: u.id!,
+        unitName: u.unitName,
+        code: u.code,
+        barcode: u.barcode,
+        conversionValue: u.conversionValue,
+        isBaseUnit: !!u.isBaseUnit,
+      }));
 
-  const getUnitFromVariantName = (name?: string) => {
-    if (!name) return undefined;
-    // Tách theo dấu gạch ngang có/không khoảng trắng hai bên
-    const parts = name.split(/\s*-\s*/).filter(Boolean);
-    return parts.length ? parts[parts.length - 1] : undefined;
-  };
+      return units.map((u) => ({
+        productId: p.id,
+        productName: p.name,
+        productUnitId: u.id,
+        unitName: u.unitName,
+        conversionValue: u.conversionValue,
+        code: u.code,
+        barcode: u.barcode,
+        salePrice: detailByUnitId.get(u.id)?.salePrice, // prefill giá nếu có
+        // ⬇️ Flow mới:
+        // - Tạo mới: không check gì cả
+        // - Cập nhật: chỉ check đúng unit đã có trong bảng giá
+        checked: isUpdate ? detailByUnitId.has(u.id) : false,
+      }));
+    });
 
-  useEffect(() => {
-    const details = form.getFieldValue(
-      'priceDetails',
-    ) as IPriceListResponse['data']['content'][number]['priceDetails'];
-    console.log('details', details);
-    if (details && details.length) {
-      // Nếu chưa có tên/đơn vị, đặt name tạm bằng mã ID
-      setRows(
-        details?.map((d) => ({
-          variantId: d?.productUnitId,
-          name: d?.productUnitName,
-          salePrice: d?.salePrice,
-          code: d?.productUnitCode,
-          barcode: d?.barcode,
-          unitName: getUnitFromVariantName(d.productUnitName),
-        })),
-      );
-      console.log(rows);
-    } else {
-      setRows([]); // trường hợp không có chi tiết
-    }
+    setRows(nextRows);
+    // checkAll phản ánh đúng hiện trạng (tạo mới sẽ là false)
+    setCheckAll(nextRows.length > 0 && nextRows.every((r) => r.checked));
 
-    // Cập nhật checkbox hasEnd dựa trên endDate
+    // đồng bộ hasEnd theo endDate như cũ
     const end = form.getFieldValue('endDate');
     setHasEnd(!!end);
-  }, [form]);
+  }, [productData, form]);
 
-  const addRow = (v: VariantItem) =>
+  const updateRow = (unitId: number, patch: Partial<Row>) =>
     setRows((prev) =>
-      prev.some((r) => r.variantId === v.variantId)
-        ? prev
-        : [
-            ...prev,
-            {
-              variantId: v.variantId,
-              name: v.variantName,
-              code: v.code, // Mã (unit.code)
-              barcode: v.barcode, // Barcode (unit.barcode)
-              unitName: v.unitName, // ĐVT
-              salePrice: undefined,
-            },
-          ],
+      prev.map((r) => (r.productUnitId === unitId ? { ...r, ...patch } : r)),
     );
 
-  const updateRow = (id: number, patch: Partial<Row>) =>
-    setRows((prev) =>
-      prev.map((r) => (r.variantId === id ? { ...r, ...patch } : r)),
-    );
-
-  const removeRow = (id: number) =>
-    setRows((prev) => prev.filter((r) => r.variantId !== id));
+  const onToggleAll = (checked: boolean) => {
+    setCheckAll(checked);
+    setRows((prev) => prev.map((r) => ({ ...r, checked })));
+  };
 
   return (
     <Form<IPriceCreateRequest>
@@ -211,31 +169,40 @@ const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
       layout="vertical"
       onFinish={onFinish}
     >
-      {/* Thông tin cơ bản */}
+      {/* Thông tin cơ bản (compact) */}
       <div
         style={{
-          borderRadius: '12px',
+          borderRadius: 12,
           border: '1px solid #eee',
-          padding: '16px',
+          padding: 12, // giảm padding
+          marginBottom: 8,
         }}
       >
-        <Space size={16} wrap>
+        {/* Hàng field gọn 1 dòng */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 0.8fr 1fr auto 1fr 0.9fr',
+            gap: 12,
+            alignItems: 'end',
+          }}
+        >
           <Form.Item
             label="Tên bảng giá"
             name="priceName"
             rules={[rules]}
-            style={{ minWidth: 320 }}
+            style={{ marginBottom: 8 }}
           >
-            <Input placeholder="VD: Bảng giá tháng 10" />
+            <Input size="middle" placeholder="VD: Bảng giá tháng 10" />
           </Form.Item>
 
           <Form.Item
             label="Mã bảng giá"
             name="priceCode"
             rules={[rules]}
-            style={{ minWidth: 220 }}
+            style={{ marginBottom: 8 }}
           >
-            <Input placeholder="Tự động" />
+            <Input size="middle" placeholder="Tự động" />
           </Form.Item>
 
           <Form.Item
@@ -243,36 +210,38 @@ const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
             name="startDate"
             rules={[rules]}
             initialValue={nowVN()}
+            style={{ marginBottom: 8 }}
           >
             <DatePicker
               allowClear={false}
               showTime={{ format: 'HH:mm' }}
               format="YYYY-MM-DD HH:mm"
-              style={{ minWidth: 240 }}
               disabledDate={disablePast}
+              style={{ width: '100%' }}
             />
           </Form.Item>
 
-          <Form.Item label=" " colon={false}>
+          {/* Checkbox KHÔNG có text để gọn hơn */}
+          <Form.Item style={{ marginBottom: 8 }}>
             <Checkbox
               checked={hasEnd}
               onChange={(e) => setHasEnd(e.target.checked)}
-            >
-              Thời gian kết thúc
-            </Checkbox>
+              aria-label="Bật thời gian kết thúc"
+            />
           </Form.Item>
 
           <Form.Item
             label="Thời gian kết thúc"
             name="endDate"
             rules={hasEnd ? [rules] : []}
+            style={{ marginBottom: 8 }}
           >
             <DatePicker
               disabled={!hasEnd}
               showTime={{ format: 'HH:mm' }}
               format="YYYY-MM-DD HH:mm"
-              style={{ minWidth: 240 }}
               disabledDate={disableEnd}
+              style={{ width: '100%' }}
             />
           </Form.Item>
 
@@ -280,101 +249,100 @@ const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
             label="Trạng thái"
             name="status"
             rules={hasEnd ? [rules] : []}
-            style={{ minWidth: 180 }}
+            style={{ marginBottom: 8 }}
           >
             <Select
+              size="middle"
               options={[
                 { label: 'Áp dụng', value: PriceStatus.UPCOMING },
                 { label: 'Tạm ngưng', value: PriceStatus.PAUSED },
               ]}
             />
           </Form.Item>
-        </Space>
+        </div>
 
-        <Form.Item name="description" label="Mô tả" style={{ marginTop: 8 }}>
-          <Input.TextArea
-            rows={3}
-            placeholder="Ghi chú cho bảng giá (tùy chọn)"
+        {/* Mô tả: nhỏ lại để nhường chỗ cho bảng */}
+        <Form.Item
+          name="description"
+          label="Mô tả"
+          style={{ marginTop: 4, marginBottom: 4 }}
+        >
+          <TextArea
+            size="middle"
+            autoSize
+            rows={2}
+            placeholder="Ghi chú (tùy chọn)"
           />
         </Form.Item>
       </div>
 
       {enableDetails && (
         <>
-          {/* Tìm & thêm sản phẩm */}
-          <Form.Item label="Tìm sản phẩm / biến thể" style={{ marginTop: 16 }}>
-            <AutoComplete
-              style={{ width: 520 }}
-              options={isLoadingProduct ? [] : options}
-              onSearch={setSearch}
-              onSelect={(_, opt: any) => addRow(opt.raw)} // <-- quan trọng
-              filterOption={false}
-              notFoundContent={isLoadingProduct ? <Spin size="small" /> : null}
-            >
-              <Input allowClear placeholder="Nhập tên/mã/barcode..." />
-            </AutoComplete>
-          </Form.Item>
-
-          {/* Bảng sản phẩm áp dụng */}
+          {/* Bảng tất cả sản phẩm */}
           <Table<Row>
-            rowKey="variantId"
+            rowKey={(r) => `${r.productId}-${r.productUnitId}`}
             dataSource={rows}
+            loading={isLoadingProduct}
             pagination={false}
             size="middle"
+            sticky
+            scroll={{ y: tableY }}
             columns={[
               {
-                title: 'Sản phẩm',
-                dataIndex: 'name',
-                render: (v, r) => (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <strong>{v}</strong>
-                    <span style={{ color: '#666', fontSize: 12 }}>
-                      {(r.code && `Mã: ${r.code} • `) || ''}
-                      {(r.barcode && `Barcode: ${r.barcode} • `) || ''}
-                      {r.unitName || ''}
-                    </span>
-                  </div>
+                title: (
+                  <Checkbox
+                    checked={checkAll}
+                    onChange={(e) => onToggleAll(e.target.checked)}
+                  />
+                ),
+                width: 30,
+                render: (_: any, r) => (
+                  <Checkbox
+                    checked={r.checked}
+                    onChange={(e) =>
+                      updateRow(r.productUnitId, { checked: e.target.checked })
+                    }
+                  />
                 ),
               },
-              { title: 'Mã', dataIndex: 'code', width: 160 }, // unit.code
-              { title: 'Barcode', dataIndex: 'barcode', width: 160 }, // unit.barcode
-              { title: 'ĐVT', dataIndex: 'unitName', width: 120 },
+              {
+                title: 'Sản phẩm',
+                dataIndex: 'productName',
+                render: (v) => <strong>{v}</strong>,
+                width: 280,
+              },
+              {
+                title: 'ĐVT',
+                dataIndex: 'unitName',
+                width: 180,
+                render: (_: any, r) =>
+                  `${r.unitName}${r.conversionValue && r.conversionValue !== 1 ? ` (x${r.conversionValue})` : ''}`,
+              },
+              { title: 'Mã', dataIndex: 'code', width: 160 },
+              { title: 'Barcode', dataIndex: 'barcode', width: 160 },
               {
                 title: 'Giá bán',
                 dataIndex: 'salePrice',
                 width: 180,
                 align: 'right' as const,
-                render: (_: any, r: Row) => (
+                render: (_: any, r) => (
                   <InputNumber
                     min={0}
+                    size="middle"
                     value={r.salePrice}
+                    disabled={!r.checked}
                     onChange={(v) =>
-                      updateRow(r.variantId, { salePrice: Number(v ?? 0) })
+                      updateRow(r.productUnitId, { salePrice: Number(v ?? 0) })
                     }
                     style={{ width: '100%' }}
                     formatter={(val) =>
-                      `${(val ?? '')
-                        .toString()
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+                      `${(val ?? '').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
                     }
                     parser={(val) =>
                       Number((val ?? '').toString().replace(/,/g, ''))
                     }
                     placeholder="Nhập giá"
                   />
-                ),
-              },
-              {
-                title: '',
-                width: 70,
-                render: (_: any, r: Row) => (
-                  <Button
-                    type="link"
-                    danger
-                    onClick={() => removeRow(r.variantId)}
-                  >
-                    Xoá
-                  </Button>
                 ),
               },
             ]}
