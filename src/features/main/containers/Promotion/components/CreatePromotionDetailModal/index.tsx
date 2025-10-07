@@ -1,21 +1,19 @@
-import { Button, ModalNew } from '@/lib';
+import { Button, EPromotionType, ModalNew } from '@/lib';
 import { useHook } from './hook';
 import { PlusOutlined } from '@ant-design/icons';
-import PromotionLineCreateForm from '../CommonLineForm';
+import PromotionDetailCreateForm from '../CommonDetailForm';
 
-interface ICreatePromotionLineModalProps {
-  headerId: number;
-  headerStartDate: string; // ⬅️ thêm
-  headerEndDate: string;
+interface ICreatePromotionDetailModalProps {
+  lineId: number;
+  promotionType: EPromotionType;
 }
 
-const CreatePromotionLineModal = ({
-  headerId,
-  headerStartDate,
-  headerEndDate,
-}: ICreatePromotionLineModalProps) => {
+const CreatePromotionDetailModal = ({
+  lineId,
+  promotionType,
+}: ICreatePromotionDetailModalProps) => {
   const { ref, form, isLoadingCreatePromotion, handleSubmit, handleCancel } =
-    useHook(headerId);
+    useHook(lineId);
 
   return (
     <ModalNew
@@ -35,14 +33,13 @@ const CreatePromotionLineModal = ({
         />
       }
     >
-      <PromotionLineCreateForm
+      <PromotionDetailCreateForm
         form={form}
         handleSubmit={handleSubmit}
-        headerStartDate={headerStartDate}
-        headerEndDate={headerEndDate}
+        promotionType={promotionType}
       />
     </ModalNew>
   );
 };
 
-export default CreatePromotionLineModal;
+export default CreatePromotionDetailModal;

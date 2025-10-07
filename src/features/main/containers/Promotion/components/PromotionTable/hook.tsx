@@ -1,5 +1,10 @@
 import { SvgTrashIcon } from '@/assets';
-import { promotionKeys, usePromotionDelete } from '@/features/main/react-query';
+import {
+  promotionKeys,
+  usePromotionDelete,
+  usePromotionDetailDelete,
+  usePromotionLineDelete,
+} from '@/features/main/react-query';
 import {
   Button,
   EPromotionStatus,
@@ -20,6 +25,8 @@ export const useHook = () => {
   const { notify } = useNotification();
   const { modal } = useModal();
   const { mutateAsync: deleteBranches } = usePromotionDelete();
+  const { mutateAsync: deleteLines } = usePromotionLineDelete();
+  const { mutateAsync: deleteDetail } = usePromotionDetailDelete();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
   const getStatusTag = (status: EPromotionStatus) => {
@@ -42,13 +49,6 @@ export const useHook = () => {
   const columns: ITableProps<
     IPromotionListResponse['data']['content'][number]
   >['columns'] = [
-    {
-      key: 'id',
-      title: 'STT',
-      fixed: 'left',
-      width: 60,
-      render: (_, __, index) => index + 1,
-    },
     {
       key: 'name',
       title: 'Tên chương trình',
@@ -166,10 +166,96 @@ export const useHook = () => {
     });
   };
 
+  const handleDeleteLine = (
+    ids: number[],
+    record?: IPromotionListResponse['data']['content'][number]['promotionLines'][number],
+  ) => {
+    const isDeleteSelected = !record;
+    const title = `Xóa dòng khuyến mãi`;
+    const content = isDeleteSelected
+      ? `Bạn có chắc chắn muốn xóa các dòng khuyến mãi này không?`
+      : `Bạn có chắc chắn muốn xóa dòng khuyến mãi ${record?.promotionCode} này không?`;
+    modal('confirm', {
+      title,
+      content,
+      onOk: async () => {
+        try {
+          await deleteLines(
+            { ids },
+            {
+              onSuccess: () => {
+                notify('success', {
+                  message: 'Thành công',
+                  description: 'Xóa dòng khuyến mãi thành công',
+                });
+                queryClient.invalidateQueries({
+                  queryKey: promotionKeys.all,
+                });
+                if (isDeleteSelected) setSelectedRowKeys([]);
+              },
+              onError: (error: any) => {
+                notify('error', {
+                  message: 'Thất bại',
+                  description: error.message,
+                });
+              },
+            },
+          );
+        } catch (e) {
+          return Promise.reject(e);
+        }
+      },
+    });
+  };
+
+  const handleDeleteDetail = (
+    ids: number[],
+    record?: IPromotionListResponse['data']['content'][number]['promotionLines'][number]['details'][number],
+  ) => {
+    const isDeleteSelected = !record;
+    const title = `Xóa chi tiết khuyến mãi`;
+    const content = isDeleteSelected
+      ? `Bạn có chắc chắn muốn xóa các chi tiết khuyến mãi này không?`
+      : `Bạn có chắc chắn muốn xóa chi tiết khuyến mãi này không?`;
+    modal('confirm', {
+      title,
+      content,
+      onOk: async () => {
+        try {
+          await deleteDetail(
+            { ids },
+            {
+              onSuccess: () => {
+                notify('success', {
+                  message: 'Thành công',
+                  description: 'Xóa chi tiết khuyến mãi thành công',
+                });
+                queryClient.invalidateQueries({
+                  queryKey: promotionKeys.all,
+                });
+                if (isDeleteSelected) setSelectedRowKeys([]);
+              },
+              onError: (error: any) => {
+                notify('error', {
+                  message: 'Thất bại',
+                  description: error.message,
+                });
+              },
+            },
+          );
+        } catch (e) {
+          return Promise.reject(e);
+        }
+      },
+    });
+  };
+
   return {
     columns,
     selectedRowKeys,
     setSelectedRowKeys,
     handleDelete,
+    handleDeleteLine,
+    handleDeleteDetail,
   };
 };

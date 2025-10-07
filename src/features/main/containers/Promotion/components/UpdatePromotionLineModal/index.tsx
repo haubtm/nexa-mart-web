@@ -47,6 +47,7 @@ const UpdatePromotionLineModal = ({
         handleSubmit={handleSubmit}
         headerStartDate={headerStartDate}
         headerEndDate={headerEndDate}
+        update={true}
       />
     </ModalNew>
   );

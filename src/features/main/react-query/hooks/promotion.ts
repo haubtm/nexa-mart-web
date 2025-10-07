@@ -50,6 +50,12 @@ export const usePromotionLineCreate = () => {
   });
 };
 
+export const usePromotionDetailCreate = () => {
+  return useMutation({
+    mutationFn: promotionApi.createPromotionDetail,
+  });
+};
+
 export const usePromotionHeaderUpdate = () => {
   return useMutation({
     mutationFn: promotionApi.updateProductHeader,
@@ -62,6 +68,12 @@ export const usePromotionLineUpdate = () => {
   });
 };
 
+export const usePromotionDetailUpdate = () => {
+  return useMutation({
+    mutationFn: promotionApi.updateProductDetail,
+  });
+};
+
 export const usePromotionDelete = () => {
   return useMutation({
     mutationFn: promotionApi.delete,
@@ -71,5 +83,11 @@ export const usePromotionDelete = () => {
 export const usePromotionLineDelete = () => {
   return useMutation({
     mutationFn: promotionApi.deleteLine,
+  });
+};
+
+export const usePromotionDetailDelete = () => {
+  return useMutation({
+    mutationFn: promotionApi.deleteDetail,
   });
 };

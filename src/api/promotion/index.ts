@@ -19,6 +19,12 @@ import type {
   IPromotionLineUpdateResponse,
   IPromotionLineDeleteRequest,
   IPromotionLineDeleteResponse,
+  IPromotionDetailCreateRequest,
+  IPromotionDetailCreateResponse,
+  IPromotionDetailUpdateRequest,
+  IPromotionDetailUpdateResponse,
+  IPromotionDetailDeleteRequest,
+  IPromotionDetailDeleteResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -77,6 +83,14 @@ export const promotionApi = {
     return response;
   },
 
+  createPromotionDetail: async (body: IPromotionDetailCreateRequest) => {
+    const response = await apiService.post<IPromotionDetailCreateResponse>(
+      `${BASE_ENDPOINT}/lines/${body.lineId}/details`,
+      body,
+    );
+    return response;
+  },
+
   updateProductHeader: async (body: IPromotionHeaderUpdateRequest) => {
     const response = await apiService.put<IPromotionHeaderUpdateResponse>(
       `${BASE_ENDPOINT}/headers/${body.promotionId}`,
@@ -89,6 +103,15 @@ export const promotionApi = {
   updateProductLine: async (body: IPromotionLineUpdateRequest) => {
     const response = await apiService.put<IPromotionLineUpdateResponse>(
       `${BASE_ENDPOINT}/lines/${body.lineId}`,
+      body,
+    );
+
+    return response;
+  },
+
+  updateProductDetail: async (body: IPromotionDetailUpdateRequest) => {
+    const response = await apiService.put<IPromotionDetailUpdateResponse>(
+      `${BASE_ENDPOINT}/details/${body.detailId}`,
       body,
     );
 
@@ -108,6 +131,13 @@ export const promotionApi = {
       `${BASE_ENDPOINT}/lines/${body.ids}`,
     );
 
+    return response;
+  },
+
+  deleteDetail: async (body: IPromotionDetailDeleteRequest) => {
+    const response = await apiService.delete<IPromotionDetailDeleteResponse>(
+      `${BASE_ENDPOINT}/details/${body.ids}`,
+    );
     return response;
   },
 };

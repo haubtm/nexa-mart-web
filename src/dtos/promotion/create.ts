@@ -37,6 +37,16 @@ interface IPromotionDetail {
   productMinPromotionQuantity?: number;
 }
 
+export type IPromotionDetailCreateRequest = {
+  lineId: number;
+  detail?: {};
+} & IPromotionDetail;
+
+export interface IPromotionDetailCreateResponse
+  extends IResponse<
+    IPromotionResponseData['promotionLines'][number]['details']
+  > {}
+
 export interface IPromotionLineCreateRequest {
   headerId: number;
   promotionCode: string;
@@ -45,9 +55,8 @@ export interface IPromotionLineCreateRequest {
   startDate: Dayjs | string;
   endDate: Dayjs | string;
   status?: EPromotionStatus;
-  maxUsagePerCustomer?: number;
   maxUsageTotal?: number;
-  detail: IPromotionDetail[];
+  maxUsagePerCustomer?: number;
 }
 
 export interface IPromotionLineCreateResponse

@@ -1,17 +1,17 @@
-import type { IPromotionLineCreateRequest } from '@/dtos';
+import type { IPromotionDetailCreateRequest } from '@/dtos';
 import {
   promotionKeys,
-  usePromotionLineCreate,
+  usePromotionDetailCreate,
 } from '@/features/main/react-query';
 import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { useRef } from 'react';
 
-export const useHook = (headerId: number) => {
+export const useHook = (lineId: number) => {
   const ref = useRef<IModalRef>(null);
-  const [form] = Form.useForm<IPromotionLineCreateRequest>();
+  const [form] = Form.useForm<IPromotionDetailCreateRequest>();
   const { mutateAsync: createPromotion, isPending: isLoadingCreatePromotion } =
-    usePromotionLineCreate();
+    usePromotionDetailCreate();
   const { notify } = useNotification();
 
   const handleCancel = () => {
@@ -19,25 +19,17 @@ export const useHook = (headerId: number) => {
     ref?.current?.hide();
   };
 
-  const handleSubmit = async (values: IPromotionLineCreateRequest) => {
-    console.log('values', values);
+  const handleSubmit = async (values: IPromotionDetailCreateRequest) => {
     await createPromotion(
       {
-        promotionCode: values.promotionCode,
-        promotionType: values.promotionType,
-        description: values.description,
-        maxUsagePerCustomer: values?.maxUsagePerCustomer,
-        maxUsageTotal: values?.maxUsageTotal,
-        startDate: values.startDate,
-        endDate: values.endDate,
-        status: values.status,
-        headerId: headerId,
+        ...values,
+        lineId: lineId,
       },
       {
         onSuccess: () => {
           notify('success', {
             message: 'Thành công',
-            description: 'Thêm chương trình khuyến mãi thành công',
+            description: 'Thêm chi tiết khuyến mãi thành công',
           });
 
           queryClient.invalidateQueries({
@@ -47,7 +39,6 @@ export const useHook = (headerId: number) => {
           handleCancel();
         },
         onError: (error) => {
-          console.log(error);
           notify('error', {
             message: 'Thất bại',
             description: error.message || 'Có lỗi xảy ra',

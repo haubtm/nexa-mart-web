@@ -19,7 +19,7 @@ export const useCommonHook = () => {
     page: withDefault(NumberParam, DEFAULT_PAGE),
     size: withDefault(NumberParam, DEFAULT_PAGE_SIZE),
     search: withDefault(StringParam, undefined),
-    sorts: withDefault(JsonParam, undefined),
+    sortDirection: withDefault(JsonParam, 'asc'),
   });
   const { data: promotionListData, isFetching: isPromotionListLoading } =
     usePromotionList(queryParams);

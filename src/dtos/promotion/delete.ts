@@ -11,3 +11,9 @@ export interface IPromotionLineDeleteRequest {
 }
 
 export interface IPromotionLineDeleteResponse extends IResponse<null> {}
+
+export interface IPromotionDetailDeleteRequest {
+  ids: number[];
+}
+
+export interface IPromotionDetailDeleteResponse extends IResponse<null> {}

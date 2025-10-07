@@ -7,35 +7,6 @@ import {
 } from '@/lib';
 import { Dayjs } from 'dayjs';
 
-// export interface IPromotionDetail {
-//   detailId: number;
-//   promotionId: number;
-//   // Buy X Get Y
-//   buyProductId: number;
-//   buyCategoryId?: number;
-//   buyMinQuantity: number;
-//   buyMinValue?: number;
-//   giftProductId: number;
-//   giftDiscountType: string;
-//   giftDiscountValue: number;
-//   giftMaxQuantity: number;
-//   // Order Discount
-//   orderDiscountType?: string;
-//   orderDiscountValue?: number;
-//   orderDiscountMaxValue?: number;
-//   orderMinTotalValue?: number;
-//   orderMinTotalQuantity?: number;
-//   // Product Discount
-//   productDiscountType?: string;
-//   productDiscountValue?: number;
-//   applyToType?: string;
-//   applyToProductId?: number;
-//   applyToCategoryId?: number;
-//   productMinOrderValue?: number;
-//   productMinPromotionValue?: number;
-//   productMinPromotionQuantity?: number;
-// }
-
 export interface IPromotionDetail {
   detailId: number;
   // Buy X Get Y
@@ -45,7 +16,7 @@ export interface IPromotionDetail {
     barcode: string;
     conversionValue: number;
     productName: string;
-    unitName: string;
+    unit: string;
   };
   buyCategory: {
     categoryId: number;
@@ -60,7 +31,7 @@ export interface IPromotionDetail {
     barcode: string;
     conversionValue: number;
     productName: string;
-    unitName: string;
+    unit: string;
   };
   giftDiscountType: EGiftDiscountType;
   giftDiscountValue: number;
@@ -81,7 +52,7 @@ export interface IPromotionDetail {
     barcode: string;
     conversionValue: number;
     productName: string;
-    unitName: string;
+    unit: string;
   };
   applyToCategory?: {
     categoryId: number;
@@ -110,7 +81,7 @@ export interface IPromotionLine {
   usagePercentage?: number;
   activeStatus?: EPromotionStatus;
   remainingUsage?: number;
-  detail: IPromotionDetail;
+  details: IPromotionDetail[];
 }
 
 export interface IPromotionResponseData {
@@ -123,4 +94,7 @@ export interface IPromotionResponseData {
   createdAt: string;
   updatedAt: string;
   promotionLines: IPromotionLine[];
+  totalLines: number;
+  activeLines: number;
+  overallStatus: EPromotionStatus;
 }
