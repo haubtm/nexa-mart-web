@@ -1,15 +1,14 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  AutoComplete,
   Input,
   Table,
   InputNumber,
   Select,
   Form,
   Space,
-  Spin,
+  Checkbox, // ⬅️ thêm
 } from 'antd';
-import { IFormProps, useDebounce } from '@/lib';
+import { IFormProps } from '@/lib';
 import {
   useProductList,
   useWarehouseStockByProductUnitId,
@@ -22,146 +21,231 @@ interface IStockTakeFormProps {
   handleSubmit: (values: IStockTakeCreateRequest) => Promise<void>;
 }
 
-type VariantItem = {
-  variantId: number; // = unit.id
-  variantName: string; // "Tên SP - ĐVT (x...)" nếu có
-  productName: string; // product.name
-  unitName: string; // unit.unitName
-  code?: string; // unit.code
-  barcode?: string; // unit.barcode
-  conversionValue: number; // unit.conversionValue
-};
-
+// Mỗi unit là 1 dòng
 type Row = {
-  variantId: number; // dùng làm rowKey/UI
-  name: string;
+  variantId: number; // = unit.id
+  productName: string;
+  unitName: string;
   code?: string;
   barcode?: string;
-  unitName?: string;
-  onHand: number;
+  conversionValue?: number;
+  onHand: number; // tồn kho
   quantityCounted: number;
   reason?: string;
+  checked: boolean; // ⬅️ chọn/bỏ chọn dòng
 };
 
 const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
   const [rows, setRows] = useState<Row[]>([]);
-  const [search, setSearch] = useState('');
-  const debounced = useDebounce(search, 300);
+  const [checkAll, setCheckAll] = useState(false);
 
-  // variant vừa thêm gần nhất -> dùng để query tồn kho
-  const [lastAddedId, setLastAddedId] = useState<number | null>(null);
+  // Chiều cao bảng cuộn
+  const [tableY, setTableY] = useState<number>(420);
+  useEffect(() => {
+    const calc = () =>
+      setTableY(Math.max(260, Math.round(window.innerHeight * 0.55)));
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
 
-  // search variants
-  const { data: variantsResp, isLoading: isLoadingVariants } = useProductList({
-    searchTerm: debounced,
+  // Gọi list sản phẩm KHÔNG có searchTerm -> lấy tất cả (tuỳ BE phân trang)
+  const { data: productsResp, isLoading: isLoadingProducts } = useProductList({
+    page: 0,
+    size: 100,
   });
+  // Gọi tồn kho CHỈ khi vừa tick 1 dòng (unit) gần nhất
+  const [lastAddedId, setLastAddedId] = useState<number | null>(null);
+  const detailsWatch = Form.useWatch('stocktakeDetails', form);
 
-  // chỉ query tồn kho cho dòng vừa thêm (hook chỉ nhận 1 id)
   const { data: productUnitStock, isLoading: isProductUnitStockLoading } =
     useWarehouseStockByProductUnitId({ productUnitId: lastAddedId ?? 0 });
 
-  const getDetails = () =>
-    rows.map((r) => ({
-      productUnitId: r.variantId, // ✅ đổi sang productUnitId
-      quantityCounted: r.quantityCounted,
-      reason: r.reason,
-    }));
-
-  const { rules, onFinish } = useHook(async (payload) => {
-    await handleSubmit(payload);
-    form?.resetFields(); // reset form fields
-    setRows([]); // clear table
-    setLastAddedId(null); // clear lastAddedId
-    setSearch(''); // optional: clear search box
-  }, getDetails);
-
-  // Khi API tồn kho trả về, cập nhật đúng dòng vừa thêm
+  // Khi có tồn kho cho unit vừa tick → set onHand & quantityCounted mặc định
   useEffect(() => {
     if (lastAddedId == null) return;
-    if (productUnitStock?.data == null) return;
-
-    const onHand = Number(productUnitStock.data) || 0;
-
+    if (detailsWatch?.length) return;
+    const onHand = Number(productUnitStock?.data) || 0;
+    if (Number.isNaN(onHand)) return;
     setRows((prev) =>
       prev.map((r) =>
         r.variantId === lastAddedId
           ? {
               ...r,
               onHand,
-              // nếu chưa nhập thủ công thì mặc định = tồn kho
               quantityCounted: r.quantityCounted || onHand,
             }
           : r,
       ),
     );
-  }, [productUnitStock, lastAddedId]);
+  }, [productUnitStock, lastAddedId, detailsWatch]);
 
-  const options = useMemo(() => {
-    const products = variantsResp?.data?.products ?? [];
-    return products.flatMap((p: any) =>
+  useEffect(() => {
+    const products = productsResp?.data?.products ?? [];
+    const prev = (detailsWatch ?? []) as Array<{
+      productUnitId: number;
+      quantityCounted?: number;
+      reason?: string;
+      quantityExpected?: number; // ⬅️ nhận thêm field này
+    }>;
+
+    const byUnit = new Map<
+      number,
+      {
+        quantityCounted?: number;
+        reason?: string;
+        quantityExpected?: number;
+      }
+    >();
+    prev.forEach((d) =>
+      byUnit.set(d.productUnitId, {
+        quantityCounted: d.quantityCounted,
+        reason: d.reason,
+        quantityExpected: d.quantityExpected, // ⬅️ lưu lại
+      }),
+    );
+
+    const next = products.flatMap((p: any) =>
       (p.units ?? []).map((u: any) => {
-        const variantName =
-          `${p.name} - ${u.unitName}` +
-          (u.isBaseUnit ? '' : ` (x${u.conversionValue})`);
-        const subLine = [
-          u.code ? `Mã: ${u.code}` : null,
-          u.barcode ? `Barcode: ${u.barcode}` : null,
-          p.brandName ? `Brand: ${p.brandName}` : null,
-        ]
-          .filter(Boolean)
-          .join(' • ');
-
-        const raw: VariantItem = {
+        const preset = byUnit.get(u.id!);
+        return {
           variantId: u.id!,
-          variantName,
           productName: p.name,
           unitName: u.unitName,
           code: u.code,
           barcode: u.barcode,
           conversionValue: u.conversionValue,
-        };
-
-        return {
-          value: `${p.id}:${u.id}`,
-          label: (
-            <Space direction="vertical" size={0}>
-              <strong>{variantName}</strong>
-              {subLine && (
-                <span style={{ color: '#666', fontSize: 12 }}>{subLine}</span>
-              )}
-            </Space>
-          ),
-          raw, // onSelect lấy opt.raw
+          onHand: preset?.quantityExpected ?? 0, // ⬅️ FILL tồn kho tại đây
+          quantityCounted: preset?.quantityCounted ?? 0,
+          reason: preset?.reason,
+          checked: !!preset,
         };
       }),
     );
-  }, [variantsResp]);
 
-  const addRow = (v: VariantItem) =>
+    setRows(next);
+    setCheckAll(next.length > 0 && next.every((x) => x.checked));
+  }, [productsResp, detailsWatch]);
+
+  const syncFormDetails = (list: Row[]) => {
+    form?.setFieldsValue({
+      stocktakeDetails: list
+        .filter((r) => r.checked)
+        .map((r) => ({
+          productUnitId: r.variantId,
+          quantityCounted: r.quantityCounted,
+          reason: r.reason,
+          // Không bắt buộc gửi quantityExpected khi submit (tuỳ BE),
+          // nhưng nếu muốn giữ lại để reopen update lần sau fill onHand, có thể gửi kèm:
+          // quantityExpected: r.onHand,
+        })),
+    });
+  };
+
+  // Helpers cập nhật bảng
+  const updateRow = (id: number, patch: Partial<Row>) =>
     setRows((prev) => {
-      if (prev.some((r) => r.variantId === v.variantId)) return prev;
-      setLastAddedId(v.variantId); // dùng cho hook tồn kho
-      return [
-        ...prev,
-        {
-          variantId: v.variantId,
-          name: v.variantName,
-          code: v.code,
-          barcode: v.barcode,
-          unitName: v.unitName,
-          onHand: 0,
-          quantityCounted: 0,
-        },
-      ];
+      const newRows = prev.map((r) =>
+        r.variantId === id ? { ...r, ...patch } : r,
+      );
+      setCheckAll(newRows.length > 0 && newRows.every((x) => x.checked));
+      // đồng bộ form để xem trước (optional)
+      syncFormDetails(newRows);
+      return newRows;
     });
 
-  const updateRow = (id: number, patch: Partial<Row>) =>
-    setRows((prev) =>
-      prev.map((r) => (r.variantId === id ? { ...r, ...patch } : r)),
+  const onToggleOne = (r: Row, checked: boolean) => {
+    updateRow(r.variantId, { checked });
+    if (checked && !detailsWatch?.length) setLastAddedId(r.variantId); // tick -> query tồn kho cho dòng này
+  };
+
+  const onToggleAll = (checked: boolean) => {
+    setCheckAll(checked);
+    setRows((prev) => {
+      const newRows = prev.map((r) => ({ ...r, checked }));
+      syncFormDetails(newRows);
+      // Nếu chọn tất cả: không gọi tồn kho hàng loạt (tránh nổ API)
+      return newRows;
+    });
+  };
+
+  const getDetails = () =>
+    rows
+      .filter((r) => r.checked)
+      .map((r) => ({
+        productUnitId: r.variantId,
+        quantityCounted: r.quantityCounted,
+        reason: r.reason,
+      }));
+
+  const { rules, onFinish } = useHook(async (payload) => {
+    await handleSubmit(payload);
+    setLastAddedId(null);
+  }, getDetails);
+
+  // Build rows từ tất cả products/units; mặc định KHÔNG check dòng nào
+  // useEffect(() => {
+  //   const products = productsResp?.data?.products ?? [];
+  //   const next: Row[] = products.flatMap((p: any) =>
+  //     (p.units ?? []).map((u: any) => ({
+  //       variantId: u.id!,
+  //       productName: p.name,
+  //       unitName: u.unitName,
+  //       code: u.code,
+  //       barcode: u.barcode,
+  //       conversionValue: u.conversionValue,
+  //       onHand: 0,
+  //       quantityCounted: 0,
+  //       checked: false, // ⬅️ mặc định không chọn
+  //     })),
+  //   );
+  //   setRows(next);
+  //   setCheckAll(false);
+  // }, [productsResp]);
+
+  useEffect(() => {
+    const products = productsResp?.data?.products ?? [];
+
+    // ⬇️ details từ form (đã set bởi hook update khi mở modal)
+    const prev = (form?.getFieldValue('stocktakeDetails') ?? []) as Array<{
+      productUnitId: number;
+      quantityCounted?: number;
+      reason?: string;
+      quantityExpected?: number; // ⬅️ nhận thêm field này
+    }>;
+    const byUnit = new Map<
+      number,
+      { quantityCounted?: number; reason?: string; quantityExpected?: number }
+    >();
+    prev.forEach((d) =>
+      byUnit.set(d.productUnitId, {
+        quantityCounted: d.quantityCounted,
+        reason: d.reason,
+        quantityExpected: d.quantityExpected,
+      }),
     );
 
-  const removeRow = (id: number) =>
-    setRows((prev) => prev.filter((r) => r.variantId !== id));
+    const next: Row[] = products.flatMap((p: any) =>
+      (p.units ?? []).map((u: any) => {
+        const preset = byUnit.get(u.id!);
+        return {
+          variantId: u.id!,
+          productName: p.name,
+          unitName: u.unitName,
+          code: u.code,
+          barcode: u.barcode,
+          conversionValue: u.conversionValue,
+          onHand: preset?.quantityExpected ?? 0,
+          quantityCounted: preset?.quantityCounted ?? 0,
+          reason: preset?.reason,
+          checked: !!preset, // ⬅️ tick sẵn nếu có trong chi tiết
+        } as Row;
+      }),
+    );
+
+    setRows(next);
+    setCheckAll(next.length > 0 && next.every((x) => x.checked));
+  }, [productsResp, detailsWatch]);
 
   return (
     <Form<IStockTakeCreateRequest>
@@ -179,13 +263,6 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
           <Input placeholder="Mã phiếu tự động" />
         </Form.Item>
         <Form.Item
-          label="Trạng thái"
-          name="status"
-          rules={[rules]}
-          style={{ minWidth: 200 }}
-          hidden
-        ></Form.Item>
-        <Form.Item
           label="Ghi chú"
           name="notes"
           style={{ minWidth: 320, flex: 1 }}
@@ -195,39 +272,65 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
             autoSize={{ minRows: 1, maxRows: 4 }}
           />
         </Form.Item>
+        <Form.Item name="status" rules={[rules]} hidden>
+          <Input />
+        </Form.Item>
       </Space>
 
-      <Form.Item label="Tìm sản phẩm / biến thể">
-        <AutoComplete
-          style={{ width: 520 }}
-          options={options}
-          notFoundContent={isLoadingVariants ? <Spin size="small" /> : null}
-          onSearch={setSearch}
-          onSelect={(_, opt: any) => addRow(opt.raw)}
-        >
-          <Input allowClear placeholder="Nhập tên/mã/barcode..." />
-        </AutoComplete>
-      </Form.Item>
-
+      {/* Bảng: tất cả sản phẩm/đơn vị */}
       <Table<Row>
         rowKey="variantId"
         dataSource={rows}
-        loading={isProductUnitStockLoading && lastAddedId != null}
+        loading={
+          isLoadingProducts ||
+          (isProductUnitStockLoading && lastAddedId != null)
+        }
         pagination={false}
         size="middle"
+        sticky
+        scroll={{ y: tableY }}
         columns={[
-          { title: 'Tên hàng', dataIndex: 'name' },
-          { title: 'ĐVT', dataIndex: 'unitName', width: 100 },
-          { title: 'Tồn kho', dataIndex: 'onHand', align: 'right', width: 110 },
+          {
+            title: (
+              <Checkbox
+                checked={checkAll}
+                onChange={(e) => onToggleAll(e.target.checked)}
+              />
+            ),
+            width: 50,
+            render: (_: any, r) => (
+              <Checkbox
+                checked={r.checked}
+                onChange={(e) => onToggleOne(r, e.target.checked)}
+              />
+            ),
+          },
+          { title: 'Sản phẩm', dataIndex: 'productName', width: 280 },
+          {
+            title: 'ĐVT',
+            dataIndex: 'unitName',
+            width: 160,
+            render: (_: any, r) =>
+              `${r.unitName}${r.conversionValue && r.conversionValue !== 1 ? ` (x${r.conversionValue})` : ''}`,
+          },
+          { title: 'Mã', dataIndex: 'code', width: 140 },
+          { title: 'Barcode', dataIndex: 'barcode', width: 160 },
+          {
+            title: 'Tồn kho',
+            dataIndex: 'onHand',
+            align: 'right' as const,
+            width: 110,
+          },
           {
             title: 'SL thực tế',
             dataIndex: 'quantityCounted',
-            align: 'right',
+            align: 'right' as const,
             width: 150,
-            render: (_: any, r: Row) => (
+            render: (_: any, r) => (
               <InputNumber
                 min={0}
                 value={r.quantityCounted}
+                disabled={!r.checked}
                 onChange={(v) =>
                   updateRow(r.variantId, { quantityCounted: Number(v ?? 0) })
                 }
@@ -238,9 +341,9 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
           {
             title: 'SL lệch',
             key: 'diff',
-            align: 'right',
+            align: 'right' as const,
             width: 110,
-            render: (_: any, r: Row) => {
+            render: (_: any, r) => {
               const diff = (r.quantityCounted ?? 0) - (r.onHand ?? 0);
               return (
                 <span
@@ -257,7 +360,7 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
             title: 'Lý do',
             dataIndex: 'reason',
             width: 220,
-            render: (_: any, r: Row) => (
+            render: (_: any, r) => (
               <Select
                 allowClear
                 placeholder="Chọn lý do"
@@ -272,19 +375,8 @@ const StockTakeForm = ({ form, handleSubmit }: IStockTakeFormProps) => {
                   { value: 'Thất lạc', label: 'Thất lạc' },
                 ]}
                 style={{ width: '100%' }}
+                disabled={!r.checked}
               />
-            ),
-          },
-          {
-            title: '',
-            width: 56,
-            render: (_: any, r: Row) => (
-              <a
-                onClick={() => removeRow(r.variantId)}
-                style={{ color: '#ff4d4f' }}
-              >
-                Xoá
-              </a>
             ),
           },
         ]}

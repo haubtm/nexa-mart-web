@@ -1,5 +1,9 @@
 import type { IStockTakeCreateRequest } from '@/dtos';
-import { stockTakeKeys, useStockTakeCreate } from '@/features/main/react-query';
+import {
+  warehouseKeys,
+  stockTakeKeys,
+  useStockTakeCreate,
+} from '@/features/main/react-query';
 import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { useRef } from 'react';
@@ -32,7 +36,7 @@ export const useHook = () => {
           });
 
           queryClient.invalidateQueries({
-            queryKey: stockTakeKeys.all,
+            queryKey: [stockTakeKeys.all, warehouseKeys.all],
           });
 
           handleCancel();

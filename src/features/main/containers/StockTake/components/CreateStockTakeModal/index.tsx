@@ -2,10 +2,12 @@ import { SvgPlusIcon } from '@/assets';
 import { Button, Flex, ModalNew, StockTakeStatus } from '@/lib';
 import StockTakeForm from '../CommonForm';
 import { useHook } from './hook';
+import { useState } from 'react';
 
 const CreateStockTakeModal = () => {
   const { ref, form, isLoadingCreateRoom, handleSubmit, handleCancel } =
     useHook();
+  const [renderKey, setRenderKey] = useState(0);
 
   return (
     <ModalNew
@@ -42,13 +44,16 @@ const CreateStockTakeModal = () => {
         <Button
           type="primary"
           icon={<SvgPlusIcon width={12} height={12} />}
-          onClick={() => ref?.current?.open()}
+          onClick={() => {
+            setRenderKey((k) => k + 1);
+            ref?.current?.open();
+          }}
         >
           Thêm phiếu kiểm kho
         </Button>
       }
     >
-      <StockTakeForm form={form} handleSubmit={handleSubmit} />
+      <StockTakeForm key={renderKey} form={form} handleSubmit={handleSubmit} />
     </ModalNew>
   );
 };

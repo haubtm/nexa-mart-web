@@ -9,10 +9,7 @@ export const useHook = (
 ) => {
   const [rules, Schema] = useMemo(() => {
     const Schema = z.object({
-      stocktakeCode: z
-        .string()
-        .nonempty('Mã kiểm kho không được để trống')
-        .trim(),
+      stocktakeCode: z.string().trim().optional(),
       notes: z.string().trim().optional(),
       status: z.enum(['PENDING', 'COMPLETED']).optional(),
       stocktakeDetails: z
