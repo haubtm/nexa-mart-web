@@ -5,7 +5,6 @@ import { z } from 'zod';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { useProductList } from '@/features/main/react-query';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -91,17 +90,10 @@ export const useHook = (
     }
   };
 
-  const { data: productData, isLoading: isLoadingProduct } = useProductList({
-    page: 0,
-    size: 100,
-  });
-
   return {
     rules,
     onFinish,
     Schema,
-    productData,
-    isLoadingProduct,
     hasEnd,
     setHasEnd,
   };

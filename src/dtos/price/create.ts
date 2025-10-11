@@ -15,6 +15,7 @@ export interface IPriceCreateRequest {
   description?: string;
   priceDetails?: IPriceDetail[];
   status?: string;
+  __searchPick?: any; // for select search only
 }
 
 export interface IPriceCreateResponse extends IResponse<IPriceResponseData> {}

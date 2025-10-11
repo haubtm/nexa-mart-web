@@ -1,354 +1,374 @@
-import { useEffect, useState } from 'react';
-import { Form, DatePicker, Checkbox } from 'antd';
-import type { FormInstance } from 'antd';
-import type {
-  IPriceCreateRequest,
-  IPriceListResponse,
-  IProductListResponse,
-} from '@/dtos';
-import { useHook } from './hook';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Form,
   Input,
   InputNumber,
-  PriceStatus,
   Select,
+  Button,
   Table,
-  TextArea,
-} from '@/lib';
+  Space,
+  message,
+  DatePicker,
+} from 'antd';
+import type { FormInstance } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import type { IPriceCreateRequest } from '@/dtos';
+import { useProductList } from '@/features/main/react-query';
+import { useDebounce } from '@/lib';
+import { SvgSearchIcon } from '@/assets';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-const VN_TZ = 'Asia/Ho_Chi_Minh';
-dayjs.tz.setDefault(VN_TZ);
-const nowVN = () => dayjs().tz('Asia/Ho_Chi_Minh');
+type Row = {
+  key: string; // `${productId}-${unitId}`
+  productId: number;
+  productName: string;
+  unitId: number; // productUnitId (units[i].id)
+  unitName: string;
+  salePrice?: number;
+};
 
 type Props = {
   form: FormInstance<IPriceCreateRequest>;
   handleSubmit: (values: IPriceCreateRequest) => Promise<void>;
-  enableDetails?: boolean;
 };
 
-type UnitRow = {
-  id: number;
-  unitName: string;
-  code?: string;
-  barcode?: string;
-  conversionValue: number;
-  isBaseUnit?: boolean;
-};
-
-type Row = {
-  productId: number;
-  productName: string;
-  productUnitId: number;
-  unitName: string;
-  conversionValue?: number;
-  code?: string;
-  barcode?: string;
-  salePrice?: number;
-  checked: boolean;
-};
-
-const PriceForm = ({ form, handleSubmit, enableDetails = true }: Props) => {
+const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
   const [rows, setRows] = useState<Row[]>([]);
-  const [checkAll, setCheckAll] = useState<boolean>(true);
 
-  const disablePast = (current?: dayjs.Dayjs) =>
-    !!current && current.tz(VN_TZ).isBefore(nowVN().startOf('day'));
-
-  const disableEnd = (current?: dayjs.Dayjs) => {
-    const start: dayjs.Dayjs | undefined = form.getFieldValue('startDate');
-    if (!start) return false;
-    const minEnd = start.tz(VN_TZ).startOf('day').add(1, 'day');
-    return !!current && current.tz(VN_TZ).isBefore(minEnd);
-  };
-
+  // Chiều cao vùng scroll cho bảng (responsive theo viewport)
   const [tableY, setTableY] = useState<number>(420);
 
   useEffect(() => {
-    const calc = () => {
-      // chừa không gian cho form + khoảng đệm
-      const h = window.innerHeight;
-      // bảng cao ~55% viewport, tối thiểu 260px
-      setTableY(Math.max(260, Math.round(h * 0.45)));
-    };
+    const calc = () =>
+      setTableY(Math.max(260, Math.round(window.innerHeight * 0.5)));
     calc();
     window.addEventListener('resize', calc);
     return () => window.removeEventListener('resize', calc);
   }, []);
 
-  // Lấy chi tiết gửi lên từ state rows
-  const getDetails = (): IPriceCreateRequest['priceDetails'] =>
-    rows
-      .filter(
-        (r) =>
-          r.checked && r.salePrice !== undefined && !Number.isNaN(r.salePrice),
-      )
-      .map((r) => ({
-        productUnitId: r.productUnitId,
-        salePrice: Number(r.salePrice),
-      }));
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const searchDebounce = useDebounce(searchTerm);
+  // dữ liệu sản phẩm (dùng cho search + prefill)
+  const { data: productResp, isLoading: isLoadingProducts } = useProductList({
+    page: 0,
+    size: 20,
+    searchTerm: searchDebounce,
+  });
+  const products = productResp?.data?.products ?? [];
 
-  const { rules, onFinish, productData, isLoadingProduct, hasEnd, setHasEnd } =
-    useHook(async (values) => {
-      const payload: IPriceCreateRequest = enableDetails
-        ? { ...values, priceDetails: getDetails() }
-        : { ...values, priceDetails: undefined };
-      await handleSubmit(payload);
-    });
-
-  // Tạo rows từ productData (toàn bộ sản phẩm)
-  useEffect(() => {
-    const products: IProductListResponse['data']['products'] =
-      productData?.data?.products ?? [];
-
-    // Nếu có dữ liệu cũ (edit), map trước để ưu tiên salePrice/đơn vị đã chọn
-    const prevDetails = (form.getFieldValue('priceDetails') ??
-      []) as IPriceListResponse['data']['content'][number]['priceDetails'];
-
-    const detailByUnitId = new Map<number, { salePrice?: number }>();
-    prevDetails?.forEach((d) => {
-      if (d?.productUnitId != null) {
-        detailByUnitId.set(d.productUnitId, { salePrice: d.salePrice });
-      }
-    });
-
-    const isUpdate = detailByUnitId.size > 0;
-
-    const nextRows: Row[] = products.flatMap((p) => {
-      const units: UnitRow[] = (p.units ?? []).map((u) => ({
-        id: u.id!,
-        unitName: u.unitName,
-        code: u.code,
-        barcode: u.barcode,
-        conversionValue: u.conversionValue,
-        isBaseUnit: !!u.isBaseUnit,
-      }));
-
-      return units.map((u) => ({
-        productId: p.id,
-        productName: p.name,
-        productUnitId: u.id,
-        unitName: u.unitName,
-        conversionValue: u.conversionValue,
-        code: u.code,
-        barcode: u.barcode,
-        salePrice: detailByUnitId.get(u.id)?.salePrice, // prefill giá nếu có
-        // ⬇️ Flow mới:
-        // - Tạo mới: không check gì cả
-        // - Cập nhật: chỉ check đúng unit đã có trong bảng giá
-        checked: isUpdate ? detailByUnitId.has(u.id) : false,
-      }));
-    });
-
-    setRows(nextRows);
-    // checkAll phản ánh đúng hiện trạng (tạo mới sẽ là false)
-    setCheckAll(nextRows.length > 0 && nextRows.every((r) => r.checked));
-
-    // đồng bộ hasEnd theo endDate như cũ
-    const end = form.getFieldValue('endDate');
-    setHasEnd(!!end);
-  }, [productData, form]);
-
-  const updateRow = (unitId: number, patch: Partial<Row>) =>
-    setRows((prev) =>
-      prev.map((r) => (r.productUnitId === unitId ? { ...r, ...patch } : r)),
+  // ====== SEARCH: mỗi option là 1 ĐVT của 1 SP (Product – Unit) ======
+  const searchOptions = useMemo(() => {
+    if (!searchDebounce) return [];
+    const used = new Set(rows.map((r) => r.unitId)); // để disable nếu đã chọn
+    return products.flatMap((p: any) =>
+      (p.units ?? []).map((u: any) => ({
+        label: `${p.name} – ${u.unitName}${u.isBaseUnit ? '' : ` (x${u.conversionValue})`}`,
+        value: `${p.id}:${u.id}`, // encode
+        disabled: used.has(u.id),
+      })),
     );
+  }, [products, rows, searchDebounce]);
 
-  const onToggleAll = (checked: boolean) => {
-    setCheckAll(checked);
-    setRows((prev) => prev.map((r) => ({ ...r, checked })));
+  // Thêm 1 dòng từ lựa chọn search
+  const onPickProductUnit = (val: string) => {
+    const [pidStr, uidStr] = val.split(':');
+    const productId = Number(pidStr);
+    const unitId = Number(uidStr);
+
+    if (rows.some((r) => r.unitId === unitId)) {
+      message.warning('Đơn vị này đã có trong bảng.');
+      return;
+    }
+    const p = products.find((x: any) => x.id === productId);
+    const u = p?.units?.find((x: any) => x.id === unitId);
+    if (!p || !u) return;
+
+    const newRow: Row = {
+      key: `${p.id}-${u.id}`,
+      productId: p.id,
+      productName: p.name,
+      unitId: u.id!,
+      unitName: u.unitName,
+      salePrice: undefined,
+    };
+    setRows((prev) => [newRow, ...prev]);
+    // setSearchTerm('');
+    // clear lại select tìm kiếm
+    form.setFieldValue('__searchPick', undefined);
   };
 
+  // Đổi ĐVT trong 1 dòng (chỉ cho switch nếu chưa tồn tại ở bảng)
+  const changeUnitInRow = (row: Row, newUnitId: number) => {
+    if (
+      rows.some((r) => r.productId === row.productId && r.unitId === newUnitId)
+    ) {
+      message.warning('Đơn vị này đã có trong bảng cho sản phẩm này.');
+      return;
+    }
+    const p = products.find((x: any) => x.id === row.productId);
+    const u = p?.units?.find((x: any) => x.id === newUnitId);
+    if (!u) return;
+
+    setRows((prev) =>
+      prev.map((r) =>
+        r.key === row.key
+          ? {
+              ...r,
+              unitId: u.id!,
+              unitName: u.unitName,
+              key: `${row.productId}-${u.id}`,
+            }
+          : r,
+      ),
+    );
+  };
+
+  // Xoá dòng
+  const removeRow = (rowKey: string) =>
+    setRows((prev) => prev.filter((r) => r.key !== rowKey));
+
+  // Prefill khi UPDATE (nếu có priceDetails + products đã sẵn sàng)
+  useEffect(() => {
+    const details = (form.getFieldValue('priceDetails') ?? []) as Array<{
+      productUnitId: number;
+      salePrice?: number;
+    }>;
+    if (!details.length || !products.length) return;
+
+    const unitToInfo = new Map<
+      number,
+      { productId: number; productName: string; unitName: string }
+    >();
+    products.forEach((p: any) => {
+      (p.units ?? []).forEach((u: any) =>
+        unitToInfo.set(u.id, {
+          productId: p.id,
+          productName: p.name,
+          unitName: u.unitName,
+        }),
+      );
+    });
+
+    const pre = details
+      .map((d) => {
+        const info = unitToInfo.get(d.productUnitId);
+        if (!info) return null;
+        return {
+          key: `${info.productId}-${d.productUnitId}`,
+          productId: info.productId,
+          productName: info.productName,
+          unitId: d.productUnitId,
+          unitName: info.unitName,
+          salePrice: d.salePrice,
+        } as Row;
+      })
+      .filter(Boolean) as Row[];
+
+    setRows(pre);
+  }, [products]);
+
+  // priceDetails để submit
+  const priceDetails = useMemo(
+    () =>
+      rows
+        .filter(
+          (r) => typeof r.salePrice === 'number' && !Number.isNaN(r.salePrice),
+        )
+        .map((r) => ({
+          productUnitId: r.unitId,
+          salePrice: Number(r.salePrice),
+        })),
+    [rows],
+  );
+
+  const onFinish = async (values: IPriceCreateRequest) => {
+    const payload: IPriceCreateRequest = { ...values, priceDetails };
+    await handleSubmit(payload);
+  };
+
+  // ====== Cột bảng: chỉ SP, ĐVT (có thể đổi), Giá bán ======
+  const columns: ColumnsType<Row> = [
+    {
+      title: 'Sản phẩm',
+      dataIndex: 'productName',
+      width: 320,
+      render: (_, r) => <strong>{r.productName}</strong>,
+    },
+    {
+      title: 'ĐVT',
+      dataIndex: 'unitId',
+      width: 220,
+      render: (_, r) => {
+        const usedInThisProduct = new Set(
+          rows.filter((x) => x.productId === r.productId).map((x) => x.unitId),
+        );
+        const unitOpts = (
+          products.find((p: any) => p.id === r.productId)?.units ?? []
+        ).map((u: any) => ({
+          label: `${u.unitName}${u.isBaseUnit ? '' : ` (x${u.conversionValue})`}`,
+          value: u.id,
+          disabled: usedInThisProduct.has(u.id) && u.id !== r.unitId,
+        }));
+        return (
+          <Select
+            value={r.unitId}
+            onChange={(val) => changeUnitInRow(r, val)}
+            options={unitOpts}
+            style={{ width: '100%' }}
+          />
+        );
+      },
+    },
+    {
+      title: 'Giá bán',
+      dataIndex: 'salePrice',
+      align: 'right',
+      width: 180,
+      render: (_, r) => (
+        <InputNumber
+          min={0}
+          value={r.salePrice}
+          onChange={(v) =>
+            setRows((prev) =>
+              prev.map((x) =>
+                x.key === r.key ? { ...x, salePrice: Number(v ?? 0) } : x,
+              ),
+            )
+          }
+          style={{ width: '100%' }}
+          formatter={(val) =>
+            `${(val ?? '').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+          }
+          parser={(val) => Number((val ?? '').toString().replace(/,/g, ''))}
+          placeholder="Nhập giá"
+        />
+      ),
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 80,
+      render: (_, r) => (
+        <Button danger type="link" onClick={() => removeRow(r.key)}>
+          Xoá
+        </Button>
+      ),
+    },
+  ];
+
+  // ====== UI ======
   return (
     <Form<IPriceCreateRequest>
       form={form}
       layout="vertical"
       onFinish={onFinish}
     >
-      {/* Thông tin cơ bản (compact) */}
+      {/* Hàng field cơ bản (giữ gọn một dòng) */}
       <div
         style={{
-          borderRadius: 12,
           border: '1px solid #eee',
-          padding: 12, // giảm padding
-          marginBottom: 8,
+          borderRadius: 12,
+          padding: 12,
+          marginBottom: 12,
         }}
       >
-        {/* Hàng field gọn 1 dòng */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.2fr 0.8fr 1fr auto 1fr 0.9fr',
+            gridTemplateColumns: '1.2fr 2fr 1fr 1fr 1fr',
             gap: 12,
             alignItems: 'end',
           }}
         >
           <Form.Item
-            label="Tên bảng giá"
             name="priceName"
-            rules={[rules]}
+            label="Tên bảng giá"
+            rules={[{ required: true, message: 'Bắt buộc' }]}
             style={{ marginBottom: 8 }}
           >
-            <Input size="middle" placeholder="VD: Bảng giá tháng 10" />
+            <Input placeholder="VD: Bảng giá tháng 10" />
           </Form.Item>
 
           <Form.Item
-            label="Mã bảng giá"
-            name="priceCode"
-            rules={[rules]}
+            name="description"
+            label="Mô tả"
             style={{ marginBottom: 8 }}
           >
-            <Input size="middle" placeholder="Tự động" />
+            <Input.TextArea
+              autoSize={{ minRows: 1, maxRows: 2 }}
+              placeholder="Ghi chú (tùy chọn)"
+            />
           </Form.Item>
 
           <Form.Item
-            label="Thời gian bắt đầu"
             name="startDate"
-            rules={[rules]}
-            initialValue={nowVN()}
+            label="Ngày bắt đầu"
+            rules={[{ required: true, message: 'Bắt buộc' }]}
             style={{ marginBottom: 8 }}
           >
             <DatePicker
-              allowClear={false}
-              showTime={{ format: 'HH:mm' }}
+              showTime
               format="YYYY-MM-DD HH:mm"
-              disabledDate={disablePast}
               style={{ width: '100%' }}
             />
           </Form.Item>
 
-          {/* Checkbox KHÔNG có text để gọn hơn */}
-          <Form.Item style={{ marginBottom: 8 }}>
-            <Checkbox
-              checked={hasEnd}
-              onChange={(e) => setHasEnd(e.target.checked)}
-              aria-label="Bật thời gian kết thúc"
-            />
-          </Form.Item>
-
           <Form.Item
-            label="Thời gian kết thúc"
             name="endDate"
-            rules={hasEnd ? [rules] : []}
+            label="Ngày kết thúc"
             style={{ marginBottom: 8 }}
           >
             <DatePicker
-              disabled={!hasEnd}
-              showTime={{ format: 'HH:mm' }}
+              showTime
               format="YYYY-MM-DD HH:mm"
-              disabledDate={disableEnd}
               style={{ width: '100%' }}
             />
           </Form.Item>
 
           <Form.Item
-            label="Trạng thái"
             name="status"
-            rules={hasEnd ? [rules] : []}
+            label="Trạng thái"
             style={{ marginBottom: 8 }}
           >
             <Select
-              size="middle"
               options={[
-                { label: 'Áp dụng', value: PriceStatus.UPCOMING },
-                { label: 'Tạm ngưng', value: PriceStatus.PAUSED },
+                { label: 'Áp dụng', value: 'UPCOMING' },
+                { label: 'Tạm ngưng', value: 'PAUSED' },
               ]}
             />
           </Form.Item>
         </div>
-
-        {/* Mô tả: nhỏ lại để nhường chỗ cho bảng */}
-        <Form.Item
-          name="description"
-          label="Mô tả"
-          style={{ marginTop: 4, marginBottom: 4 }}
-        >
-          <TextArea
-            size="middle"
-            autoSize
-            rows={2}
-            placeholder="Ghi chú (tùy chọn)"
-          />
-        </Form.Item>
       </div>
 
-      {enableDetails && (
-        <>
-          {/* Bảng tất cả sản phẩm */}
-          <Table<Row>
-            rowKey={(r) => `${r.productId}-${r.productUnitId}`}
-            dataSource={rows}
-            loading={isLoadingProduct}
-            pagination={false}
-            size="middle"
-            sticky
-            scroll={{ y: tableY }}
-            columns={[
-              {
-                title: (
-                  <Checkbox
-                    checked={checkAll}
-                    onChange={(e) => onToggleAll(e.target.checked)}
-                  />
-                ),
-                width: 30,
-                render: (_: any, r) => (
-                  <Checkbox
-                    checked={r.checked}
-                    onChange={(e) =>
-                      updateRow(r.productUnitId, { checked: e.target.checked })
-                    }
-                  />
-                ),
-              },
-              {
-                title: 'Sản phẩm',
-                dataIndex: 'productName',
-                render: (v) => <strong>{v}</strong>,
-                width: 280,
-              },
-              {
-                title: 'ĐVT',
-                dataIndex: 'unitName',
-                width: 180,
-                render: (_: any, r) =>
-                  `${r.unitName}${r.conversionValue && r.conversionValue !== 1 ? ` (x${r.conversionValue})` : ''}`,
-              },
-              { title: 'Mã', dataIndex: 'code', width: 160 },
-              { title: 'Barcode', dataIndex: 'barcode', width: 160 },
-              {
-                title: 'Giá bán',
-                dataIndex: 'salePrice',
-                width: 180,
-                align: 'right' as const,
-                render: (_: any, r) => (
-                  <InputNumber
-                    min={0}
-                    size="middle"
-                    value={r.salePrice}
-                    disabled={!r.checked}
-                    onChange={(v) =>
-                      updateRow(r.productUnitId, { salePrice: Number(v ?? 0) })
-                    }
-                    style={{ width: '100%' }}
-                    formatter={(val) =>
-                      `${(val ?? '').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
-                    }
-                    parser={(val) =>
-                      Number((val ?? '').toString().replace(/,/g, ''))
-                    }
-                    placeholder="Nhập giá"
-                  />
-                ),
-              },
-            ]}
+      {/* Ô tìm kiếm: mỗi option = SP – ĐVT; chọn là thêm ngay */}
+      <Space style={{ marginBottom: 10 }} wrap>
+        <Form.Item name="__searchPick" noStyle>
+          <Select
+            showSearch
+            allowClear
+            filterOption={false}
+            placeholder="Tìm và chọn: Sản phẩm – ĐVT (chọn là thêm vào bảng)"
+            style={{ minWidth: 520 }}
+            value={undefined}
+            onSearch={(v) => setSearchTerm(v)}
+            options={searchOptions}
+            optionFilterProp="label"
+            loading={isLoadingProducts}
+            onSelect={onPickProductUnit}
+            prefix={<SvgSearchIcon width={14} height={14} />}
           />
-        </>
-      )}
+        </Form.Item>
+      </Space>
+
+      {/* Bảng giá sản phẩm */}
+      <Table<Row>
+        rowKey="key"
+        dataSource={rows}
+        columns={columns}
+        pagination={false}
+        size="middle"
+        sticky
+        scroll={{ y: tableY }}
+      />
     </Form>
   );
 };
