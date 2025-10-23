@@ -5,7 +5,7 @@ import {
   Route,
   Routes,
 } from 'react-router-dom';
-import { AdminRoute, AuthRoute } from './routes';
+import { AdminRoute, AuthRoute, SaleRoute } from './routes';
 import { NotFoundPage, ROUTE_PATH } from '@/common';
 import QueryParamProvider from '../QueryParam';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
@@ -30,6 +30,10 @@ const AppRouterProvider = () => {
 
         <Route path={ROUTE_PATH.HOME.PATH()} element={<PrivateRoute />}>
           {AdminRoute()}
+        </Route>
+
+        <Route path={ROUTE_PATH.HOME.PATH()} element={<PrivateRoute />}>
+          {SaleRoute()}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

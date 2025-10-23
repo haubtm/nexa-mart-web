@@ -40,6 +40,18 @@ export const ROUTE_PATH = {
     WAREHOUSE: {
       PATH: () => `/admin/warehouse`,
     },
+    ORDER: {
+      PATH: () => `/admin/order`,
+    },
+  },
+  SALE: {
+    PATH: () => `/sale`,
+    DASHBOARD: {
+      PATH: () => `${ROUTE_PATH.SALE.PATH()}/dashboard`,
+    },
+    ORDER: {
+      PATH: () => `${ROUTE_PATH.SALE.PATH()}/order`,
+    },
   },
   AUTH: {
     PATH: () => `/auth`,

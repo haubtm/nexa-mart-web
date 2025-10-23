@@ -37,3 +37,17 @@ export enum EApplyToType {
   CATEGORY = 'CATEGORY',
   PRODUCT = 'PRODUCT',
 }
+
+export enum EPaymentMethod {
+  CASH = 'CASH',
+  ONLINE = 'ONLINE',
+}
+
+export enum EInvoiceStatus {
+  CANCELLED = 'CANCELLED',
+  DRAFT = 'DRAFT',
+  ISSUED = 'ISSUED',
+  PAID = 'PAID',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  REFUNDED = 'REFUNDED',
+}

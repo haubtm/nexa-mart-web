@@ -25,6 +25,8 @@ import type {
   IPromotionDetailUpdateResponse,
   IPromotionDetailDeleteRequest,
   IPromotionDetailDeleteResponse,
+  IPromotionCheckRequest,
+  IPromotionCheckResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -138,6 +140,15 @@ export const promotionApi = {
     const response = await apiService.delete<IPromotionDetailDeleteResponse>(
       `${BASE_ENDPOINT}/details/${body.ids}`,
     );
+    return response;
+  },
+
+  checkPromotion: async (body: IPromotionCheckRequest) => {
+    const response = await apiService.post<IPromotionCheckResponse>(
+      `${BASE_ENDPOINT}/check`,
+      body,
+    );
+
     return response;
   },
 };
