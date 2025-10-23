@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   refundKeys,
-  useOrderByInvoiceId,
+  // useOrderByInvoiceId,  // ⛔️ replaced
   useRefundCalculate,
   useRefundCreate,
+  useRefundCheckQuantity, // ✅ new
 } from '@/features/sale';
 import { Alert, Card, Empty, List, Skeleton, Space, Tag } from 'antd';
 import {
@@ -25,26 +26,33 @@ import {
 import { queryClient } from '@/providers/ReactQuery';
 import { ROUTE_PATH } from '@/common';
 
-type TRefundLineItem = { lineItemId: number; quantity: number };
-
-type TOrderItem = {
-  invoiceDetailId: number;
-  productUnitId: number;
+type TRefundCheckLine = {
+  lineItemId: number;
   productName: string;
-  unit: string;
-  quantity: number;
+  unitName: string;
+  originalQuantity: number;
+  returnedQuantity: number;
+  availableQuantity: number;
   unitPrice: number;
-  discountAmount: number;
-  lineTotal: number;
+  priceAfterDiscount: number;
+  isFullyReturned: boolean;
 };
 
-type TOrderData = {
+type TRefundCheckData = {
   invoiceId: number;
   invoiceNumber: string;
-  status: string;
-  paidAmount: number;
-  items: TOrderItem[];
+  invoiceDate: string;
+  customerName: string | null;
+  customerPhone: string | null;
+  lineItems: TRefundCheckLine[];
+  totalOriginalQuantity: number;
+  totalReturnedQuantity: number;
+  totalAvailableQuantity: number;
 };
+
+// ===== Calculate API types (existing) =====
+
+type TRefundLineItem = { lineItemId: number; quantity: number };
 
 type TRefundCalcLine = {
   lineItemId: number;
@@ -67,40 +75,54 @@ type TRefundCalcData = {
 const currency = (v?: number) =>
   (v ?? 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 
-// Local row state for editable qty
-type TLocalRow = TOrderItem & {
-  refundQty: number; // editable qty for refund
-  maxQty: number; // from invoice item.quantity
+type TLocalRow = {
+  invoiceDetailId: number; // alias of lineItemId for compatibility with existing code paths
+  productName: string;
+  unit: string;
+  refundQty: number;
+  maxQty: number; // availableQuantity
+  unitPrice?: number;
+  priceAfterDiscount?: number;
 };
 
 const CreateRefundOrderContainer: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  // -------- Fetch invoice details
-  const { data: orderResp, isLoading: isLoadingOrder } = useOrderByInvoiceId({
-    invoiceId: Number(orderId),
-  });
 
-  const order: TOrderData | undefined = orderResp?.data;
+  // -------- Fetch refundable quantities by invoice
+  const { data: refundCheckResp, isLoading: isLoadingRefundCheck } =
+    useRefundCheckQuantity({
+      invoiceId: Number(orderId),
+    });
 
-  // -------- Local rows derived from invoice items
+  const invoice: TRefundCheckData | undefined = refundCheckResp?.data;
+
+  // -------- Local rows derived from refundable line items
   const [rows, setRows] = useState<TLocalRow[]>([]);
   const [reasonNote, setReasonNote] = useState<string>('');
   const reasonDebounce = useDebounce(reasonNote);
   const { notify } = useNotification();
-  // Build rows when order changes
+
   useEffect(() => {
-    if (!order?.items) return;
+    if (!invoice?.lineItems) return;
     setRows(
-      order.items.map((it) => ({
-        ...it,
+      invoice.lineItems.map((it) => ({
+        invoiceDetailId: it.lineItemId,
+        productName: it.productName,
+        unit: it.unitName,
         refundQty: 0,
-        maxQty: it.quantity,
+        maxQty: it.availableQuantity,
+        unitPrice: it.unitPrice,
+        priceAfterDiscount: it.priceAfterDiscount,
       })),
     );
-  }, [order?.items]);
+  }, [invoice?.lineItems]);
 
-  // -------- Build payload for calculate API
+  // Flag: all items fully returned (availableQuantity = 0 for all)
+  const allFullyReturned =
+    invoice?.lineItems?.every((li) => li.availableQuantity === 0) || false;
+
+  // -------- Build payload for calculate API from editable rows
   const refundLineItems: TRefundLineItem[] = useMemo(
     () =>
       rows
@@ -122,7 +144,7 @@ const CreateRefundOrderContainer: React.FC = () => {
 
   const refundCalc: TRefundCalcData | undefined = refundCalcResp?.data;
 
-  // Map for quick lookup
+  // Map for quick lookup in UI
   const calcMap = useMemo(() => {
     const map = new Map<number, TRefundCalcLine>();
     refundCalc?.refundLineItems?.forEach((li) => map.set(li.lineItemId, li));
@@ -151,15 +173,15 @@ const CreateRefundOrderContainer: React.FC = () => {
     [rows],
   );
 
-  const canSubmit = totalSelectedQty > 0 && !isCalculating;
+  const canSubmit = totalSelectedQty > 0 && !isCalculating && !allFullyReturned;
 
   // -------- Create refund
   const { mutate: createRefund, isPending: isCreating } = useRefundCreate();
 
   const onCreateRefund = () => {
-    if (!canSubmit || !order) return;
+    if (!canSubmit || !invoice) return;
     const payload = {
-      invoiceId: order.invoiceId,
+      invoiceId: invoice.invoiceId,
       refundLineItems,
       reasonNote: reasonNote?.trim() || undefined,
     };
@@ -201,10 +223,16 @@ const CreateRefundOrderContainer: React.FC = () => {
               Chọn sản phẩm trả hàng
             </Title>
 
-            {isLoadingOrder ? (
+            {isLoadingRefundCheck ? (
               <Skeleton active />
-            ) : !order?.items?.length ? (
+            ) : !invoice?.lineItems?.length ? (
               <Empty description="Không tìm thấy sản phẩm trong hoá đơn" />
+            ) : allFullyReturned ? (
+              <Alert
+                type="info"
+                showIcon
+                message="Tất cả sản phẩm trong đơn hàng đã được hoàn trả"
+              />
             ) : (
               <List
                 dataSource={rows}
@@ -222,7 +250,7 @@ const CreateRefundOrderContainer: React.FC = () => {
                             <Space size="small">
                               <Tag>{item.unit}</Tag>
                               <Text type="secondary">
-                                SL trong hoá đơn: {item.maxQty}
+                                SL có thể hoàn: {item.maxQty}
                               </Text>
                             </Space>
                           </Space>
@@ -288,14 +316,7 @@ const CreateRefundOrderContainer: React.FC = () => {
         </Card>
 
         <Card title="Hoàn tiền">
-          {order?.status !== 'PAID' && (
-            <Alert
-              type="warning"
-              showIcon
-              message="Đơn chưa thanh toán"
-              style={{ marginBottom: 12 }}
-            />
-          )}
+          {/* Nếu cần cảnh báo trạng thái thanh toán, thêm lại khi API cung cấp */}
           {!!refundCalc?.maximumRefundable && (
             <Text type="secondary">
               Có thể hoàn trả tối đa {currency(refundCalc?.maximumRefundable)}

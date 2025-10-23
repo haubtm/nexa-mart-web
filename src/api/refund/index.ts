@@ -7,6 +7,8 @@ import type {
   IRefundCreateResponse,
   IRefundCalculateRequest,
   IRefundCalculateResponse,
+  IRefundCheckQuantityByIdRequest,
+  IRefundCheckQuantityByIdResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -43,6 +45,14 @@ export const refundApi = {
     const response = await apiService.post<IRefundCalculateResponse>(
       `${BASE_ENDPOINT}/calculate`,
       body,
+    );
+    return response;
+  },
+
+  checkQuantity: async (body: IRefundCheckQuantityByIdRequest) => {
+    const response = await apiService.get<IRefundCheckQuantityByIdResponse>(
+      `${BASE_ENDPOINT}/invoice/${body.invoiceId}/available-quantity`,
+      { params: body },
     );
     return response;
   },

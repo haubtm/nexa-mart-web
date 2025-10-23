@@ -27,3 +27,31 @@ export interface IRefundResponseData {
 }
 
 export interface IRefundByIdResponse extends IResponse<IRefundResponseData> {}
+
+export interface IRefundCheckQuantityByIdRequest {
+  invoiceId?: number;
+}
+
+export interface IRefundCheckQuantityByIdResponse
+  extends IResponse<{
+    invoiceId: number;
+    invoiceNumber: string;
+    invoiceDate: string;
+    customerName: string;
+    customerPhone: string;
+    employeeName: string;
+    lineItems: {
+      lineItemId: number;
+      productName: string;
+      unitName: string;
+      originalQuantity: number;
+      returnedQuantity: number;
+      availableQuantity: number;
+      unitPrice: number;
+      priceAfterDiscount: number;
+      isFullyReturned: boolean;
+    }[];
+    totalOriginalQuantity: number;
+    totalReturnedQuantity: number;
+    totalAvailableQuantity: number;
+  }> {}

@@ -1,4 +1,8 @@
-import type { IBaseListRequest, IRefundCalculateRequest } from '@/dtos';
+import type {
+  IBaseListRequest,
+  IRefundCalculateRequest,
+  IRefundCheckQuantityByIdRequest,
+} from '@/dtos';
 
 export const refundKeys = {
   all: ['refund'] as const,
@@ -10,4 +14,7 @@ export const refundKeys = {
   calculates: () => [...refundKeys.all, 'calculate'] as const,
   calculate: (body: IRefundCalculateRequest) =>
     [...refundKeys.calculates(), { body }] as const,
+  checkQuantities: () => [...refundKeys.all, 'check-quantity'] as const,
+  checkQuantity: (body: IRefundCheckQuantityByIdRequest) =>
+    [...refundKeys.checkQuantities(), { body }] as const,
 };

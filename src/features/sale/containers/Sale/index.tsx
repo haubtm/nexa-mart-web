@@ -416,6 +416,12 @@ const CartTab: React.FC<{
     },
   ];
 
+  // --- Helpers hiển thị tiền ---
+  const payable = computed.totalPayable || 0;
+  const cash = Number.isFinite(amountPaid) ? Number(amountPaid) : 0;
+  const shortage = Math.max(0, payable - cash); // thiếu tiền
+  const change = cash > payable ? cash - payable : 0; // tiền thừa
+
   return (
     <>
       <Flex gap={16} align="start" wrap="wrap">
@@ -486,7 +492,7 @@ const CartTab: React.FC<{
         </div>
 
         {/* Panel tổng tiền */}
-        <div style={{ width: 360, maxWidth: '100%' }}>
+        <div style={{ width: 320, maxWidth: '100%' }}>
           <div
             style={{
               padding: 12,
@@ -496,13 +502,15 @@ const CartTab: React.FC<{
             }}
           >
             <Divider orientation="left">
-              Tổng tiền hàng ({cart.items.length} sản phẩm)
+              <Text strong style={{ fontSize: 20 }}>
+                Tổng tiền hàng ({cart.items.length} sản phẩm)
+              </Text>
             </Divider>
 
             <Space direction="vertical" style={{ width: '100%' }}>
               <Flex justify="space-between">
-                <Text>Tạm tính</Text>
-                <Text strong>
+                <Text style={{ fontSize: 18 }}>Tạm tính</Text>
+                <Text strong style={{ fontSize: 18 }}>
                   {computed.subTotal.toLocaleString('vi-VN', {
                     style: 'currency',
                     currency: 'VND',
@@ -511,8 +519,8 @@ const CartTab: React.FC<{
               </Flex>
 
               <Flex justify="space-between">
-                <Text>Giảm giá</Text>
-                <Text>
+                <Text style={{ fontSize: 18 }}>Giảm giá</Text>
+                <Text style={{ fontSize: 18 }}>
                   -
                   {computed.lineItemDiscount.toLocaleString('vi-VN', {
                     style: 'currency',
@@ -553,13 +561,19 @@ const CartTab: React.FC<{
       <Modal
         title="Thanh toán"
         open={payOpen}
+        cancelText="Huỷ"
         onCancel={() => setPayOpen(false)}
         onOk={handleCreateOrder}
         confirmLoading={isCreatingOrder}
         okText="Hoàn tất"
+        // Disable nút Hoàn tất khi tiền mặt < phải trả
+        okButtonProps={{
+          disabled: paymentMethod === 'CASH' && cash < payable, // thiếu tiền -> không cho hoàn tất
+        }}
       >
         <Space direction="vertical" style={{ width: '100%' }}>
           <Radio.Group
+            size="large"
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
           >
@@ -568,28 +582,65 @@ const CartTab: React.FC<{
           </Radio.Group>
 
           {paymentMethod === 'CASH' && (
-            <Flex align="center" justify="space-between">
-              <Text>Tiền khách đưa</Text>
-              <InputNumber
-                style={{ width: 200 }}
-                min={0}
-                value={amountPaid}
-                formatter={(v) =>
-                  v === undefined ? '0' : Number(v).toLocaleString('vi-VN')
-                }
-                parser={(v) =>
-                  Number((v || '0').toString().replace(/[^0-9.-]+/g, ''))
-                }
-                onChange={(v) => setAmountPaid(Number(v ?? 0))}
-              />
-            </Flex>
+            <>
+              <Flex align="center" justify="space-between">
+                <Text style={{ fontSize: 20 }}>Tiền khách đưa</Text>
+                <InputNumber
+                  style={{ width: 200 }}
+                  min={0}
+                  value={amountPaid}
+                  formatter={(v) =>
+                    v === undefined ? '0' : Number(v).toLocaleString('vi-VN')
+                  }
+                  parser={(v) =>
+                    Number((v || '0').toString().replace(/[^0-9.-]+/g, ''))
+                  }
+                  onChange={(v) => setAmountPaid(Number(v ?? 0))}
+                />
+              </Flex>
+
+              {/* Dòng cảnh báo/nhắc nhở theo yêu cầu */}
+              {cash < payable && (
+                <Flex
+                  justify="space-between"
+                  style={{ width: '100%', marginTop: 30 }}
+                >
+                  <Text type="danger" style={{ fontSize: 20 }}>
+                    Khách phải đưa thêm
+                  </Text>
+                  <Text strong style={{ fontSize: 20 }}>
+                    {shortage.toLocaleString('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    })}
+                  </Text>
+                </Flex>
+              )}
+
+              {cash > payable && (
+                <Flex
+                  justify="space-between"
+                  style={{ width: '100%', marginTop: 30 }}
+                >
+                  <Text type="success" style={{ fontSize: 20 }}>
+                    Thối lại khách
+                  </Text>
+                  <Text strong style={{ fontSize: 20 }}>
+                    {change.toLocaleString('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    })}
+                  </Text>
+                </Flex>
+              )}
+            </>
           )}
 
           <Divider />
           <Flex justify="space-between">
-            <Text>Khách phải trả</Text>
-            <Text strong>
-              {computed.totalPayable.toLocaleString('vi-VN', {
+            <Text style={{ fontSize: 20 }}>Khách phải trả</Text>
+            <Text style={{ fontSize: 20 }} strong>
+              {payable.toLocaleString('vi-VN', {
                 style: 'currency',
                 currency: 'VND',
               })}
@@ -602,6 +653,7 @@ const CartTab: React.FC<{
       <Modal
         title="Quét QR để thanh toán"
         open={qrVisible}
+        cancelText="Hủy"
         onCancel={() => setQrVisible(false)}
         footer={null}
         destroyOnClose
@@ -611,7 +663,9 @@ const CartTab: React.FC<{
             <img
               alt="qr"
               style={{ width: 260, height: 260 }}
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(qrCodeValue)}`}
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
+                qrCodeValue,
+              )}`}
             />
             {paymentUrl && (
               <div style={{ marginTop: 8 }}>
@@ -751,7 +805,7 @@ const SaleContainer: React.FC = () => {
           showSearch
           value={undefined}
           placeholder="Tìm kiếm nhanh sản phẩm"
-          style={{ width: '100%' }}
+          style={{ width: '40%' }}
           filterOption={false}
           onSearch={setSearchTerm}
           onSelect={(_val, option: any) => onSelectProductUnit(option.meta)}
@@ -760,30 +814,39 @@ const SaleContainer: React.FC = () => {
           notFoundContent={searchTerm ? 'Không có kết quả' : 'Nhập để tìm kiếm'}
         />
 
-        <Tabs
-          type="editable-card"
-          onEdit={(targetKey, action) => {
-            if (action === 'add') addTab();
-            else if (action === 'remove') removeTab(String(targetKey));
+        <div
+          style={{
+            border: '1px solid #eee',
+            borderRadius: 8,
+            padding: 8,
+            background: '#fff',
           }}
-          activeKey={activeKey}
-          onChange={setActiveKey}
-          items={carts.map((c) => ({
-            key: c.id,
-            label: renderTabLabel(c),
-            children: (
-              <CartTab
-                cart={c}
-                onCartChange={(next) => setCart(c.id, () => next)}
-                onSummaryChange={(sum) =>
-                  setSummaries((prev) => ({ ...prev, [c.id]: sum }))
-                }
-                onCloseCurrent={() => removeTab(c.id)}
-              />
-            ),
-            closable: true,
-          }))}
-        />
+        >
+          <Tabs
+            type="editable-card"
+            onEdit={(targetKey, action) => {
+              if (action === 'add') addTab();
+              else if (action === 'remove') removeTab(String(targetKey));
+            }}
+            activeKey={activeKey}
+            onChange={setActiveKey}
+            items={carts.map((c) => ({
+              key: c.id,
+              label: renderTabLabel(c),
+              children: (
+                <CartTab
+                  cart={c}
+                  onCartChange={(next) => setCart(c.id, () => next)}
+                  onSummaryChange={(sum) =>
+                    setSummaries((prev) => ({ ...prev, [c.id]: sum }))
+                  }
+                  onCloseCurrent={() => removeTab(c.id)}
+                />
+              ),
+              closable: true,
+            }))}
+          />
+        </div>
       </Space>
     </div>
   );

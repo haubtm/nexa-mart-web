@@ -3,6 +3,7 @@ import { refundKeys } from '../query-keys';
 import type {
   IRefundByIdRequest,
   IRefundCalculateRequest,
+  IRefundCheckQuantityByIdRequest,
   IRefundListRequest,
 } from '@/dtos';
 import { refundApi } from '@/api';
@@ -26,6 +27,15 @@ export const useRefundCalculate = (body: IRefundCalculateRequest) => {
   return useQuery({
     queryKey: refundKeys.calculate(body),
     queryFn: async () => await refundApi.calculate(body),
+  });
+};
+
+export const useRefundCheckQuantity = (
+  body: IRefundCheckQuantityByIdRequest,
+) => {
+  return useQuery({
+    queryKey: refundKeys.checkQuantity(body),
+    queryFn: async () => await refundApi.checkQuantity(body),
   });
 };
 
