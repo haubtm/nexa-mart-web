@@ -52,6 +52,14 @@ export const ROUTE_PATH = {
     ORDER: {
       PATH: () => `${ROUTE_PATH.SALE.PATH()}/order`,
     },
+    REFUND: {
+      PATH: () => `${ROUTE_PATH.SALE.PATH()}/refund`,
+    },
+    CREATE_REFUND_ORDER: {
+      PATH: () => `${ROUTE_PATH.SALE.PATH()}/create/:orderId`,
+      LINK: (orderId: string | number) =>
+        `${ROUTE_PATH.SALE.PATH()}/create/${orderId}`,
+    },
   },
   AUTH: {
     PATH: () => `/auth`,

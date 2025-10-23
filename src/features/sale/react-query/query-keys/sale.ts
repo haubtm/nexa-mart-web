@@ -7,4 +7,6 @@ export const saleKeys = {
     [...saleKeys.lists(), { filters }] as const,
   byId: (filters: IOrderByIdRequest) =>
     [...saleKeys.all, 'byId', { filters }] as const,
+  byInvoiceIds: () => [...saleKeys.all, 'byInvoiceIds'] as const,
+  byInvoiceId: (id: number) => [...saleKeys.lists(), { id }] as const,
 };

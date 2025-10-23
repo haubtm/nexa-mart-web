@@ -1,5 +1,6 @@
 import { EPaymentMethod } from '@/lib';
 import type { IResponse } from '../common';
+import { IOrderResponseData } from './common';
 
 export interface IOrderByIdRequest {
   orderId: number;
@@ -17,3 +18,10 @@ export interface IOrderByIdResponse
     createdAt: string;
     updatedAt: string;
   }> {}
+
+export interface IOrderByInvoiceIdRequest {
+  invoiceId: number;
+}
+
+export interface IOrderByInvoiceIdResponse
+  extends IResponse<IOrderResponseData> {}

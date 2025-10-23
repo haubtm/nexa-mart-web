@@ -2,6 +2,8 @@ import { ROUTE_PATH } from '@/common';
 import {
   BaseLayout as SaleBaseLayout,
   SalePage as SaleOrderPage,
+  RefundPage,
+  CreateRefundOrderPage,
 } from '@/features/sale';
 import { DashboardPage as AdminDashboardPage } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
@@ -31,6 +33,11 @@ export const SaleRoute = () => {
         path={ROUTE_PATH.SALE.DASHBOARD.PATH()}
         element={<AdminDashboardPage />}
       />
+      <Route
+        path={ROUTE_PATH.SALE.CREATE_REFUND_ORDER.PATH()}
+        element={<CreateRefundOrderPage />}
+      />
+      <Route path={ROUTE_PATH.SALE.REFUND.PATH()} element={<RefundPage />} />
       <Route path={ROUTE_PATH.SALE.ORDER.PATH()} element={<SaleOrderPage />} />
     </Route>
   );

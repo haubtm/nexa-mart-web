@@ -44,6 +44,10 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
         key: ROUTE_PATH.SALE.ORDER.PATH(),
         label: 'Bán hàng',
       },
+      [ROUTE_PATH.SALE.REFUND.PATH()]: {
+        key: ROUTE_PATH.SALE.REFUND.PATH(),
+        label: 'Trả hàng',
+      },
     };
   }, []);
 
@@ -54,6 +58,14 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
         label: (
           <Link to={ROUTE_PATH.SALE.ORDER.PATH()}>
             {routePathMapping[ROUTE_PATH.SALE.ORDER.PATH()].label}
+          </Link>
+        ),
+      },
+      {
+        key: routePathMapping[ROUTE_PATH.SALE.REFUND.PATH()].key,
+        label: (
+          <Link to={ROUTE_PATH.SALE.REFUND.PATH()}>
+            {routePathMapping[ROUTE_PATH.SALE.REFUND.PATH()].label}
           </Link>
         ),
       },

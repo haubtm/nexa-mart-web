@@ -2,6 +2,8 @@ import { apiService } from '../axiosService';
 import {
   IOrderByIdRequest,
   IOrderByIdResponse,
+  IOrderByInvoiceIdRequest,
+  IOrderByInvoiceIdResponse,
   IOrderListRequest,
   IOrderListResponse,
   ISaleCreateRequest,
@@ -13,7 +15,17 @@ const BASE_ENDPOINT = '/sales';
 export const saleApi = {
   list: async (body: IOrderListRequest) => {
     const response = await apiService.get<IOrderListResponse>(
-      `${BASE_ENDPOINT}/search`,
+      // `${BASE_ENDPOINT}/search`,
+      `${BASE_ENDPOINT}`,
+      { params: body },
+    );
+
+    return response;
+  },
+
+  byInvoiceId: async (body: IOrderByInvoiceIdRequest) => {
+    const response = await apiService.get<IOrderByInvoiceIdResponse>(
+      `${BASE_ENDPOINT}/${body.invoiceId}`,
       { params: body },
     );
 

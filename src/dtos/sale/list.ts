@@ -13,8 +13,8 @@ export interface IOrderListRequest {
   fromDate?: string;
   toDate?: string;
   status?: EPaymentMethod;
-  pageNumber: number;
-  pageSize: number;
+  pageNumber?: number;
+  pageSize?: number;
 }
 
 export interface IOrderListResponse
