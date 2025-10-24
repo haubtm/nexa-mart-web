@@ -33,6 +33,7 @@ export const useHook = (
         dateOfBirth: dayjs(values.dateOfBirth).format('YYYY-MM-DD'),
         customerType: values.customerType,
         gender: values.gender,
+        customerCode: values.customerCode,
       },
       {
         onSuccess: () => {

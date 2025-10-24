@@ -40,12 +40,12 @@ const CustomerForm = ({
         </Col>
         <Col span={12}>
           <FormItem<ICustomerCreateRequest>
-            label="Email"
-            name="email"
+            label="Mã khách hàng"
+            name="customerCode"
             required
             rules={[rules]}
           >
-            <Input readOnly={readonly} placeholder="Email" />
+            <Input readOnly={readonly} placeholder="Mã khách hàng" />
           </FormItem>
         </Col>
       </Row>
@@ -81,14 +81,29 @@ const CustomerForm = ({
           </FormItem>
         </Col>
       </Row>
-      <FormItem<ICustomerCreateRequest>
-        label="Địa chỉ"
-        name="address"
-        required
-        rules={[rules]}
-      >
-        <Input readOnly={readonly} placeholder="Nhập Địa chỉ" />
-      </FormItem>
+
+      <Row gutter={[16, 16]}>
+        <Col span={12}>
+          <FormItem<ICustomerCreateRequest>
+            label="Địa chỉ"
+            name="address"
+            required
+            rules={[rules]}
+          >
+            <Input readOnly={readonly} placeholder="Nhập Địa chỉ" />
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem<ICustomerCreateRequest>
+            label="Email"
+            name="email"
+            required
+            rules={[rules]}
+          >
+            <Input readOnly={readonly} placeholder="Email" />
+          </FormItem>
+        </Col>
+      </Row>
       <Row gutter={[16, 16]}>
         <Col span={12}>
           <FormItem<ICustomerCreateRequest>

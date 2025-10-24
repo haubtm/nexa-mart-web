@@ -101,10 +101,12 @@ export default function PromotionDetailCreateForm({
   handleSubmit,
   form,
   promotionType,
+  isUpdate = false,
 }: {
   handleSubmit?: (v: any) => Promise<void>;
   form: FormInstance;
   promotionType: EPromotionType;
+  isUpdate?: boolean;
 }) {
   const {
     rules,
@@ -163,8 +165,26 @@ export default function PromotionDetailCreateForm({
           >
             <Radio.Group>
               <Space direction="vertical">
-                <Radio value="PRODUCT_QTY">Theo sản phẩm & số lượng</Radio>
-                <Radio value="CATEGORY_VALUE">Theo danh mục & giá trị</Radio>
+                {isUpdate ? (
+                  (() => {
+                    const current = form.getFieldValue([
+                      'detail',
+                      '_buyConditionType',
+                    ]);
+                    const label =
+                      current === 'PRODUCT_QTY'
+                        ? 'Theo sản phẩm & số lượng'
+                        : 'Theo danh mục & giá trị';
+                    return <Radio value={current}>{label}</Radio>;
+                  })()
+                ) : (
+                  <>
+                    <Radio value="PRODUCT_QTY">Theo sản phẩm & số lượng</Radio>
+                    <Radio value="CATEGORY_VALUE">
+                      Theo danh mục & giá trị
+                    </Radio>
+                  </>
+                )}
               </Space>
             </Radio.Group>
           </Form.Item>
@@ -285,13 +305,29 @@ export default function PromotionDetailCreateForm({
           <Form.Item
             label="Ưu đãi cho quà"
             name={['detail', 'giftDiscountType']}
-            rules={[rules, { required: true, message: 'Chọn hình thức' }]}
           >
             <Radio.Group>
               <Space direction="vertical">
-                <Radio value="FREE">Miễn phí (FREE)</Radio>
-                <Radio value="PERCENTAGE">%</Radio>
-                <Radio value="FIXED_AMOUNT">Số tiền</Radio>
+                {isUpdate ? (
+                  (() => {
+                    const current = form.getFieldValue([
+                      'detail',
+                      'giftDiscountType',
+                    ]);
+                    const map: Record<string, string> = {
+                      FREE: 'Miễn phí (FREE)',
+                      PERCENTAGE: '%',
+                      FIXED_AMOUNT: 'Số tiền',
+                    };
+                    return <Radio value={current}>{map[current]}</Radio>;
+                  })()
+                ) : (
+                  <>
+                    <Radio value="FREE">Miễn phí (FREE)</Radio>
+                    <Radio value="PERCENTAGE">%</Radio>
+                    <Radio value="FIXED_AMOUNT">Số tiền</Radio>
+                  </>
+                )}
               </Space>
             </Radio.Group>
           </Form.Item>
@@ -338,8 +374,24 @@ export default function PromotionDetailCreateForm({
           >
             <Radio.Group>
               <Space direction="vertical">
-                <Radio value="FIXED_AMOUNT">Số tiền</Radio>
-                <Radio value="PERCENTAGE">%</Radio>
+                {isUpdate ? (
+                  (() => {
+                    const current = form.getFieldValue([
+                      'detail',
+                      'orderDiscountType',
+                    ]);
+                    const map: Record<string, string> = {
+                      FIXED_AMOUNT: 'Số tiền',
+                      PERCENTAGE: '%',
+                    };
+                    return <Radio value={current}>{map[current]}</Radio>;
+                  })()
+                ) : (
+                  <>
+                    <Radio value="FIXED_AMOUNT">Số tiền</Radio>
+                    <Radio value="PERCENTAGE">%</Radio>
+                  </>
+                )}
               </Space>
             </Radio.Group>
           </Form.Item>
@@ -434,8 +486,26 @@ export default function PromotionDetailCreateForm({
                     >
                       <Radio.Group>
                         <Space direction="vertical" size="small">
-                          <Radio value="FIXED_AMOUNT">Số tiền</Radio>
-                          <Radio value="PERCENTAGE">%</Radio>
+                          {isUpdate ? (
+                            (() => {
+                              const current = form.getFieldValue([
+                                'detail',
+                                'productDiscountType',
+                              ]);
+                              const map: Record<string, string> = {
+                                FIXED_AMOUNT: 'Số tiền',
+                                PERCENTAGE: '%',
+                              };
+                              return (
+                                <Radio value={current}>{map[current]}</Radio>
+                              );
+                            })()
+                          ) : (
+                            <>
+                              <Radio value="FIXED_AMOUNT">Số tiền</Radio>
+                              <Radio value="PERCENTAGE">%</Radio>
+                            </>
+                          )}
                         </Space>
                       </Radio.Group>
                     </Form.Item>
@@ -501,9 +571,28 @@ export default function PromotionDetailCreateForm({
                     >
                       <Radio.Group>
                         <Space direction="vertical" size="small">
-                          <Radio value="ALL">Tất cả sản phẩm</Radio>
-                          <Radio value="PRODUCT">Sản phẩm cụ thể</Radio>
-                          <Radio value="CATEGORY">Danh mục cụ thể</Radio>
+                          {isUpdate ? (
+                            (() => {
+                              const current = form.getFieldValue([
+                                'detail',
+                                'applyToType',
+                              ]);
+                              const map: Record<string, string> = {
+                                ALL: 'Tất cả sản phẩm',
+                                PRODUCT: 'Sản phẩm cụ thể',
+                                CATEGORY: 'Danh mục cụ thể',
+                              };
+                              return (
+                                <Radio value={current}>{map[current]}</Radio>
+                              );
+                            })()
+                          ) : (
+                            <>
+                              <Radio value="ALL">Tất cả sản phẩm</Radio>
+                              <Radio value="PRODUCT">Sản phẩm cụ thể</Radio>
+                              <Radio value="CATEGORY">Danh mục cụ thể</Radio>
+                            </>
+                          )}
                         </Space>
                       </Radio.Group>
                     </Form.Item>

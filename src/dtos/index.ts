@@ -14,5 +14,6 @@ export * from './warehouse';
 export * from './supplier';
 export * from './stock-take';
 export * from './refund';
+export * from './report';
 export * from './promotion';
 export * from './sale';

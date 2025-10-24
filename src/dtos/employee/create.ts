@@ -6,8 +6,7 @@ export interface IEmployeeCreateRequest {
   email: string;
   passwordHash: string;
   role: ERole;
-  createdAt?: string;
-  updatedAt?: string;
+  employeeCode: string;
 }
 
 interface IResponseData {
@@ -18,6 +17,7 @@ interface IResponseData {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  employeeCode: string;
 }
 
 export interface IEmployeeCreateResponse extends IResponse<IResponseData> {}

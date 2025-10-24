@@ -25,8 +25,10 @@ export const useHook = (
       role: z
         .string('Vai trò không được để trống')
         .nonempty('Vai trò không được để trống'),
-      createAt: z.optional(z.string().trim()).default(new Date().toISOString()),
-      updateAt: z.optional(z.string().trim()).default(new Date().toISOString()),
+      employeeCode: z
+        .string('Mã nhân viên không được để trống')
+        .nonempty('Mã nhân viên không được để trống')
+        .trim(),
     });
 
     return [createSchemaFieldRule(Schema), Schema];

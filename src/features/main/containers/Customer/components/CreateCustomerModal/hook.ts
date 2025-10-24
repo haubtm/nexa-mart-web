@@ -26,6 +26,7 @@ export const useHook = () => {
         dateOfBirth: values.dateOfBirth,
         customerType: values.customerType,
         gender: values.gender,
+        customerCode: values.customerCode,
       },
       {
         onSuccess: () => {

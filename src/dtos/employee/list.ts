@@ -9,6 +9,7 @@ export interface IEmployeeListResponseData {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  employeeCode: string;
 }
 
 export interface IEmployeeListResponse

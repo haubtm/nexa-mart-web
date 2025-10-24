@@ -40,6 +40,13 @@ export const useHook = () => {
       render: (_, record) => record?.name,
     },
     {
+      key: 'customerCode',
+      fixed: 'left',
+      title: 'Mã khách hàng',
+      width: 120,
+      render: (_, record) => record?.customerCode,
+    },
+    {
       key: 'email',
       title: 'Email',
       width: 200,

@@ -44,6 +44,7 @@ const UpdatePromotionDetailModal = ({
         form={form}
         handleSubmit={handleSubmit}
         promotionType={promotionType}
+        isUpdate={true}
       />
     </ModalNew>
   );

@@ -11,6 +11,7 @@ export interface ICustomerCreateRequest {
   address: string;
   dateOfBirth: string | Dayjs | null;
   customerType: ECustomerType;
+  customerCode: string;
 }
 
 export interface ICustomerCreateResponse

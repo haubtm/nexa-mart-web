@@ -11,6 +11,7 @@ export interface ICustomerUpdateRequest {
   address: string;
   dateOfBirth: string;
   customerType: ECustomerType;
+  customerCode: string;
 }
 
 export interface ICustomerUpdateResponse

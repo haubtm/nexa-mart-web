@@ -55,6 +55,10 @@ export const useHook = (
         .refine((val) => val !== undefined && val !== null, {
           message: 'Loại khách hàng không được để trống',
         }),
+      customerCode: z
+        .string('Mã khách hàng không được để trống')
+        .nonempty('Mã khách hàng không được để trống')
+        .trim(),
     });
 
     return [createSchemaFieldRule(Schema), Schema];

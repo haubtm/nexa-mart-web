@@ -12,4 +12,5 @@ export interface ICustomerResponseData {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  customerCode: string;
 }

@@ -26,12 +26,20 @@ const EmployeeForm = ({
   return (
     <Form form={form} onFinish={(values) => onFinish(values)}>
       <FormItem<IEmployeeCreateRequest>
-        label={'Thêm nhân viên'}
+        label={'Tên nhân viên'}
         name="name"
         required
         rules={[rules]}
       >
         <Input readOnly={readonly} placeholder={'Tên nhân viên'} />
+      </FormItem>
+      <FormItem<IEmployeeCreateRequest>
+        label={'Mã nhân viên'}
+        name="employeeCode"
+        required
+        rules={[rules]}
+      >
+        <Input readOnly={readonly} placeholder={'Mã nhân viên'} />
       </FormItem>
 
       <FormItem<IEmployeeCreateRequest>

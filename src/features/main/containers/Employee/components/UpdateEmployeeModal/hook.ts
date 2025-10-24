@@ -29,6 +29,7 @@ export const useHook = (
         name: values.name,
         passwordHash: values.passwordHash,
         role: values.role,
+        employeeCode: values.employeeCode,
       },
       {
         onSuccess: () => {

@@ -13,6 +13,7 @@ export interface IEmployeeByIdResponseData {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  employeeCode: string;
 }
 
 export interface IEmployeeByIdResponse

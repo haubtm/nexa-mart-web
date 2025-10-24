@@ -38,6 +38,12 @@ export const useHook = () => {
         render: (_, record) => record?.name,
       },
       {
+        key: 'employeeCode',
+        title: 'Mã nhân viên',
+        width: 120,
+        render: (_, record) => record?.employeeCode,
+      },
+      {
         key: 'email',
         title: 'Email',
         width: 200,
