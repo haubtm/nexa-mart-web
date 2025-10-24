@@ -74,7 +74,7 @@ const statusTag = (s?: EInvoiceStatus) => {
   const map: Record<EInvoiceStatus, { color: string; text: string }> = {
     [EInvoiceStatus.CANCELLED]: { color: 'default', text: 'Đã hủy' },
     [EInvoiceStatus.DRAFT]: { color: 'processing', text: 'Nháp' },
-    [EInvoiceStatus.ISSUED]: { color: 'warning', text: 'Đã xuất' },
+    [EInvoiceStatus.ISSUED]: { color: 'warning', text: 'Chưa thanh toán' },
     [EInvoiceStatus.PAID]: { color: 'success', text: 'Đã thanh toán' },
     [EInvoiceStatus.PARTIALLY_PAID]: {
       color: 'purple',

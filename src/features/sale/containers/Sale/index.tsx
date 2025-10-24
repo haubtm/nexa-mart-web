@@ -174,7 +174,6 @@ const CartTab: React.FC<{
 }> = ({ cart, onCartChange, onSummaryChange, onCloseCurrent }) => {
   const user = useAppSelector((state) => state.user).profile;
   const employeeId = user?.employeeId || 0;
-
   /** ---- Tìm kiếm & chọn khách hàng ---- */
   const [customerSearch, setCustomerSearch] = useState<string>('');
   const searchCustomerDebounced = useDebounce(customerSearch);
@@ -611,7 +610,9 @@ const CartTab: React.FC<{
                 <Text style={{ fontSize: 18 }}>Giảm giá</Text>
                 <Text style={{ fontSize: 18 }}>
                   -
-                  {computed.lineItemDiscount.toLocaleString('vi-VN', {
+                  {(
+                    computed.lineItemDiscount + (computed?.orderDiscount ?? 0)
+                  ).toLocaleString('vi-VN', {
                     style: 'currency',
                     currency: 'VND',
                   })}

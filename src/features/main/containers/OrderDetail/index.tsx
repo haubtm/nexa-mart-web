@@ -23,7 +23,7 @@ const statusTag = (s?: EInvoiceStatus) => {
   const map: Record<string, { color: string; text: string }> = {
     CANCELLED: { color: 'default', text: 'Đã hủy' },
     DRAFT: { color: 'processing', text: 'Nháp' },
-    ISSUED: { color: 'warning', text: 'Đã xuất' },
+    ISSUED: { color: 'warning', text: 'Chưa thanh toán' },
     PAID: { color: 'success', text: 'Đã thanh toán' },
     'PARTIALLY-PAID': { color: 'purple', text: 'Thanh toán một phần' },
     PARTIALLY_PAID: { color: 'purple', text: 'Thanh toán một phần' },
