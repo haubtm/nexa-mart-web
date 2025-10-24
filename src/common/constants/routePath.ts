@@ -43,6 +43,9 @@ export const ROUTE_PATH = {
     ORDER: {
       PATH: () => `/admin/order`,
     },
+    REPORT: {
+      PATH: () => `/admin/report`,
+    },
   },
   SALE: {
     PATH: () => `/sale`,

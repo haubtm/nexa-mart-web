@@ -83,6 +83,10 @@ const LayoutMenu = () => {
         key: ROUTE_PATH.ADMIN.WAREHOUSE.PATH(),
         label: 'Tồn kho',
       },
+      [ROUTE_PATH.ADMIN.REPORT.PATH()]: {
+        key: ROUTE_PATH.ADMIN.REPORT.PATH(),
+        label: 'Báo cáo',
+      },
     };
   }, []);
 
@@ -167,6 +171,20 @@ const LayoutMenu = () => {
             label: (
               <Link to={ROUTE_PATH.ADMIN.WAREHOUSE.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.WAREHOUSE.PATH()].label}
+              </Link>
+            ),
+          },
+        ],
+      },
+      {
+        key: 'report',
+        label: 'Báo cáo',
+        children: [
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.REPORT.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.REPORT.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.REPORT.PATH()].label}
               </Link>
             ),
           },

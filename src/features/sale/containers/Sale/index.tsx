@@ -21,6 +21,7 @@ import {
   usePromotionCheck,
   useOrderCreate,
   useOrderStatus,
+  useCustomerList,
 } from '@/features/sale';
 import {
   Button,
@@ -32,6 +33,7 @@ import {
   Text,
   useDebounce,
 } from '@/lib';
+import { useAppSelector } from '@/redux/hooks';
 
 /**
  * ---------- Kiểu dữ liệu ----------
@@ -127,6 +129,14 @@ export type PromotionResponse = {
   timestamp: string;
 };
 
+/** --------- Kiểu dữ liệu khách hàng (tối thiểu) ---------- */
+type Customer = {
+  customerId: number;
+  name: string;
+  phone: string | null;
+  customerCode: string | null;
+};
+
 /**
  * ---------- Giỏ hàng & Tab ----------
  */
@@ -162,6 +172,45 @@ const CartTab: React.FC<{
   onSummaryChange?: (sum: CartSummary) => void;
   onCloseCurrent: () => void;
 }> = ({ cart, onCartChange, onSummaryChange, onCloseCurrent }) => {
+  const user = useAppSelector((state) => state.user).profile;
+  const employeeId = user?.employeeId || 0;
+
+  /** ---- Tìm kiếm & chọn khách hàng ---- */
+  const [customerSearch, setCustomerSearch] = useState<string>('');
+  const searchCustomerDebounced = useDebounce(customerSearch);
+  const { data: customerData } = useCustomerList({
+    search: searchCustomerDebounced,
+  }) as unknown as {
+    data?: {
+      data?: {
+        content?: Array<{
+          customerId: number;
+          name: string;
+          phone: string | null;
+          customerCode: string | null;
+        }>;
+      };
+    };
+  };
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(
+    null,
+  );
+  const selectedCustomerLabel = useMemo(() => {
+    const list = customerData?.data?.content ?? [];
+    const c = list.find((x) => x.customerId === selectedCustomerId);
+    if (!c) return null;
+    const phone = c.phone ? ` – ${c.phone}` : '';
+    return `${c.name}${phone}`;
+  }, [customerData, selectedCustomerId]);
+
+  const customerOptions = useMemo(() => {
+    const list = customerData?.data?.content ?? [];
+    return list.map((c) => ({
+      value: c.customerId,
+      label: `${c.name}${c.phone ? ' – ' + c.phone : ''}`,
+    }));
+  }, [customerData]);
+
   const { message } = App.useApp();
 
   // Gọi KM cho tab hiện tại
@@ -252,20 +301,29 @@ const CartTab: React.FC<{
       message?.warning('Chưa có dữ liệu khuyến mãi để tạo hoá đơn.');
       return;
     }
+
     const payload: any = {
       amountPaid: paymentMethod === 'CASH' ? amountPaid : 0,
-      employeeId: 1,
+      employeeId, // <-- Lấy từ redux user
       paymentMethod,
       items: promotionData.data.items,
       appliedOrderPromotions: promotionData.data.appliedOrderPromotions,
     };
+
+    // Chỉ gắn customerId khi đã chọn khách hàng
+    if (selectedCustomerId) {
+      payload.customerId = selectedCustomerId;
+    }
+
     createOrder(payload, {
       onSuccess: (res: any) => {
         const data = res?.data;
         if (!data) return;
         if (paymentMethod === 'CASH') {
           message?.success(
-            `Đã tạo hoá đơn ${data.invoiceNumber}. Thối lại ${Number(data.changeAmount || 0).toLocaleString('vi-VN')}đ`,
+            `Đã tạo hoá đơn ${data.invoiceNumber}. Thối lại ${Number(
+              data.changeAmount || 0,
+            ).toLocaleString('vi-VN')}đ`,
           );
           setPayOpen(false);
           onCloseCurrent();
@@ -491,7 +549,7 @@ const CartTab: React.FC<{
           ) : null}
         </div>
 
-        {/* Panel tổng tiền */}
+        {/* Panel tổng tiền + khách hàng */}
         <div style={{ width: 320, maxWidth: '100%' }}>
           <div
             style={{
@@ -501,6 +559,37 @@ const CartTab: React.FC<{
               background: '#fff',
             }}
           >
+            {/* Chọn khách hàng */}
+            <Divider orientation="left">
+              <Text strong style={{ fontSize: 16 }}>
+                Khách hàng
+              </Text>
+            </Divider>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Select
+                showSearch
+                allowClear
+                placeholder="Tìm khách hàng (tên / SĐT / mã)"
+                value={selectedCustomerId ?? undefined}
+                filterOption={false}
+                onSearch={setCustomerSearch}
+                onChange={(val) => setSelectedCustomerId(val ?? null)}
+                options={customerOptions}
+                notFoundContent={
+                  customerSearch ? 'Không có kết quả' : 'Nhập để tìm kiếm'
+                }
+              />
+              {selectedCustomerLabel ? (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Đang chọn: {selectedCustomerLabel}
+                </Text>
+              ) : (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Chưa chọn khách hàng
+                </Text>
+              )}
+            </Space>
+
             <Divider orientation="left">
               <Text strong style={{ fontSize: 20 }}>
                 Tổng tiền hàng ({cart.items.length} sản phẩm)
@@ -646,6 +735,15 @@ const CartTab: React.FC<{
               })}
             </Text>
           </Flex>
+
+          {/* Gợi nhắc khách hàng (chỉ hiển thị) */}
+          <div style={{ marginTop: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {selectedCustomerLabel
+                ? `Khách hàng: ${selectedCustomerLabel}`
+                : 'Chưa chọn khách hàng'}
+            </Text>
+          </div>
         </Space>
       </Modal>
 

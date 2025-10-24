@@ -13,6 +13,7 @@ import {
   SupplierPage as AdminSupplierPage,
   WarehousePage as AdminWarehousePage,
   PromotionPage as AdminPromotionPage,
+  ReportPage as AdminReportPage,
 } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
@@ -84,6 +85,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.WAREHOUSE.PATH()}
         element={<AdminWarehousePage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.REPORT.PATH()}
+        element={<AdminReportPage />}
       />
     </Route>
   );

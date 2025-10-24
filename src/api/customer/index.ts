@@ -18,7 +18,11 @@ export const customerApi = {
   list: async (body: IBaseListRequest) => {
     const response = await apiService.post<ICustomerListResponse>(
       `${BASE_ENDPOINT}/list`,
-      body,
+      {
+        searchTerm: body.search,
+        page: body.page,
+        limit: body.limit,
+      },
     );
 
     return response;

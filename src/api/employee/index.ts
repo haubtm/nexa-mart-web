@@ -19,7 +19,9 @@ export const employeeApi = {
     const response = await apiService.get<IEmployeeListResponse>(
       `${BASE_ENDPOINT}`,
       {
-        params: body,
+        params: {
+          name: body.search,
+        },
       },
     );
 

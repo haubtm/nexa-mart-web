@@ -12,3 +12,4 @@ export * from './promotion';
 export * from './stock-take';
 export * from './supplier';
 export * from './warehouse';
+export * from './report';
