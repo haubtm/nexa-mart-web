@@ -203,6 +203,7 @@ const RefundContainer = () => {
           />
           <RangePicker
             style={{ width: '100%' }}
+            placeholder={['Từ ngày', 'Đến ngày']}
             onChange={(vals) => setDateRange(vals as any)}
             format="DD/MM/YYYY"
           />

@@ -347,6 +347,7 @@ const OrderContainer: React.FC = () => {
               style={{ width: '100%' }}
               format="DD/MM/YYYY"
               onChange={(vals) => handleRangeChange(vals as any)}
+              placeholder={['Từ ngày', 'Đến ngày']}
               value={
                 queryParams.fromDate && queryParams.toDate
                   ? [dayjs(queryParams.fromDate), dayjs(queryParams.toDate)]
