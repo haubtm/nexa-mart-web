@@ -2,10 +2,7 @@ import type { IPageable, IResponse } from '../common';
 import { Dayjs } from 'dayjs';
 
 export interface IRefundListRequest {
-  returnCode?: string;
-  invoiceNumber?: string;
-  customerName?: string;
-  customerPhone?: string;
+  searchKeyword?: string;
   fromDate?: string | Dayjs;
   toDate?: string | Dayjs;
   employeeId?: number;

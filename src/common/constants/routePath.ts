@@ -46,6 +46,9 @@ export const ROUTE_PATH = {
     REPORT: {
       PATH: () => `/admin/report`,
     },
+    REFUND: {
+      PATH: () => `/admin/refund`,
+    },
   },
   SALE: {
     PATH: () => `/sale`,

@@ -1,5 +1,5 @@
 import { ROUTE_PATH, useRoutePath } from '@/common';
-import { Flex, type IMenuProps, Link, Menu } from '@/lib';
+import { Button, Flex, type IMenuProps, Link, Menu } from '@/lib';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
@@ -8,7 +8,6 @@ const LayoutMenu = () => {
   const { pathname } = useRoutePath();
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
-
   useEffect(() => {
     setTimeout(() => {
       isStablePathname.current = true;
@@ -85,7 +84,15 @@ const LayoutMenu = () => {
       },
       [ROUTE_PATH.ADMIN.REPORT.PATH()]: {
         key: ROUTE_PATH.ADMIN.REPORT.PATH(),
-        label: 'Báo cáo',
+        label: 'Doanh số',
+      },
+      [ROUTE_PATH.ADMIN.ORDER.PATH()]: {
+        key: ROUTE_PATH.ADMIN.ORDER.PATH(),
+        label: 'Bán hàng',
+      },
+      [ROUTE_PATH.ADMIN.REFUND.PATH()]: {
+        key: ROUTE_PATH.ADMIN.REFUND.PATH(),
+        label: 'Trả hàng',
       },
     };
   }, []);
@@ -188,6 +195,22 @@ const LayoutMenu = () => {
               </Link>
             ),
           },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.ORDER.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.ORDER.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.ORDER.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.REFUND.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.REFUND.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.REFUND.PATH()].label}
+              </Link>
+            ),
+          },
         ],
       },
       {
@@ -223,7 +246,12 @@ const LayoutMenu = () => {
   );
 
   return (
-    <Flex vertical style={{ padding: 10 }}>
+    <Flex
+      style={{ padding: 10 }}
+      justify="space-between"
+      align="center"
+      gap={10}
+    >
       <MenuStyle
         selectedKeys={selectedKeys}
         openKeys={openKeys}
@@ -234,7 +262,20 @@ const LayoutMenu = () => {
         }}
         mode="horizontal"
         items={menuItems}
+        style={{ flex: 1 }}
       />
+      <Button
+        type="primary"
+        onClick={() => {
+          window.open(
+            ROUTE_PATH.SALE.ORDER.PATH(),
+            '_blank',
+            'noopener,noreferrer',
+          );
+        }}
+      >
+        Bán hàng
+      </Button>
     </Flex>
   );
 };
