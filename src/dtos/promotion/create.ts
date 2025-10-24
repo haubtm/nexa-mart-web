@@ -20,6 +20,7 @@ interface IPromotionDetail {
   giftDiscountType: EGiftDiscountType;
   giftDiscountValue: number;
   giftMaxQuantity: number;
+  giftQuantity?: number;
   // Order Discount
   orderDiscountType?: EOrderDiscountType;
   orderDiscountValue?: number;

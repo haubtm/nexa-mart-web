@@ -3,7 +3,7 @@ import { RefundContainer } from '@/features/main';
 const RefundPage = () => {
   return (
     <>
-      <title>Trả hàng</title>
+      <title>Danh sách trả hàng</title>
       <RefundContainer />
     </>
   );

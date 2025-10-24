@@ -61,6 +61,7 @@ export const useHook = (
             ? undefined
             : values.giftDiscountValue,
         giftMaxQuantity: values.giftMaxQuantity,
+        giftQuantity: values.giftMaxQuantity || undefined,
         orderDiscountMaxValue: values.orderDiscountMaxValue,
         orderDiscountType: values.orderDiscountType,
         orderDiscountValue: values.orderDiscountValue,

@@ -42,12 +42,22 @@ export const ROUTE_PATH = {
     },
     ORDER: {
       PATH: () => `/admin/order`,
+      DETAIL: {
+        PATH: () => `${ROUTE_PATH.ADMIN.ORDER.PATH()}/:invoiceId`,
+        LINK: (invoiceId: string | number) =>
+          `${ROUTE_PATH.ADMIN.ORDER.PATH()}/${invoiceId}`,
+      },
     },
     REPORT: {
       PATH: () => `/admin/report`,
     },
     REFUND: {
       PATH: () => `/admin/refund`,
+      DETAIL: {
+        PATH: () => `${ROUTE_PATH.ADMIN.REFUND.PATH()}/:refundId`,
+        LINK: (refundId: string | number) =>
+          `${ROUTE_PATH.ADMIN.REFUND.PATH()}/${refundId}`,
+      },
     },
   },
   SALE: {

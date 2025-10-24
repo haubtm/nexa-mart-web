@@ -26,10 +26,12 @@ import {
 } from '@/features/main';
 import { useDebounce } from '@/lib';
 import { EInvoiceStatus } from '@/lib';
+import { useNavigate } from 'react-router-dom';
+import { ROUTE_PATH } from '@/common';
 
 const { RangePicker } = DatePicker;
 
-/* ========= Types theo response ========= */
+/* ========= Types ========= */
 type Employee = {
   employeeId: number;
   name: string;
@@ -40,37 +42,14 @@ type Employee = {
   createdAt: string;
   updatedAt: string;
 };
-
-type Customer = {
-  customerId: number;
-  name: string;
-  phone?: string | null;
-};
-
+type Customer = { customerId: number; name: string; phone?: string | null };
 type ProductUnit = {
   id: number;
   unitName: string;
   barcode?: string | null;
   code?: string | null;
 };
-
-type Product = {
-  id: number;
-  name: string;
-  units: ProductUnit[];
-};
-
-type InvoiceItem = {
-  invoiceDetailId: number;
-  productUnitId: number;
-  productName: string;
-  unit: string;
-  quantity: number;
-  unitPrice: number;
-  discountAmount: number;
-  lineTotal: number;
-};
-
+type Product = { id: number; name: string; units: ProductUnit[] };
 type Invoice = {
   invoiceId: number;
   invoiceNumber: string;
@@ -78,17 +57,9 @@ type Invoice = {
   orderId: number;
   customerName: string | null;
   employeeName: string;
-  paymentMethod: 'CASH' | 'BANK_TRANSFER' | string;
+  paymentMethod: string;
   status: EInvoiceStatus;
-  subtotal: number;
-  totalDiscount: number;
-  totalTax: number;
-  totalAmount: number;
-  paidAmount: number;
-  items: InvoiceItem[];
-  createdAt: string;
 };
-
 type OrderListResp = {
   invoices: Invoice[];
   totalCount: number;
@@ -97,12 +68,8 @@ type OrderListResp = {
 };
 
 /* ========= Helpers ========= */
-const currency = (v: number) =>
-  (v ?? 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
-
 const formatDateTime = (iso?: string) =>
   iso ? dayjs(iso).format('DD/MM/YYYY HH:mm') : '';
-
 const statusTag = (s?: EInvoiceStatus) => {
   const map: Record<EInvoiceStatus, { color: string; text: string }> = {
     [EInvoiceStatus.CANCELLED]: { color: 'default', text: 'Đã hủy' },
@@ -120,9 +87,8 @@ const statusTag = (s?: EInvoiceStatus) => {
   return <Tag color={v.color}>{v.text}</Tag>;
 };
 
-/* ========= Component ========= */
 const OrderContainer: React.FC = () => {
-  // Trạng thái text search cho 3 Select
+  // search text for lookups
   const [searchInput, setSearchInput] = useState({
     employeeName: '',
     customerName: '',
@@ -130,7 +96,7 @@ const OrderContainer: React.FC = () => {
   });
   const debouncedSearchInput = useDebounce(searchInput, 300);
 
-  // Lookups
+  // lookups
   const { data: employeeResp, isPending: isEmployeeLoading } = useEmployeeList({
     search: debouncedSearchInput.employeeName,
   });
@@ -146,32 +112,28 @@ const OrderContainer: React.FC = () => {
   });
   const products: Product[] = productResp?.data?.products ?? [];
 
-  // Flattern product units -> chọn theo productUnitId
   const productUnitOptions = useMemo(() => {
     const opts: { label: string; value: number }[] = [];
-    products.forEach((p) => {
+    products.forEach((p) =>
       (p.units ?? []).forEach((u) => {
         const tail = u.barcode
           ? ` (${u.unitName} • ${u.barcode})`
           : u.code
             ? ` (${u.unitName} • ${u.code})`
             : ` (${u.unitName})`;
-        opts.push({
-          label: `${p.name}${tail}`,
-          value: u.id,
-        });
-      });
-    });
+        opts.push({ label: `${p.name}${tail}`, value: u.id });
+      }),
+    );
     return opts;
   }, [products]);
 
-  // Query params
+  // query params
   const [queryParams, setQueryParams] = useState<{
     employeeId?: number;
     customerId?: number;
     productUnitId?: number;
-    fromDate?: string; // YYYY-MM-DD
-    toDate?: string; // YYYY-MM-DD
+    fromDate?: string;
+    toDate?: string;
     searchKeyword: string;
     status?: EInvoiceStatus;
     pageNumber: number;
@@ -183,27 +145,25 @@ const OrderContainer: React.FC = () => {
     fromDate: undefined,
     toDate: undefined,
     searchKeyword: '',
+    status: undefined,
     pageNumber: 0,
     pageSize: 10,
-    status: undefined,
   });
 
-  // Debounce keyword
   const debouncedKeyword = useDebounce(queryParams.searchKeyword, 300);
 
-  // Fetch danh sách hoá đơn
+  // fetch list
   const { data: listResp, isPending: isLoading } = useOrderList({
     ...queryParams,
     searchKeyword: debouncedKeyword,
   });
   const orderList: OrderListResp | undefined = listResp?.data;
 
-  // Datasource & pagination
+  // table data & pagination
   const dataSource = (orderList?.invoices ?? []).map((r) => ({
     key: r.invoiceId,
     ...r,
   }));
-
   const pagination: TablePaginationConfig = {
     current: (orderList?.pageNumber ?? 0) + 1,
     pageSize: orderList?.pageSize ?? queryParams.pageSize,
@@ -212,7 +172,9 @@ const OrderContainer: React.FC = () => {
     pageSizeOptions: [10, 20, 50, 100],
   };
 
-  // Columns
+  const navigate = useNavigate();
+
+  // columns — chỉ các cột yêu cầu
   const columns = useMemo<ColumnsType<Invoice>>(
     () => [
       {
@@ -233,7 +195,7 @@ const OrderContainer: React.FC = () => {
         render: (v: string) => <Tag>{v}</Tag>,
       },
       {
-        title: 'Ngày hóa đơn',
+        title: 'Ngày bán',
         dataIndex: 'invoiceDate',
         key: 'invoiceDate',
         width: 180,
@@ -253,55 +215,16 @@ const OrderContainer: React.FC = () => {
         width: 200,
       },
       {
-        title: 'PT thanh toán',
-        dataIndex: 'paymentMethod',
-        key: 'paymentMethod',
-        width: 140,
-      },
-      {
         title: 'Trạng thái',
         dataIndex: 'status',
         key: 'status',
         width: 160,
         render: (s: EInvoiceStatus) => statusTag(s),
       },
-      {
-        title: 'Tạm tính',
-        dataIndex: 'subtotal',
-        key: 'subtotal',
-        align: 'right',
-        width: 140,
-        render: (v: number) => currency(v),
-      },
-      {
-        title: 'Giảm giá',
-        dataIndex: 'totalDiscount',
-        key: 'totalDiscount',
-        align: 'right',
-        width: 140,
-        render: (v: number) => currency(v),
-      },
-      {
-        title: 'Thành tiền',
-        dataIndex: 'totalAmount',
-        key: 'totalAmount',
-        align: 'right',
-        width: 140,
-        render: (v: number) => <b>{currency(v)}</b>,
-      },
-      {
-        title: 'Đã trả',
-        dataIndex: 'paidAmount',
-        key: 'paidAmount',
-        align: 'right',
-        width: 140,
-        render: (v: number) => currency(v),
-      },
     ],
     [pagination.current, pagination.pageSize],
   );
 
-  // onChange bảng (phân trang)
   const onTableChange: TableProps<Invoice>['onChange'] = (pag) => {
     setQueryParams((s) => ({
       ...s,
@@ -310,7 +233,6 @@ const OrderContainer: React.FC = () => {
     }));
   };
 
-  // Handlers bộ lọc
   const handleRangeChange = (range: null | [Dayjs, Dayjs]) => {
     if (!range) {
       setQueryParams((s) => ({
@@ -364,7 +286,7 @@ const OrderContainer: React.FC = () => {
                 setQueryParams((s) => ({ ...s, employeeId: v, pageNumber: 0 }))
               }
               filterOption={false}
-              options={(employees ?? []).map((e: Employee) => ({
+              options={(employees ?? []).map((e) => ({
                 label: `${e.name} (${e.employeeCode})`,
                 value: e.employeeId,
               }))}
@@ -387,7 +309,7 @@ const OrderContainer: React.FC = () => {
                 setQueryParams((s) => ({ ...s, customerId: v, pageNumber: 0 }))
               }
               filterOption={false}
-              options={(customers ?? []).map((c: Customer) => ({
+              options={(customers ?? []).map((c) => ({
                 label: `${c.name}${c.phone ? ` • ${c.phone}` : ''}`,
                 value: c.customerId,
               }))}
@@ -396,7 +318,7 @@ const OrderContainer: React.FC = () => {
           </Col>
 
           <Col xs={24} md={12} lg={6}>
-            <div style={{ marginBottom: 6 }}>Sản phẩm</div>
+            <div style={{ marginBottom: 6 }}>Sản phẩm (Product Unit)</div>
             <Select
               allowClear
               showSearch
@@ -425,7 +347,6 @@ const OrderContainer: React.FC = () => {
               style={{ width: '100%' }}
               format="DD/MM/YYYY"
               onChange={(vals) => handleRangeChange(vals as any)}
-              placeholder={['Từ ngày', 'Đến ngày']}
               value={
                 queryParams.fromDate && queryParams.toDate
                   ? [dayjs(queryParams.fromDate), dayjs(queryParams.toDate)]
@@ -478,65 +399,23 @@ const OrderContainer: React.FC = () => {
         </Row>
       </Card>
 
-      {/* Bảng */}
+      {/* Bảng — chỉ các cột yêu cầu */}
       <Card>
         <Table<Invoice>
           rowKey="invoiceId"
+          onRow={(record) => ({
+            onClick: () =>
+              navigate(
+                `${ROUTE_PATH.ADMIN.ORDER.DETAIL.LINK(record.invoiceId)}`,
+              ),
+            style: { cursor: 'pointer' },
+          })}
           loading={isLoading}
           columns={columns}
           dataSource={dataSource}
           pagination={pagination}
           onChange={onTableChange}
-          expandable={{
-            expandedRowRender: (r) => (
-              <Table<InvoiceItem>
-                rowKey="invoiceDetailId"
-                size="small"
-                pagination={false}
-                columns={[
-                  {
-                    title: 'Sản phẩm',
-                    dataIndex: 'productName',
-                    key: 'productName',
-                  },
-                  { title: 'ĐVT', dataIndex: 'unit', key: 'unit', width: 80 },
-                  {
-                    title: 'SL',
-                    dataIndex: 'quantity',
-                    key: 'quantity',
-                    align: 'right',
-                    width: 80,
-                  },
-                  {
-                    title: 'Đơn giá',
-                    dataIndex: 'unitPrice',
-                    key: 'unitPrice',
-                    align: 'right',
-                    width: 120,
-                    render: (v) => currency(v),
-                  },
-                  {
-                    title: 'Giảm',
-                    dataIndex: 'discountAmount',
-                    key: 'discountAmount',
-                    align: 'right',
-                    width: 120,
-                    render: (v) => currency(v),
-                  },
-                  {
-                    title: 'Thành tiền',
-                    dataIndex: 'lineTotal',
-                    key: 'lineTotal',
-                    align: 'right',
-                    width: 140,
-                    render: (v) => <b>{currency(v)}</b>,
-                  },
-                ]}
-                dataSource={r.items}
-              />
-            ),
-          }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 900 }}
         />
       </Card>
     </Space>

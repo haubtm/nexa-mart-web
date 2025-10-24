@@ -12,3 +12,4 @@ export * from './Warehouse';
 export * from './Report';
 export * from './Refund';
 export * from './Order';
+export * from './OrderDetail';

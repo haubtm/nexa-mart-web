@@ -24,7 +24,7 @@ const UpdateStockTakeModal = ({ record }: IUpdateStockTakeModalProps) => {
   return (
     <ModalNew
       ref={ref}
-      width={1000}
+      width={1600}
       title={'Cập nhật phiếu kiểm kho'}
       confirmLoading={isLoadingUpdateStockTake}
       onCancel={handleCancel}

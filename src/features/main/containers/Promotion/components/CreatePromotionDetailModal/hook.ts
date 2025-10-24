@@ -23,6 +23,7 @@ export const useHook = (lineId: number) => {
     await createPromotion(
       {
         ...values,
+        giftQuantity: values.giftMaxQuantity || undefined,
         lineId: lineId,
       },
       {

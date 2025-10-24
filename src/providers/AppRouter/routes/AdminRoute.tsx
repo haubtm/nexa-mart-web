@@ -16,6 +16,7 @@ import {
   ReportPage as AdminReportPage,
   RefundPage as AdminRefundPage,
   OrderPage as AdminOrderPage,
+  OrderDetailPage as AdminOrderDetailPage,
 } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
@@ -99,6 +100,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.ORDER.PATH()}
         element={<AdminOrderPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.ORDER.DETAIL.PATH()}
+        element={<AdminOrderDetailPage />}
       />
     </Route>
   );

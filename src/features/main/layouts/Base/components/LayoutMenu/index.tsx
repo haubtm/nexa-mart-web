@@ -88,11 +88,11 @@ const LayoutMenu = () => {
       },
       [ROUTE_PATH.ADMIN.ORDER.PATH()]: {
         key: ROUTE_PATH.ADMIN.ORDER.PATH(),
-        label: 'Bán hàng',
+        label: 'Danh sách bán hàng',
       },
       [ROUTE_PATH.ADMIN.REFUND.PATH()]: {
         key: ROUTE_PATH.ADMIN.REFUND.PATH(),
-        label: 'Trả hàng',
+        label: 'Danh sách trả hàng',
       },
     };
   }, []);
@@ -195,6 +195,12 @@ const LayoutMenu = () => {
               </Link>
             ),
           },
+        ],
+      },
+      {
+        key: 'order',
+        label: 'Đơn hàng',
+        children: [
           {
             key: routePathMapping[ROUTE_PATH.ADMIN.ORDER.PATH()].key,
             label: (

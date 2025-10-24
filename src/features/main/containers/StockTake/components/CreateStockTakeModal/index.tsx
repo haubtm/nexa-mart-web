@@ -12,7 +12,7 @@ const CreateStockTakeModal = () => {
   return (
     <ModalNew
       ref={ref}
-      width={1000}
+      width={1600}
       title={'Thêm phiếu kiểm kho'}
       confirmLoading={isLoadingCreateRoom}
       onCancel={handleCancel}
