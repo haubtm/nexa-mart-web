@@ -2,22 +2,22 @@ import {
   Tabs,
   Row,
   Col,
-  Button,
   Space,
-  Divider,
-  InputNumber,
   Checkbox,
   Upload,
   Image,
   TreeSelect,
+  message,
 } from 'antd';
 
 import {
+  Button,
   Flex,
   Form,
   FormItem,
   IFormProps,
   Input,
+  InputNumber,
   RichText,
   Select,
   Text,
@@ -53,17 +53,29 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
     brandsData,
   } = useHook(handleSubmit, productId);
 
+  const onFinishFailed = ({ errorFields }: any) => {
+    const unitsErr = errorFields.find((e: any) =>
+      Array.isArray(e.name) ? e.name.includes('units') : e.name === 'units',
+    );
+    if (unitsErr?.errors?.length) {
+      // Ưu tiên thông điệp từ validator
+      message.error(unitsErr.errors[0]);
+    }
+  };
+
   const validateUnits = (_: any, units?: any[]) => {
     if (!units || units.length === 0)
       return Promise.reject('Vui lòng thêm ít nhất một đơn vị');
+
     const baseUnits = units.filter((u) => u?.isBaseUnit);
     if (baseUnits.length === 0)
       return Promise.reject('Cần chọn 1 đơn vị cơ bản');
     if (baseUnits.length > 1)
       return Promise.reject('Chỉ được chọn đúng 1 đơn vị cơ bản');
-    if (Number(baseUnits[0]?.conversionValue || 0) !== 1) {
+
+    if (Number(baseUnits[0]?.conversionValue || 0) !== 1)
       return Promise.reject('Đơn vị cơ bản phải có hệ số quy đổi = 1');
-    }
+
     return Promise.resolve();
   };
 
@@ -75,9 +87,14 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
   );
 
   return (
-    <Form form={form} onFinish={(values) => onFinish(values)}>
+    <Form
+      form={form}
+      onFinish={(values) => onFinish(values)}
+      onFinishFailed={onFinishFailed}
+    >
       <Tabs
         defaultActiveKey="info"
+        size="small"
         items={[
           {
             key: 'info',
@@ -85,9 +102,9 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
             children: (
               <>
                 <Row gutter={16}>
-                  <Col span={12}>
+                  <Col span={14}>
                     <Row gutter={16}>
-                      <Col span={24}>
+                      <Col span={12}>
                         <FormItem<IProductCreateRequest>
                           label="Tên hàng hóa"
                           name="name"
@@ -95,6 +112,15 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
                           rules={[rules]}
                         >
                           <Input placeholder="Tên sản phẩm" />
+                        </FormItem>
+                      </Col>
+                      <Col span={12}>
+                        <FormItem<IProductCreateRequest>
+                          label="Mã hàng hóa"
+                          name="code"
+                          rules={[rules]}
+                        >
+                          <Input placeholder="Mã hàng hóa tự động" />
                         </FormItem>
                       </Col>
                     </Row>
@@ -108,12 +134,13 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
                               justify="space-between"
                               gap={8}
                             >
-                              Nhóm hàng
+                              Danh mục
                               <CreateCategoryModal />
                             </Flex>
                           }
                           name="categoryId"
                           rules={[rules]}
+                          required
                         >
                           <TreeSelect
                             placeholder="Chọn danh mục"
@@ -146,6 +173,7 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
                           }
                           name="brandId"
                           rules={[rules]}
+                          required
                         >
                           <Select
                             placeholder="Chọn thương hiệu"
@@ -161,7 +189,7 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
                     </Row>
                   </Col>
 
-                  <Col span={12}>
+                  <Col span={10}>
                     <label>Hình ảnh sản phẩm</label>
                     <Upload
                       listType="picture-card"
@@ -183,8 +211,8 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
                     />
                   </Col>
                 </Row>
-                <Divider orientation="left">Đơn vị tính</Divider>
 
+                {/* Ẩn field units để validator tổng hoạt động như cũ */}
                 <FormItem
                   name="units"
                   rules={[{ validator: validateUnits }]}
@@ -195,119 +223,201 @@ const ProductForm = ({ form, handleSubmit, productId }: ProductFormProps) => {
                 </FormItem>
 
                 <Form.List name="units">
-                  {(fields, { add, remove }) => (
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      {fields.map(({ key, name, ...rest }) => (
-                        <Row key={key} gutter={8} align="middle">
-                          <FormItem
-                            {...rest}
-                            name={[name, 'id']}
-                            label="ID"
-                            hidden
-                          >
-                            <Input />
-                          </FormItem>
-                          <Col span={5}>
-                            <FormItem
-                              {...rest}
-                              name={[name, 'unitName']}
-                              label="Tên đơn vị"
-                              rules={[
-                                {
-                                  required: true,
-                                  message: 'Nhập tên đơn vị',
-                                },
-                              ]}
-                            >
-                              <Input placeholder="VD: lon, lốc, thùng…" />
-                            </FormItem>
-                          </Col>
-                          <Col span={4}>
-                            <FormItem
-                              {...rest}
-                              name={[name, 'barcode']}
-                              label="Mã vạch"
-                            >
-                              <Input placeholder="Nhập mã vạch" />
-                            </FormItem>
-                          </Col>
-                          <Col span={4}>
-                            <FormItem
-                              {...rest}
-                              name={[name, 'conversionValue']}
-                              label="Giá trị quy đổi"
-                              rules={[
-                                { required: true, message: 'Nhập hệ số' },
-                              ]}
-                            >
-                              <InputNumber
-                                min={1}
-                                style={{ width: '100%' }}
-                                placeholder="VD: 1, 6, 24"
-                              />
-                            </FormItem>
-                          </Col>
-                          <Col span={6}>
-                            <FormItem
-                              {...rest}
-                              name={[name, 'code']}
-                              label="Mã hàng"
-                            >
-                              <Input placeholder="Tự động" />
-                            </FormItem>
-                          </Col>
-                          <Col span={3}>
-                            <FormItem
-                              valuePropName="checked"
-                              name={[name, 'isBaseUnit']}
-                              {...rest}
-                              label="Đơn vị cơ bản"
-                            >
-                              <Checkbox
-                                style={{ alignItems: 'center' }}
-                                onChange={() => {
-                                  const list =
-                                    form?.getFieldValue('units') || [];
-                                  list.forEach((u: any, idx: number) => {
-                                    if (idx === name) {
-                                      u.isBaseUnit = true;
-                                      u.conversionValue = 1;
-                                    } else {
-                                      u.isBaseUnit = false;
-                                    }
-                                  });
-                                  form?.setFieldsValue({ units: list });
-                                }}
-                              />
-                            </FormItem>
-                          </Col>
-                          <Col span={1}>
-                            <Button
-                              icon={<DeleteOutlined />}
-                              type="text"
-                              danger
-                              onClick={() => remove(name)}
-                            />
-                          </Col>
-                        </Row>
-                      ))}
+                  {(fields, { add, remove }) => {
+                    const units = form?.getFieldValue('units') || [];
+                    const ensureUnitsValidityAndToast = () => {
+                      const list = form?.getFieldValue('units') || [];
+                      if (!list.length) {
+                        message.error('Vui lòng thêm ít nhất một đơn vị');
+                        return false;
+                      }
+                      const baseCount = list.filter(
+                        (u: any) => u?.isBaseUnit,
+                      ).length;
+                      if (baseCount === 0) {
+                        message.error('Cần chọn 1 đơn vị cơ bản');
+                        return false;
+                      }
+                      if (baseCount > 1) {
+                        message.error('Chỉ được chọn đúng 1 đơn vị cơ bản');
+                        return false;
+                      }
+                      return true;
+                    };
 
-                      <Button
-                        type="dashed"
-                        icon={<PlusOutlined />}
-                        onClick={() =>
-                          add({
-                            unitName: '',
-                            conversionValue: 1,
-                            isBaseUnit: fields.length === 0,
-                          })
-                        }
-                        block
-                      >
-                        Thêm đơn vị
-                      </Button>
-                    </Space>
-                  )}
+                    const handleAdd = () => {
+                      add({
+                        unitName: '',
+                        conversionValue: fields.length === 0 ? 1 : 1, // giữ 1 mặc định
+                        isBaseUnit: fields.length === 0, // dòng đầu là đơn vị cơ bản
+                        barcode: '',
+                      });
+                      // sau khi add không cần toast trừ khi cố submit
+                    };
+
+                    const handleRemove = (name: number) => {
+                      remove(name);
+                      // kiểm tra ngay sau khi xoá
+                      setTimeout(() => {
+                        ensureUnitsValidityAndToast();
+                      }, 0);
+                    };
+                    return (
+                      <>
+                        <Flex
+                          align="center"
+                          justify="space-between"
+                          style={{ padding: '0 16px' }}
+                        >
+                          <Text strong style={{ fontSize: 16 }}>
+                            Đơn vị tính
+                          </Text>
+                          <Button
+                            type="primary"
+                            size="middle"
+                            icon={<PlusOutlined />}
+                            onClick={handleAdd}
+                          >
+                            Thêm đơn vị
+                          </Button>
+                        </Flex>
+
+                        {/* Khung cuộn cho danh sách đơn vị */}
+                        <div
+                          style={{
+                            maxHeight: 'calc(100vh - 460px)',
+                            overflowY: 'auto',
+                            paddingRight: 8,
+                          }}
+                        >
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                            {fields.map(({ key, name, ...rest }) => {
+                              const isBase = Boolean(units?.[name]?.isBaseUnit);
+
+                              return (
+                                <Row key={key} gutter={8} align="middle">
+                                  <FormItem
+                                    {...rest}
+                                    name={[name, 'id']}
+                                    label="ID"
+                                    hidden
+                                  >
+                                    <Input />
+                                  </FormItem>
+
+                                  <Col span={5}>
+                                    <FormItem
+                                      {...rest}
+                                      name={[name, 'unitName']}
+                                      label="Tên đơn vị"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message: 'Nhập tên đơn vị',
+                                        },
+                                      ]}
+                                    >
+                                      <Input placeholder="VD: lon, lốc, thùng…" />
+                                    </FormItem>
+                                  </Col>
+
+                                  <Col span={4}>
+                                    <FormItem
+                                      {...rest}
+                                      name={[name, 'barcode']}
+                                      label="Mã vạch"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message:
+                                            'Mã vạch không được để trống',
+                                        },
+                                        {
+                                          whitespace: true,
+                                          message:
+                                            'Mã vạch không được để trống',
+                                        },
+                                      ]}
+                                    >
+                                      <Input placeholder="Nhập mã vạch" />
+                                    </FormItem>
+                                  </Col>
+
+                                  <Col span={4}>
+                                    <FormItem
+                                      {...rest}
+                                      name={[name, 'conversionValue']}
+                                      label="Giá trị quy đổi"
+                                      rules={[
+                                        {
+                                          required: true,
+                                          message: 'Nhập hệ số quy đổi',
+                                        },
+                                      ]}
+                                    >
+                                      <InputNumber
+                                        min={1}
+                                        style={{ width: '100%' }}
+                                        placeholder="VD: 1, 6, 24"
+                                        // Chỉ đọc & khóa khi là đơn vị cơ bản
+                                        readOnly={isBase}
+                                      />
+                                    </FormItem>
+                                  </Col>
+
+                                  <Col span={3}>
+                                    <FormItem
+                                      valuePropName="checked"
+                                      name={[name, 'isBaseUnit']}
+                                      {...rest}
+                                      label="Đơn vị cơ bản"
+                                    >
+                                      <Checkbox
+                                        onChange={() => {
+                                          const list =
+                                            form?.getFieldValue('units') || [];
+                                          list.forEach(
+                                            (u: any, idx: number) => {
+                                              if (idx === name) {
+                                                u.isBaseUnit = true;
+                                                u.conversionValue = 1; // ép =1
+                                              } else {
+                                                u.isBaseUnit = false;
+                                              }
+                                            },
+                                          );
+                                          form?.setFieldsValue({ units: list });
+
+                                          // Thông báo để người dùng thấy ngay
+                                          const baseCount = list.filter(
+                                            (u: any) => u?.isBaseUnit,
+                                          ).length;
+                                          if (baseCount !== 1) {
+                                            message.error(
+                                              'Phải có đúng 1 đơn vị cơ bản',
+                                            );
+                                          }
+                                        }}
+                                      />
+                                    </FormItem>
+                                  </Col>
+
+                                  <Col span={1}>
+                                    <Button
+                                      icon={<DeleteOutlined />}
+                                      type="text"
+                                      danger
+                                      onClick={() => handleRemove(name)}
+                                    />
+                                  </Col>
+                                </Row>
+                              );
+                            })}
+                          </Space>
+                        </div>
+                      </>
+                    );
+                  }}
                 </Form.List>
               </>
             ),

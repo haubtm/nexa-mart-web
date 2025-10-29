@@ -45,7 +45,6 @@ export const useHook = (
   const isChanged = (a: UnitForm, b: UnitForm) =>
     (a.unitName ?? '') !== (b.unitName ?? '') ||
     (a.barcode ?? '') !== (b.barcode ?? '') ||
-    (a.code ?? '') !== (b.code ?? '') ||
     Number(a.conversionValue ?? 1) !== Number(b.conversionValue ?? 1) ||
     Boolean(a.isBaseUnit) !== Boolean(b.isBaseUnit);
 
@@ -56,7 +55,6 @@ export const useHook = (
       unitName: u.unitName ?? '',
       barcode: u.barcode ?? '',
       conversionValue: Number(u.conversionValue ?? 1),
-      code: u.code ?? '',
       isBaseUnit: !!u.isBaseUnit,
     }));
   }, [record]);
@@ -87,7 +85,6 @@ export const useHook = (
           unitName: u.unitName,
           barcode: u.barcode,
           conversionValue: Number(u.conversionValue ?? 1),
-          code: u.code,
           isBaseUnit: !!u.isBaseUnit,
         });
       } else {
@@ -124,7 +121,6 @@ export const useHook = (
           unitName: u.unitName,
           barcode: u.barcode,
           conversionValue: Number(u.conversionValue ?? 1),
-          code: u.code,
           isBaseUnit: !!u.isBaseUnit,
         }),
       );
@@ -160,6 +156,7 @@ export const useHook = (
         categoryId: values.categoryId,
         brandId: values.brandId,
         description: values.description,
+        code: values.code,
       },
       {
         onSuccess: () => {

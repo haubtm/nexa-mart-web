@@ -21,7 +21,7 @@ const UpdateProductModal = ({ record }: IUpdateProductModalProps) => {
   return (
     <ModalNew
       ref={ref}
-      width={1000}
+      width={1400}
       title={'Cập nhật sản phẩm'}
       confirmLoading={isLoadingUpdateProduct}
       onOk={form.submit}

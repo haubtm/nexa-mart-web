@@ -8,6 +8,7 @@ export interface IProductUpdateRequest {
   brandId?: number;
   categoryId?: number;
   isActive?: boolean;
+  code: string;
 }
 
 export interface IProductUpdateResponse

@@ -17,14 +17,13 @@ export const useHook = () => {
   };
 
   const handleSubmit = async (values: IProductCreateRequest) => {
-    console.log('Submitted values: ', values);
-
     const payload: IProductCreateRequest = {
       name: values.name,
       categoryId: Number(values.categoryId),
       brandId: Number(values.brandId),
       units: values.units,
       description: values.description || '',
+      code: values.code || '',
     };
 
     return await createProduct(payload, {

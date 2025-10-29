@@ -45,7 +45,6 @@ const CreateCategoryModal = () => {
             <FormItem<ICategoryCreateRequest>
               label="Danh mục cha"
               name="parentId"
-              required
               rules={[rules]}
             >
               <TreeSelect

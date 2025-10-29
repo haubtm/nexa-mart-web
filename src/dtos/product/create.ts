@@ -6,12 +6,12 @@ export interface IUnit {
   unitName: string;
   conversionValue: number;
   isBaseUnit: boolean;
-  code?: string;
   barcode?: string;
 }
 
 export interface IProductCreateRequest {
   name: string;
+  code: string;
   description?: string;
   brandId?: number;
   categoryId?: number;

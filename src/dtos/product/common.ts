@@ -10,7 +10,6 @@ interface IBrand {
 
 interface IUnit {
   id?: number;
-  code?: string;
   barcode?: string;
   conversionValue: number;
   isBaseUnit: boolean;

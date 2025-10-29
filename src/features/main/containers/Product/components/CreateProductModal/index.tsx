@@ -10,7 +10,7 @@ const CreateProductModal = () => {
   return (
     <ModalNew
       ref={ref}
-      width={1000}
+      width={1400}
       title={'Thêm sản phẩm'}
       confirmLoading={isLoadingCreateRoom}
       onOk={form.submit}

@@ -111,10 +111,18 @@ export const useHook = (
 
   const [rules, Schema] = useMemo(() => {
     const Schema = z.object({
-      name: z.string().nonempty('Tên không được để trống').trim(),
-      categoryId: z.number().min(1, 'Vui lòng chọn danh mục').optional(),
-      brandId: z.number().min(1, 'Vui lòng chọn thương hiệu').optional(),
+      name: z
+        .string('Tên không được để trống')
+        .nonempty('Tên không được để trống')
+        .trim(),
+      categoryId: z
+        .number('Vui lòng chọn danh mục')
+        .min(1, 'Vui lòng chọn danh mục'),
+      brandId: z
+        .number('Vui lòng chọn thương hiệu')
+        .min(1, 'Vui lòng chọn thương hiệu'),
       description: z.string().trim().optional(),
+      code: z.string().trim().optional(),
       units: z
         .array(
           z.object({
@@ -127,11 +135,27 @@ export const useHook = (
               .number('Hệ số quy đổi phải là số')
               .min(1, 'Hệ số quy đổi phải lớn hơn 0'),
             isBaseUnit: z.boolean().optional(),
-            code: z.string().trim().optional(),
-            barcode: z.string().trim().optional(),
+            // ⬇️ BẮT BUỘC MÃ VẠCH
+            barcode: z.string().trim().nonempty('Mã vạch không được để trống'),
           }),
         )
-        .min(1, 'Vui lòng thêm ít nhất một đơn vị'),
+        .min(1, 'Vui lòng thêm ít nhất một đơn vị')
+        // ⬇️ Phải có đúng 1 đơn vị cơ bản
+        .refine((units) => units.filter((u) => u?.isBaseUnit).length === 1, {
+          message: 'Phải có đúng 1 đơn vị cơ bản',
+          path: ['units'],
+        })
+        // ⬇️ Nếu là đơn vị cơ bản thì hệ số phải = 1
+        .refine(
+          (units) =>
+            units.every(
+              (u) => !u?.isBaseUnit || Number(u.conversionValue) === 1,
+            ),
+          {
+            message: 'Đơn vị cơ bản phải có hệ số quy đổi = 1',
+            path: ['units'],
+          },
+        ),
     });
 
     return [createSchemaFieldRule(Schema), Schema] as const;
