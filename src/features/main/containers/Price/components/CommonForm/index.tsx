@@ -9,6 +9,8 @@ import {
   Space,
   message,
   DatePicker,
+  Row,
+  Col,
 } from 'antd';
 import type { FormInstance } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -16,6 +18,7 @@ import type { IPriceCreateRequest } from '@/dtos';
 import { useProductList } from '@/features/main/react-query';
 import { useDebounce } from '@/lib';
 import { SvgSearchIcon } from '@/assets';
+import { useHook } from './hook';
 
 type Row = {
   key: string; // `${productId}-${unitId}`
@@ -180,11 +183,6 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
     [rows],
   );
 
-  const onFinish = async (values: IPriceCreateRequest) => {
-    const payload: IPriceCreateRequest = { ...values, priceDetails };
-    await handleSubmit(payload);
-  };
-
   // ====== Cột bảng: chỉ SP, ĐVT (có thể đổi), Giá bán ======
   const columns: ColumnsType<Row> = [
     {
@@ -254,6 +252,7 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
       ),
     },
   ];
+  const { rules, onFinish } = useHook(handleSubmit, priceDetails);
 
   // ====== UI ======
   return (
@@ -271,72 +270,78 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
           marginBottom: 12,
         }}
       >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 2fr 1fr 1fr 1fr',
-            gap: 12,
-            alignItems: 'end',
-          }}
-        >
-          <Form.Item
-            name="priceName"
-            label="Tên bảng giá"
-            rules={[{ required: true, message: 'Bắt buộc' }]}
-            style={{ marginBottom: 8 }}
-          >
-            <Input placeholder="VD: Bảng giá tháng 10" />
-          </Form.Item>
+        <Row gutter={16}>
+          <Col span={10}>
+            <Form.Item
+              name="priceName"
+              label="Tên bảng giá"
+              rules={[{ required: true, message: 'Bắt buộc' }]}
+              style={{ marginBottom: 8 }}
+            >
+              <Input placeholder="VD: Bảng giá tháng 10" />
+            </Form.Item>
+          </Col>
 
-          <Form.Item
-            name="description"
-            label="Mô tả"
-            style={{ marginBottom: 8 }}
-          >
-            <Input.TextArea
-              autoSize={{ minRows: 1, maxRows: 2 }}
-              placeholder="Ghi chú (tùy chọn)"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="startDate"
-            label="Ngày bắt đầu"
-            rules={[{ required: true, message: 'Bắt buộc' }]}
-            style={{ marginBottom: 8 }}
-          >
-            <DatePicker
-              showTime
-              format="YYYY-MM-DD HH:mm"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="endDate"
-            label="Ngày kết thúc"
-            style={{ marginBottom: 8 }}
-          >
-            <DatePicker
-              showTime
-              format="YYYY-MM-DD HH:mm"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="status"
-            label="Trạng thái"
-            style={{ marginBottom: 8 }}
-          >
-            <Select
-              options={[
-                { label: 'Áp dụng', value: 'UPCOMING' },
-                { label: 'Tạm ngưng', value: 'PAUSED' },
-              ]}
-            />
-          </Form.Item>
-        </div>
+          <Col span={10}>
+            <Form.Item
+              name="description"
+              label="Mô tả"
+              style={{ marginBottom: 8 }}
+              rules={[rules]}
+            >
+              <Input.TextArea
+                autoSize={{ minRows: 1, maxRows: 2 }}
+                placeholder="Ghi chú (tùy chọn)"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={4}>
+            <Form.Item
+              name="status"
+              label="Trạng thái"
+              style={{ marginBottom: 8 }}
+            >
+              <Select
+                options={[
+                  { label: 'Áp dụng', value: 'ACTIVE' },
+                  { label: 'Tạm ngưng', value: 'PAUSED' },
+                ]}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="startDate"
+              label="Ngày bắt đầu"
+              rules={[rules]}
+              style={{ marginBottom: 8 }}
+              required
+            >
+              <DatePicker
+                showTime
+                format="YYYY-MM-DD HH:mm"
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="endDate"
+              label="Ngày kết thúc"
+              rules={[rules]}
+              required
+              style={{ marginBottom: 8 }}
+            >
+              <DatePicker
+                showTime
+                format="YYYY-MM-DD HH:mm"
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
       </div>
 
       {/* Ô tìm kiếm: mỗi option = SP – ĐVT; chọn là thêm ngay */}

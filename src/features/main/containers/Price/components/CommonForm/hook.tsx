@@ -20,6 +20,7 @@ const toIsoWithVNOffset = (v: unknown) => {
 
 export const useHook = (
   handleSubmit: (values: IPriceCreateRequest) => Promise<void>,
+  priceDetails: IPriceCreateRequest['priceDetails'],
 ) => {
   const [hasEnd, setHasEnd] = useState<boolean>(true);
 
@@ -30,20 +31,25 @@ export const useHook = (
           .string('Tên bảng giá là bắt buộc')
           .nonempty('Tên bảng giá là bắt buộc')
           .trim(),
-        priceCode: z.string('Mã bảng giá là bắt buộc').trim().optional(),
+        priceCode: z
+          .string('Mã bảng giá là bắt buộc')
+          .trim()
+          .default('')
+          .optional(),
         description: z.string('Mô tả bảng giá').trim().optional(),
         startDate: z.preprocess(
           toIsoWithVNOffset,
-          z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
-            message: 'Ngày bắt đầu không hợp lệ',
-          }),
+          z
+            .string('Ngày bắt đầu là bắt buộc')
+            .refine((s) => !Number.isNaN(Date.parse(s)), {
+              message: 'Ngày bắt đầu không hợp lệ',
+            }),
         ),
         status: z.string().optional(),
         endDate: z.preprocess(
           (v) => (v == null || v === '' ? undefined : toIsoWithVNOffset(v)),
           z
-            .string()
-            .optional()
+            .string('Ngày kết thúc là bắt buộc')
             .refine((s) => s == null || !Number.isNaN(Date.parse(s!)), {
               message: 'Ngày kết thúc không hợp lệ',
             }),
@@ -83,7 +89,9 @@ export const useHook = (
       if (!hasEnd) {
         values.endDate = undefined;
       }
-      const parsed = (Schema as any).parse(values);
+      const payload: IPriceCreateRequest = { ...values, priceDetails };
+
+      const parsed = (Schema as any).parse(payload);
       await handleSubmit(parsed);
     } catch (error) {
       console.error(error);

@@ -15,6 +15,10 @@ import type {
   IPriceDetailCreateResponse,
   IPriceDetailDeleteRequest,
   IPriceDetailDeleteResponse,
+  IPriceActiveByIdRequest,
+  IPriceActiveByIdResponse,
+  IPricePauseByIdRequest,
+  IPricePauseByIdResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -86,6 +90,24 @@ export const priceApi = {
     const response = await apiService.delete<IPriceDetailDeleteResponse>(
       `${BASE_ENDPOINT}/${body.priceId}/details`,
       { data: body.priceDetailIds },
+    );
+
+    return response;
+  },
+
+  active: async (body: IPriceActiveByIdRequest) => {
+    const response = await apiService.post<IPriceActiveByIdResponse>(
+      `${BASE_ENDPOINT}/${body.priceId}/activate`,
+      body,
+    );
+
+    return response;
+  },
+
+  pause: async (body: IPricePauseByIdRequest) => {
+    const response = await apiService.post<IPricePauseByIdResponse>(
+      `${BASE_ENDPOINT}/${body.priceId}/pause`,
+      body,
     );
 
     return response;

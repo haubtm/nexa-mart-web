@@ -13,3 +13,17 @@ export interface IPriceDetailByIdRequest {
 }
 
 export interface IPriceDetailByIdResponse extends IResponse<IPriceDetail[]> {}
+
+export interface IPriceActiveByIdRequest {
+  priceId: number;
+}
+
+export interface IPriceActiveByIdResponse
+  extends IResponse<IPriceResponseData> {}
+
+export interface IPricePauseByIdRequest {
+  priceId: number;
+}
+
+export interface IPricePauseByIdResponse
+  extends IResponse<IPriceResponseData> {}

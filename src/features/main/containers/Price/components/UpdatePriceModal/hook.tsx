@@ -1,7 +1,9 @@
 import type { IPriceCreateRequest, IPriceListResponse } from '@/dtos';
 import {
   priceKeys,
+  usePriceActivate,
   usePriceDetailDelete,
+  usePricePause,
   usePriceUpdate,
 } from '@/features/main/react-query';
 import { Form, type IModalRef, PriceStatus, useNotification } from '@/lib';
@@ -74,6 +76,8 @@ export const useHook = (
     usePriceUpdate();
   const { mutateAsync: deletePriceDetail } = usePriceDetailDelete();
   const { notify } = useNotification();
+  const { mutateAsync: activatePrice } = usePriceActivate();
+  const { mutateAsync: pausePrice } = usePricePause();
 
   const handleCancel = (e?: MouseEvent<HTMLButtonElement>) => {
     e?.stopPropagation();
@@ -83,86 +87,176 @@ export const useHook = (
   const handleSubmit = async (values: IPriceCreateRequest) => {
     if (!record) return;
 
-    // Lấy danh sách hiện tại từ form (variantId = units.id)
+    // ==== Chuẩn bị details diff ====
     const currentDetails: CurrentDetail[] = (values.priceDetails ?? []).map(
       (d: any) => ({
-        productUnitId: Number(d.productUnitId), // đổi sang productUnitId
+        productUnitId: Number(d.productUnitId),
         salePrice: Number(d.salePrice ?? 0),
       }),
     );
 
-    // Bản cũ từ record
     const oldItems: OldDetail[] =
       record.priceDetails?.map((d) => ({
         priceDetailId: Number(d.priceDetailId ?? undefined),
-        productUnitId: Number(d.productUnitId), // đổi sang productUnitId
+        productUnitId: Number(d.productUnitId),
         salePrice: Number(d.salePrice ?? 0),
       })) ?? [];
 
-    // Diff để sinh priceDetails đúng shape
     const priceDetails = buildPriceDetailsForUpdate(currentDetails, oldItems);
-
     const deletedDetailIds = priceDetails
       .filter((d) => d.deleted && d.priceDetailId != null)
       .map((d) => d.priceDetailId!) as number[];
 
-    // Tính endDateValid
+    // ==== Header fields ====
     const startIso = values.startDate;
     const endIso = values.endDate;
-    const endDateValid = endIso ? true : false;
+    const endDateValid = !!endIso;
 
-    // Gọi API update
-    await updatePrice(
-      {
-        priceId: record.priceId,
-        priceName: values.priceName,
-        priceCode: values.priceCode,
-        startDate: startIso,
-        endDate: endIso,
-        description: values.description,
-        status: (values as any).status ?? record.status ?? PriceStatus.UPCOMING,
-        priceDetails, // [{ priceDetailId, variantId(=units.id), salePrice, deleted }]
-        endDateValid, // theo yêu cầu payload
-      } as any,
-      {
-        onSuccess: async () => {
-          await deletePriceDetail(
-            {
-              priceDetailIds: deletedDetailIds,
-              priceId: record.priceId,
-            },
-            {
-              onSuccess: () => {
-                notify('success', {
-                  message: 'Thành công',
-                  description: 'Cập nhật bảng giá thành công',
-                });
-              },
-              onError: (error: any) => {
-                notify('error', {
-                  message: 'Lỗi',
-                  description:
-                    error?.response?.data?.message ||
-                    error?.message ||
-                    'Xoá chi tiết bảng giá thất bại',
-                });
-              },
-            },
-          );
-          queryClient.invalidateQueries({ queryKey: priceKeys.all });
-          handleCancel();
-        },
-        onError: (error: any) => {
-          notify('error', {
-            message: 'Lỗi',
-            description:
-              error?.response?.data?.message ||
-              error?.message ||
-              'Cập nhật bảng giá thất bại',
-          });
-        },
-      },
+    // ==== Detect changes ====
+    const statusChanged = values.status !== record.status;
+
+    const headerChangedExceptStatus =
+      values.priceName !== record.priceName ||
+      values.priceCode !== record.priceCode ||
+      startIso !== record.startDate ||
+      endIso !== record.endDate ||
+      values.description !== record.description;
+
+    const detailsChanged = priceDetails.some(
+      (d) =>
+        d.deleted ||
+        !oldItems.find(
+          (o) =>
+            o.productUnitId === d.productUnitId &&
+            o.salePrice === d.salePrice &&
+            !d.deleted,
+        ),
     );
+
+    // ==== 1) Xử lý trạng thái trước ====
+    if (
+      statusChanged &&
+      values.status === PriceStatus.ACTIVE &&
+      (record.status === PriceStatus.PAUSED ||
+        record.status === PriceStatus.EXPIRED)
+    ) {
+      await activatePrice(
+        { priceId: record.priceId },
+        {
+          onSuccess: () => {
+            notify('success', {
+              message: 'Thành công',
+              description: 'Kích hoạt bảng giá thành công',
+            });
+            queryClient.invalidateQueries({ queryKey: priceKeys.all });
+            if (headerChangedExceptStatus || detailsChanged) {
+              handleCancel();
+            }
+          },
+          onError: (error: any) => {
+            notify('error', {
+              message: 'Lỗi',
+              description:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Kích hoạt bảng giá thất bại',
+            });
+          },
+        },
+      );
+    }
+
+    if (
+      statusChanged &&
+      record.status === PriceStatus.ACTIVE &&
+      values.status === PriceStatus.PAUSED
+    ) {
+      await pausePrice(
+        { priceId: record.priceId },
+        {
+          onSuccess: () => {
+            notify('success', {
+              message: 'Thành công',
+              description: 'Tạm dừng bảng giá thành công',
+            });
+          },
+          onError: (error: any) => {
+            notify('error', {
+              message: 'Lỗi',
+              description:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Tạm dừng bảng giá thất bại',
+            });
+          },
+        },
+      );
+    }
+
+    // ==== 2) Nếu có thay đổi field (header/details) → updatePrice ====
+    if (
+      (headerChangedExceptStatus || detailsChanged) &&
+      values.status !== PriceStatus.ACTIVE
+    ) {
+      await updatePrice(
+        {
+          priceId: record.priceId,
+          priceName: values.priceName,
+          priceCode: values.priceCode,
+          startDate: startIso,
+          endDate: endIso,
+          description: values.description,
+          priceDetails,
+          endDateValid,
+        } as any,
+        {
+          onSuccess: async () => {
+            // Xoá chi tiết bị đánh dấu deleted (nếu có)
+            await deletePriceDetail(
+              { priceDetailIds: deletedDetailIds, priceId: record.priceId },
+              {
+                onSuccess: () => {
+                  notify('success', {
+                    message: 'Thành công',
+                    description: 'Cập nhật bảng giá thành công',
+                  });
+                },
+                onError: (error: any) => {
+                  notify('error', {
+                    message: 'Lỗi',
+                    description:
+                      error?.response?.data?.message ||
+                      error?.message ||
+                      'Xoá chi tiết bảng giá thất bại',
+                  });
+                },
+              },
+            );
+            queryClient.invalidateQueries({ queryKey: priceKeys.all });
+            handleCancel();
+          },
+          onError: (error: any) => {
+            notify('error', {
+              message: 'Lỗi',
+              description:
+                error?.response?.data?.message ||
+                error?.message ||
+                'Cập nhật bảng giá thất bại',
+            });
+          },
+        },
+      );
+      return;
+    }
+
+    // ==== 3) Nếu KHÔNG có thay đổi field nhưng status có thay đổi → vẫn đóng modal ====
+    if (statusChanged && !headerChangedExceptStatus && !detailsChanged) {
+      queryClient.invalidateQueries({ queryKey: priceKeys.all });
+      handleCancel();
+      return;
+    }
+
+    handleCancel();
   };
 
   const handleOpen = () => {

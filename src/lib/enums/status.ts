@@ -4,10 +4,9 @@ export enum StockTakeStatus {
 }
 
 export enum PriceStatus {
-  CURRENT = 'CURRENT',
   EXPIRED = 'EXPIRED',
   PAUSED = 'PAUSED',
-  UPCOMING = 'UPCOMING',
+  ACTIVE = 'ACTIVE',
 }
 
 export enum EPromotionStatus {

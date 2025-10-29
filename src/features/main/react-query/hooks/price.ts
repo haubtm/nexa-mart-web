@@ -57,3 +57,15 @@ export const usePriceDetailDelete = () => {
     mutationFn: priceApi.deleteDetail,
   });
 };
+
+export const usePriceActivate = () => {
+  return useMutation({
+    mutationFn: priceApi.active,
+  });
+};
+
+export const usePricePause = () => {
+  return useMutation({
+    mutationFn: priceApi.pause,
+  });
+};
