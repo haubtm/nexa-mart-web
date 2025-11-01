@@ -8,8 +8,8 @@ import { StockTakeHistoryTable, CreateStockTakeModal } from './components';
 
 const StockTakeContainer = () => {
   const {
-    ref,
-    setRecord,
+    // ref,
+    // setRecord,
     queryParams,
     setQueryParams,
     isStockTakeListLoading,
@@ -44,7 +44,9 @@ const StockTakeContainer = () => {
       }
       tableArea={
         <>
-          <StockTakeHistoryTable ref={ref} setRecord={setRecord} />
+          <StockTakeHistoryTable
+          //  ref={ref} setRecord={setRecord}
+          />
         </>
       }
     />

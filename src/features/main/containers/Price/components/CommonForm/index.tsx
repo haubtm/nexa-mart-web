@@ -358,7 +358,7 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
             options={searchOptions}
             optionFilterProp="label"
             loading={isLoadingProducts}
-            onSelect={onPickProductUnit}
+            onSelect={onPickProductUnit as any}
             prefix={<SvgSearchIcon width={14} height={14} />}
           />
         </Form.Item>

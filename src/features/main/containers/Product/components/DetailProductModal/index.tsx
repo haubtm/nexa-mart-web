@@ -4,7 +4,7 @@ import { useHook } from './hook';
 import ProductForm from '../CommonForm';
 
 interface IDetailProductModalProps {
-  record?: IProductListResponse['data'][number];
+  record?: IProductListResponse['data']['products'][number];
   ref?: React.RefObject<IModalRef | null>;
 }
 

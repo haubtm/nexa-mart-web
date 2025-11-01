@@ -28,7 +28,7 @@ const CreatePriceModal = () => {
       <PriceForm
         form={form}
         handleSubmit={handleSubmit}
-        enableDetails={false}
+        // enableDetails={false}
       />
     </ModalNew>
   );

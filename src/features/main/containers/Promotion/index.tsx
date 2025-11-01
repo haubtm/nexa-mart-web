@@ -7,14 +7,8 @@ import { useCommonHook } from './hook';
 import { CreatePromotionHeaderModal, PromotionTable } from './components';
 
 const PromotionContainer = () => {
-  const {
-    ref,
-    record,
-    setRecord,
-    queryParams,
-    setQueryParams,
-    isPromotionListLoading,
-  } = useCommonHook();
+  const { queryParams, setQueryParams, isPromotionListLoading } =
+    useCommonHook();
 
   return (
     <BasePageLayout
@@ -45,7 +39,10 @@ const PromotionContainer = () => {
       }
       tableArea={
         <>
-          <PromotionTable ref={ref} setRecord={setRecord} />
+          <PromotionTable
+          // ref={ref}
+          // setRecord={setRecord}
+          />
           {/* <DetailPromotionModal ref={ref} record={record} /> */}
         </>
       }

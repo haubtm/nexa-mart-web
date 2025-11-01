@@ -8,8 +8,8 @@ import { TransactionTable } from './components';
 
 const TransactionContainer = () => {
   const {
-    ref,
-    setRecord,
+    // ref,
+    // setRecord,
     queryParams,
     setQueryParams,
     isTransactionListLoading,
@@ -43,7 +43,9 @@ const TransactionContainer = () => {
       }
       tableArea={
         <>
-          <TransactionTable ref={ref} setRecord={setRecord} />
+          <TransactionTable
+          //  ref={ref} setRecord={setRecord}
+          />
         </>
       }
     />

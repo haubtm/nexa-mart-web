@@ -7,14 +7,7 @@ import { useCommonHook } from './hook';
 import { CreatePriceModal, PriceTable } from './components';
 
 const PriceContainer = () => {
-  const {
-    ref,
-    record,
-    setRecord,
-    queryParams,
-    setQueryParams,
-    isPriceListLoading,
-  } = useCommonHook();
+  const { queryParams, setQueryParams, isPriceListLoading } = useCommonHook();
 
   return (
     <BasePageLayout
@@ -45,7 +38,9 @@ const PriceContainer = () => {
       }
       tableArea={
         <>
-          <PriceTable ref={ref} setRecord={setRecord} />
+          <PriceTable
+          // ref={ref} setRecord={setRecord}
+          />
         </>
       }
     />

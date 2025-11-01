@@ -164,7 +164,17 @@ const OrderDetailContainer: React.FC = () => {
           rowKey="invoiceDetailId"
           loading={isPending}
           columns={itemColumns}
-          dataSource={inv?.items ?? []}
+          // dataSource={inv?.items ?? [] }
+          dataSource={
+            (inv?.items ?? []).map((i: any) => ({
+              ...i,
+              appliedPromotions: Array.isArray(i?.appliedPromotions)
+                ? i.appliedPromotions
+                : i?.appliedPromotions
+                  ? [i.appliedPromotions]
+                  : [],
+            })) as Item[]
+          }
           pagination={false}
           scroll={{ x: 1000 }}
         />

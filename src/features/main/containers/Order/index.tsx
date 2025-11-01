@@ -43,13 +43,7 @@ type Employee = {
   updatedAt: string;
 };
 type Customer = { customerId: number; name: string; phone?: string | null };
-type ProductUnit = {
-  id: number;
-  unitName: string;
-  barcode?: string | null;
-  code?: string | null;
-};
-type Product = { id: number; name: string; units: ProductUnit[] };
+
 type Invoice = {
   invoiceId: number;
   invoiceNumber: string;
@@ -110,7 +104,7 @@ const OrderContainer: React.FC = () => {
   const { data: productResp, isPending: isProductLoading } = useProductList({
     searchTerm: debouncedSearchInput.productName,
   });
-  const products: Product[] = productResp?.data?.products ?? [];
+  const products = productResp?.data?.products ?? [];
 
   const productUnitOptions = useMemo(() => {
     const opts: { label: string; value: number }[] = [];
@@ -118,10 +112,8 @@ const OrderContainer: React.FC = () => {
       (p.units ?? []).forEach((u) => {
         const tail = u.barcode
           ? ` (${u.unitName} • ${u.barcode})`
-          : u.code
-            ? ` (${u.unitName} • ${u.code})`
-            : ` (${u.unitName})`;
-        opts.push({ label: `${p.name}${tail}`, value: u.id });
+          : ` (${u.unitName} )`;
+        opts.push({ label: `${p.name}${tail}`, value: u.id! });
       }),
     );
     return opts;

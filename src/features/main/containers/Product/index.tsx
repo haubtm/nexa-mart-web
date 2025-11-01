@@ -11,14 +11,8 @@ import {
 } from './components';
 
 const ProductContainer = () => {
-  const {
-    ref,
-    record,
-    setRecord,
-    queryParams,
-    setQueryParams,
-    isProductListLoading,
-  } = useCommonHook();
+  const { ref, record, queryParams, setQueryParams, isProductListLoading } =
+    useCommonHook();
 
   return (
     <BasePageLayout
@@ -49,7 +43,9 @@ const ProductContainer = () => {
       }
       tableArea={
         <>
-          <ProductTable ref={ref} setRecord={setRecord} />
+          <ProductTable
+          //  ref={ref} setRecord={setRecord}
+          />
           <DetailProductModal ref={ref} record={record} />
         </>
       }

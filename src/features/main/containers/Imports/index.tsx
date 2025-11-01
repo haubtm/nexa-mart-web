@@ -7,14 +7,7 @@ import { useCommonHook } from './hook';
 import { CreateImportsModal, ImportsTable } from './components';
 
 const ImportsContainer = () => {
-  const {
-    ref,
-    record,
-    setRecord,
-    queryParams,
-    setQueryParams,
-    isImportsListLoading,
-  } = useCommonHook();
+  const { queryParams, setQueryParams, isImportsListLoading } = useCommonHook();
 
   return (
     <BasePageLayout
@@ -45,7 +38,10 @@ const ImportsContainer = () => {
       }
       tableArea={
         <>
-          <ImportsTable ref={ref} setRecord={setRecord} />
+          <ImportsTable
+          // ref={ref}
+          // setRecord={setRecord}
+          />
         </>
       }
     />

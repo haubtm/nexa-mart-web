@@ -119,7 +119,7 @@ export default function PromotionDetailCreateForm({
   } = useHook(handleSubmit);
 
   const buyConditionType = Form.useWatch(['detail', '_buyConditionType'], form);
-  const applyToType = Form.useWatch(['detail', 'applyToType'], form);
+  // const applyToType = Form.useWatch(['detail', 'applyToType'], form);
 
   return (
     <Form
@@ -406,7 +406,7 @@ export default function PromotionDetailCreateForm({
                   rules={[
                     { required: true, message: 'Nhập giá trị giảm' },
                     // Nếu là %, kiểm tra 0 < value <= 100 (nếu bạn muốn chặt chẽ hơn)
-                    ({ getFieldValue }) => ({
+                    () => ({
                       validator: (_: any, v: number) => {
                         if (!isPercent) return Promise.resolve();
                         if (v === undefined || v === null)
@@ -528,7 +528,7 @@ export default function PromotionDetailCreateForm({
                                 required: isPercent,
                                 message: 'Nhập giá trị giảm',
                               },
-                              ({ getFieldValue }) => ({
+                              () => ({
                                 validator: (_: any, v: number) => {
                                   if (!isPercent) return Promise.resolve();
                                   if (v === undefined || v === null)

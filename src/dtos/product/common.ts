@@ -25,6 +25,8 @@ export interface IProductResponseData {
   createdDate: string;
   updatedAt: string;
   category: ICategory;
+  categoryId: number;
+  brandId: number;
   brand: IBrand;
   unitCount: number;
   imageCount: number;

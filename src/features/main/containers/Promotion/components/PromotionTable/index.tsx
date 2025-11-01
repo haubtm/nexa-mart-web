@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, EPromotionStatus, Flex, formatDate, Table } from '@/lib';
-import { EPromotionType, IModalRef, ITableProps } from '@/lib';
+import { EPromotionType, ITableProps } from '@/lib';
 import { useHook } from './hook';
 import { useCommonHook } from '@/features/main/containers/Promotion/hook';
 import { IPromotionListResponse } from '@/dtos';
@@ -10,12 +10,12 @@ import { SvgTrashIcon } from '@/assets';
 import CreatePromotionDetailModal from '../CreatePromotionDetailModal';
 import UpdatePromotionDetailModal from '../UpdatePromotionDetailModal';
 
-interface IPromotionTableProps {
-  ref: React.RefObject<IModalRef | null>;
-  setRecord: (
-    record: IPromotionListResponse['data']['content'][number],
-  ) => void;
-}
+// interface IPromotionTableProps {
+//   ref: React.RefObject<IModalRef | null>;
+//   setRecord: (
+//     record: IPromotionListResponse['data']['content'][number],
+//   ) => void;
+// }
 
 /* ---------- helpers (reuse from your current table) ---------- */
 // const toNum = (v?: number | string) =>
@@ -250,49 +250,51 @@ const LinesSubtableV2: React.FC<{
   );
 };
 
-const PromotionTable = ({ ref, setRecord }: IPromotionTableProps) => {
-  const { columns } = useHook();
-  const {
-    queryParams,
-    setQueryParams,
-    promotionListData,
-    isPromotionListLoading,
-  } = useCommonHook();
+const PromotionTable = () =>
+  // { ref, setRecord }: IPromotionTableProps
+  {
+    const { columns } = useHook();
+    const {
+      queryParams,
+      setQueryParams,
+      promotionListData,
+      isPromotionListLoading,
+    } = useCommonHook();
 
-  const dataSource: IPromotionListResponse['data']['content'] =
-    promotionListData?.data?.content || [];
+    const dataSource: IPromotionListResponse['data']['content'] =
+      promotionListData?.data?.content || [];
 
-  return (
-    <Table<IPromotionListResponse['data']['content'][number]>
-      rowKey="promotionId"
-      columns={columns}
-      dataSource={dataSource}
-      loading={isPromotionListLoading}
-      pagination={{
-        total: promotionListData?.data?.totalElements,
-        current: (promotionListData?.data?.number ?? 0) + 1,
-        pageSize: promotionListData?.data?.size ?? 10,
-        onChange: (page, pageSize) =>
-          setQueryParams({
-            ...queryParams,
-            page: page - 1,
-            size: pageSize,
-          }),
-      }}
-      expandable={{
-        rowExpandable: (record) => Array.isArray(record?.promotionLines),
-        expandedRowRender: (record) => (
-          <div style={{ padding: 0, background: '#fafafa' }}>
-            <LinesSubtableV2
-              header={record}
-              headerStartDate={record.startDate}
-              headerEndDate={record.endDate}
-            />
-          </div>
-        ),
-      }}
-    />
-  );
-};
+    return (
+      <Table<IPromotionListResponse['data']['content'][number]>
+        rowKey="promotionId"
+        columns={columns}
+        dataSource={dataSource}
+        loading={isPromotionListLoading}
+        pagination={{
+          total: promotionListData?.data?.totalElements,
+          current: (promotionListData?.data?.number ?? 0) + 1,
+          pageSize: promotionListData?.data?.size ?? 10,
+          onChange: (page, pageSize) =>
+            setQueryParams({
+              ...queryParams,
+              page: page - 1,
+              size: pageSize,
+            }),
+        }}
+        expandable={{
+          rowExpandable: (record) => Array.isArray(record?.promotionLines),
+          expandedRowRender: (record) => (
+            <div style={{ padding: 0, background: '#fafafa' }}>
+              <LinesSubtableV2
+                header={record}
+                headerStartDate={record.startDate}
+                headerEndDate={record.endDate}
+              />
+            </div>
+          ),
+        }}
+      />
+    );
+  };
 
 export default PromotionTable;

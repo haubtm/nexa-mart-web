@@ -178,8 +178,8 @@ export const useHook = (
     if (!record) return {};
     return {
       name: record?.name ?? '',
-      categoryId: record?.category?.id ?? undefined,
-      brandId: record?.brand?.id ?? undefined,
+      categoryId: record?.categoryId ?? undefined,
+      brandId: record?.brandId ?? undefined,
       description: record?.description ?? '',
       units: oldUnits,
     } as Partial<IProductCreateRequest>;

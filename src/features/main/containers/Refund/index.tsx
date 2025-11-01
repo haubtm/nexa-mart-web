@@ -55,23 +55,6 @@ type Customer = {
   updatedAt: string;
 };
 
-type ProductUnit = {
-  id: number;
-  code?: string | null;
-  barcode?: string | null;
-  conversionValue: number;
-  isBaseUnit: boolean;
-  isActive: boolean;
-  unitName: string;
-  unitId: number;
-};
-
-type Product = {
-  id: number;
-  name: string;
-  units: ProductUnit[];
-};
-
 type RefundRow = {
   returnId: number;
   returnCode: string;
@@ -130,7 +113,7 @@ const RefundContainer: React.FC = () => {
   const { data: productResp, isPending: isProductLoading } = useProductList({
     searchTerm: debouncedSearchInput.productName,
   });
-  const products: Product[] = productResp?.data?.products ?? [];
+  const products = productResp?.data?.products ?? [];
 
   // Flattern product units -> chọn theo productUnitId
   const productUnitOptions = useMemo(() => {
@@ -139,12 +122,10 @@ const RefundContainer: React.FC = () => {
       (p.units ?? []).forEach((u) => {
         const tail = u.barcode
           ? ` (${u.unitName} • ${u.barcode})`
-          : u.code
-            ? ` (${u.unitName} • ${u.code})`
-            : ` (${u.unitName})`;
+          : ` (${u.unitName})`;
         opts.push({
           label: `${p.name}${tail}`,
-          value: u.id,
+          value: u.id!,
         });
       });
     });

@@ -129,14 +129,6 @@ export type PromotionResponse = {
   timestamp: string;
 };
 
-/** --------- Kiểu dữ liệu khách hàng (tối thiểu) ---------- */
-type Customer = {
-  customerId: number;
-  name: string;
-  phone: string | null;
-  customerCode: string | null;
-};
-
 /**
  * ---------- Giỏ hàng & Tab ----------
  */
@@ -224,7 +216,7 @@ const CartTab: React.FC<{
 
   const { data: promotionData, isLoading: isLoadingPromotion } =
     usePromotionCheck({
-      items: promoPayload,
+      items: promoPayload as any,
     }) as unknown as { data?: PromotionResponse; isLoading: boolean };
 
   // Map đơn giá net theo từng productUnit từ kết quả KM
@@ -572,7 +564,7 @@ const CartTab: React.FC<{
                 value={selectedCustomerId ?? undefined}
                 filterOption={false}
                 onSearch={setCustomerSearch}
-                onChange={(val) => setSelectedCustomerId(val ?? null)}
+                onChange={(val) => setSelectedCustomerId(val ?? (null as any))}
                 options={customerOptions}
                 notFoundContent={
                   customerSearch ? 'Không có kết quả' : 'Nhập để tìm kiếm'
@@ -807,6 +799,8 @@ const SaleContainer: React.FC = () => {
 
   // Tóm tắt theo tab để hiển thị ở nhãn tab
   const [summaries, setSummaries] = useState<Record<string, CartSummary>>({});
+
+  console.log(summaries);
 
   const setCart = (id: string, updater: (curr: CartState) => CartState) => {
     setCarts((prev) => prev.map((c) => (c.id === id ? updater(c) : c)));

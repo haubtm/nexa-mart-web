@@ -8,8 +8,8 @@ import { WarehouseTable } from './components';
 
 const WarehouseContainer = () => {
   const {
-    ref,
-    setRecord,
+    // ref,
+    // setRecord,
     queryParams,
     setQueryParams,
     isWarehouseListLoading,
@@ -43,7 +43,9 @@ const WarehouseContainer = () => {
       }
       tableArea={
         <>
-          <WarehouseTable ref={ref} setRecord={setRecord} />
+          <WarehouseTable
+          //  ref={ref} setRecord={setRecord}
+          />
         </>
       }
     />

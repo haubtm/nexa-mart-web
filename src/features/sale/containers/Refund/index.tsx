@@ -37,30 +37,6 @@ type RefundListItem = {
   reasonNote: string | null;
 };
 
-type RefundDetail = {
-  returnId: number;
-  returnCode: string;
-  returnDate: string;
-  invoiceNumber: string;
-  invoiceId: number;
-  customer: null | { customerId: number; name: string; phone?: string };
-  employee: { employeeId: number; name: string; email: string };
-  totalRefundAmount: number;
-  reclaimedDiscountAmount: number;
-  finalRefundAmount: number;
-  reasonNote: string | null;
-  returnDetails: Array<{
-    returnDetailId: number;
-    quantity: number;
-    productName: string;
-    productUnit: string;
-    priceAtReturn: number;
-    refundAmount: number;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-};
-
 type InvoiceListItem = {
   invoiceId: number;
   invoiceNumber: string;
@@ -95,7 +71,7 @@ const RefundContainer = () => {
   const { data: refundResp, isLoading: isLoadingRefund } = useRefundById({
     returnId: selectedRefundId,
   });
-  const refundData: RefundDetail | undefined = refundResp?.data;
+  const refundData = refundResp?.data;
 
   // Create refund: modal with list of invoices
   const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
@@ -347,7 +323,7 @@ const RefundContainer = () => {
                             </Space>
                             <Space>
                               <Text>x{d.quantity}</Text>
-                              <Text>{money(d.refundAmount)}</Text>
+                              <Text>{money(d.returnAmount)}</Text>
                             </Space>
                           </Space>
                           <ul style={{ margin: 0, paddingLeft: 18 }}>

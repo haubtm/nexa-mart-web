@@ -132,8 +132,9 @@ const ReportContainer: React.FC = () => {
   }));
 
   // Fetch report
-  const { data: reportResp, isLoading: isReportLoading } =
-    useReportList(queryParams);
+  const { data: reportResp, isLoading: isReportLoading } = useReportList(
+    queryParams as any,
+  );
   const reportData: IReportResponseData | undefined = reportResp?.data;
 
   // Sync form defaults
@@ -143,7 +144,7 @@ const ReportContainer: React.FC = () => {
       employeeId: queryParams.employeeId,
       search,
     });
-  }, []); // eslint-disable-line
+  }, []);
 
   // Build table rows
   const tableRows: ITableRow[] = useMemo(() => {
