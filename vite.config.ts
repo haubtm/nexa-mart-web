@@ -20,5 +20,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  base: process.env.VITE_BACKEND_BASE_URL || '/nexa-mart-web',
+  // base: process.env.VITE_BACKEND_BASE_URL || '/nexa-mart-web',
 });
