@@ -18,6 +18,7 @@ export const useHook = (
     values: IProductCreateRequest,
   ) => Promise<IProductCreateResponse | undefined>,
   productId?: number,
+  isUpdate: boolean = false, // ✅ THÊM THAM SỐ
 ) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -34,7 +35,7 @@ export const useHook = (
 
   useEffect(() => {
     if (!productId) return;
-    if (!isSuccess) return; // ⬅️ Chờ có dữ liệu thật sự
+    if (!isSuccess) return;
     if (preloadedOnceRef.current === productId) return;
 
     const images = imageData?.data ?? [];
@@ -87,7 +88,7 @@ export const useHook = (
       if (!file.url && !file.preview) {
         file.preview = await getBase64(file.originFileObj as File);
       }
-      setPreviewImage(file.url || file.preview || '');
+      setPreviewImage(file.url || (file.preview as string) || '');
       setPreviewOpen(true);
     },
     onRemove: (file) => {
@@ -111,16 +112,9 @@ export const useHook = (
 
   const [rules, Schema] = useMemo(() => {
     const Schema = z.object({
-      name: z
-        .string('Tên không được để trống')
-        .nonempty('Tên không được để trống')
-        .trim(),
-      categoryId: z
-        .number('Vui lòng chọn danh mục')
-        .min(1, 'Vui lòng chọn danh mục'),
-      brandId: z
-        .number('Vui lòng chọn thương hiệu')
-        .min(1, 'Vui lòng chọn thương hiệu'),
+      name: z.string().nonempty('Tên không được để trống').trim(),
+      categoryId: z.number().min(1, 'Vui lòng chọn danh mục'),
+      brandId: z.number().min(1, 'Vui lòng chọn thương hiệu'),
       description: z.string().trim().optional(),
       code: z.string().trim().optional(),
       units: z
@@ -131,21 +125,16 @@ export const useHook = (
               .string()
               .nonempty('Tên đơn vị không được để trống')
               .trim(),
-            conversionValue: z
-              .number('Hệ số quy đổi phải là số')
-              .min(1, 'Hệ số quy đổi phải lớn hơn 0'),
+            conversionValue: z.number().min(1, 'Hệ số quy đổi phải lớn hơn 0'),
             isBaseUnit: z.boolean().optional(),
-            // ⬇️ BẮT BUỘC MÃ VẠCH
             barcode: z.string().trim().nonempty('Mã vạch không được để trống'),
           }),
         )
         .min(1, 'Vui lòng thêm ít nhất một đơn vị')
-        // ⬇️ Phải có đúng 1 đơn vị cơ bản
         .refine((units) => units.filter((u) => u?.isBaseUnit).length === 1, {
           message: 'Phải có đúng 1 đơn vị cơ bản',
           path: ['units'],
         })
-        // ⬇️ Nếu là đơn vị cơ bản thì hệ số phải = 1
         .refine(
           (units) =>
             units.every(
@@ -168,7 +157,7 @@ export const useHook = (
 
       const targetProductId = res?.data?.id ?? productId;
 
-      // chỉ upload file mới (có originFileObj); file cũ (status: 'done', url) sẽ bỏ qua
+      // chỉ upload file mới (có originFileObj)
       const newFiles = fileList
         .map((f) => f.originFileObj as File | undefined)
         .filter((f): f is File => !!f);
@@ -196,10 +185,13 @@ export const useHook = (
         );
       }
 
-      // reset form khi tạo mới; nếu là update thì tuỳ bạn muốn giữ hay reset
-      if (!productId) {
-        modalForm?.resetFields();
-        setFileList([]);
+      // ✅ Chỉ reset khi KHÔNG phải update (tạo mới)
+      if (!isUpdate) {
+        // (giữ behavior cũ: nếu tạo mới thì reset)
+        if (!productId) {
+          modalForm?.resetFields();
+          setFileList([]);
+        }
       }
     } catch (error) {
       console.error(error);

@@ -182,6 +182,7 @@ export const useHook = (
       brandId: record?.brandId ?? undefined,
       description: record?.description ?? '',
       units: oldUnits,
+      code: record?.productCode ?? '',
     } as Partial<IProductCreateRequest>;
   }, [record, oldUnits]);
 
@@ -191,6 +192,22 @@ export const useHook = (
     form.resetFields();
     const values = mapRecordToForm();
     form.setFieldsValue(values);
+    const recordUnits = (record?.units ?? []).map((u: any) => ({
+      id: u.id, // ✅ quan trọng: unit id đã lưu
+      productId: u.productId ?? record?.id, // (nếu backend trả ở level unit thì dùng u.productId)
+      unitName: u.unitName,
+      barcode: u.barcode,
+      conversionValue: u.conversionValue,
+      isBaseUnit: u.isBaseUnit,
+    }));
+
+    form.setFieldsValue({
+      name: record?.name,
+      categoryId: record?.categoryId,
+      brandId: record?.brandId,
+      description: record?.description,
+      units: recordUnits, // ✅ đưa full units vào form
+    });
   };
 
   return {

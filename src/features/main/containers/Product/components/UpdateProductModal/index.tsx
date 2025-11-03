@@ -38,6 +38,7 @@ const UpdateProductModal = ({ record }: IUpdateProductModalProps) => {
         form={form}
         handleSubmit={handleSubmit}
         productId={record?.id}
+        isUpdate={true}
       />
     </ModalNew>
   );
