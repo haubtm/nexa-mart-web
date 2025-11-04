@@ -9,7 +9,7 @@ import {
 
 import { Outlet } from 'react-router-dom';
 import { Root } from './styles';
-import { LayoutMenu } from './components';
+import { LayoutMenu, UserDropDown } from './components';
 import { SvgNexamartIcon } from '@/assets';
 import { useState } from 'react';
 
@@ -30,7 +30,6 @@ const BaseLayout = () => {
               justify="space-between"
               style={{ width: '84%' }}
             >
-              {/* <UserDropDown /> */}
               <Text
                 style={{
                   fontSize: 24,
@@ -39,7 +38,7 @@ const BaseLayout = () => {
               >
                 {pageLabel}
               </Text>
-              <span>Xin chào, Nhân viên bán hàng</span>
+              <UserDropDown />
             </Flex>
           </Flex>
         </LayoutHeader>

@@ -1,5 +1,5 @@
 import { ROUTE_PATH, useRoutePath } from '@/common';
-import { Button, Flex, type IMenuProps, Link, Menu } from '@/lib';
+import { Flex, type IMenuProps, Link, Menu } from '@/lib';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
@@ -270,18 +270,6 @@ const LayoutMenu = () => {
         items={menuItems}
         style={{ flex: 1 }}
       />
-      <Button
-        type="primary"
-        onClick={() => {
-          window.open(
-            ROUTE_PATH.SALE.ORDER.PATH(),
-            '_blank',
-            'noopener,noreferrer',
-          );
-        }}
-      >
-        Bán hàng
-      </Button>
     </Flex>
   );
 };
