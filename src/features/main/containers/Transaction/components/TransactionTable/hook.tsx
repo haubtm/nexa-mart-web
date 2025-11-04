@@ -42,25 +42,45 @@ export const useHook = () => {
     {
       key: 'productName',
       title: 'Tên sản phẩm',
-      width: 120,
+      width: 160,
       render: (_, record) => record?.productUnit?.productName,
-    },
-    {
-      key: 'productCode',
-      title: 'Mã sản phẩm',
-      width: 120,
-      render: (_, record) => record?.productUnit?.code,
     },
     {
       key: 'unit',
       title: 'Đơn vị tính',
-      width: 120,
+      width: 100,
       render: (_, record) => record?.productUnit?.unit,
+    },
+    {
+      key: 'beforeQuantity',
+      title: 'Số dư trước',
+      align: 'right',
+      width: 100,
+      render: (_, record) => record?.beforeQuantity?.toLocaleString() ?? 0,
+    },
+    {
+      key: 'quantityChange',
+      title: 'Thay đổi',
+      align: 'right',
+      width: 100,
+      render: (_, record) => {
+        const value = record?.quantityChange ?? 0;
+        const color = value > 0 ? 'green' : value < 0 ? 'red' : 'gray';
+        const sign = value > 0 ? '+' : '';
+        return <span style={{ color }}>{`${sign}${value}`}</span>;
+      },
+    },
+    {
+      key: 'newQuantity',
+      title: 'Số dư hiện tại',
+      align: 'right',
+      width: 100,
+      render: (_, record) => record?.newQuantity?.toLocaleString() ?? 0,
     },
     {
       key: 'transactionDate',
       title: 'Ngày giao dịch',
-      width: 120,
+      width: 150,
       render: (_, record) => formatDate(record?.transactionDate),
     },
     {
@@ -77,7 +97,7 @@ export const useHook = () => {
     {
       key: 'note',
       title: 'Ghi chú',
-      width: 120,
+      width: 200,
       render: (_, record) => record?.notes,
     },
   ];
