@@ -18,7 +18,7 @@ export const useCommonHook = () => {
   const [queryParams, setQueryParams] = useQueryParams({
     page: withDefault(NumberParam, DEFAULT_PAGE),
     size: withDefault(NumberParam, DEFAULT_PAGE_SIZE),
-    search: withDefault(StringParam, undefined),
+    searchTerm: withDefault(StringParam, undefined),
     sorts: withDefault(JsonParam, undefined),
   });
   const { data: productListData, isFetching: isProductListLoading } =

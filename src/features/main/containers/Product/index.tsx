@@ -17,13 +17,13 @@ const ProductContainer = () => {
   return (
     <BasePageLayout
       searchProps={{
-        defaultValue: queryParams.search,
+        defaultValue: queryParams.searchTerm,
         placeholder: 'Tìm kiếm',
         prefix: <SvgSearchIcon />,
         onSearchChange: (value) => {
           setQueryParams({
             ...queryParams,
-            search: value.trim().toLowerCase(),
+            searchTerm: value.trim().toLowerCase(),
           });
         },
       }}

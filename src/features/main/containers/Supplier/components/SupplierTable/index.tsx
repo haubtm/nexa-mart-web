@@ -44,7 +44,7 @@ const SupplierTable = ({ ref, setRecord }: ISupplierTableProps) => {
       dataSource={supplierListData?.data?.content}
       loading={isSupplierListLoading}
       pagination={{
-        total: supplierListData?.data?.totalPages,
+        total: supplierListData?.data?.totalElements,
         current: queryParams.page + 1,
         pageSize: queryParams.limit,
         onChange: (page, pageSize) => {

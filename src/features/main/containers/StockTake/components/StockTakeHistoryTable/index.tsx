@@ -47,7 +47,7 @@ const StockTakeHistoryTable = () =>
         dataSource={stockTakeListData?.data?.content || []}
         loading={isStockTakeListLoading}
         pagination={{
-          total: stockTakeListData?.data?.totalPages,
+          total: stockTakeListData?.data?.totalElements,
           current: (queryParams.page ?? 0) + 1,
           pageSize: queryParams.limit,
           onChange: (page, pageSize) => {

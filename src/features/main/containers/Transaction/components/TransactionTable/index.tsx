@@ -30,7 +30,7 @@ const TransactionTable = () =>
         dataSource={transactionListData?.data?.content || []}
         loading={isTransactionListLoading}
         pagination={{
-          total: transactionListData?.data?.totalPages,
+          total: transactionListData?.data?.totalElements,
           current: (queryParams.page ?? 0) + 1,
           pageSize: queryParams.limit,
           onChange: (page, pageSize) => {

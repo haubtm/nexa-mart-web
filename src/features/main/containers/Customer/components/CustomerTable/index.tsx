@@ -43,7 +43,7 @@ const CustomerTable = ({ ref, setRecord }: ICustomerTableProps) => {
       dataSource={customerListData?.data?.content}
       loading={isCustomerListLoading}
       pagination={{
-        total: customerListData?.data?.totalPages,
+        total: customerListData?.data?.totalElements,
         current: queryParams.page + 1,
         pageSize: queryParams.limit,
         onChange: (page, pageSize) => {

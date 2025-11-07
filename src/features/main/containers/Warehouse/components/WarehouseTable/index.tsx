@@ -27,7 +27,7 @@ const WarehouseTable = () =>
         dataSource={warehouseListData?.data?.content || []}
         loading={isWarehouseListLoading}
         pagination={{
-          total: warehouseListData?.data?.totalPages,
+          total: warehouseListData?.data?.totalElements,
           current: (queryParams.page ?? 0) + 1,
           pageSize: queryParams.limit,
           onChange: (page, pageSize) => {

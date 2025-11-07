@@ -44,13 +44,13 @@ const ProductTable = () =>
         dataSource={productListData?.data?.products || []}
         loading={isProductListLoading}
         pagination={{
-          total: productListData?.data?.pageInfo?.totalPages,
-          current: (queryParams.page ?? 0) + 1, // antd là 1-based
+          total: productListData?.data?.pageInfo?.totalElements,
+          current: queryParams.page + 1,
           pageSize: queryParams.size,
           onChange: (page, pageSize) => {
             setQueryParams({
               ...queryParams,
-              page: page - 1, // backend thường 0-based, nên trừ 1
+              page: page - 1,
               size: pageSize,
             });
           },

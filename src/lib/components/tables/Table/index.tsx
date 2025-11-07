@@ -52,7 +52,7 @@ const Table = <T,>(props: ITableProps<T>) => {
                 showQuickJumper: true,
                 size: 'default',
                 position: ['bottomRight'],
-                defaultCurrent: DEFAULT_PAGE,
+                defaultCurrent: DEFAULT_PAGE + 1,
                 defaultPageSize: DEFAULT_PAGE_SIZE,
                 pageSizeOptions: [20, 50, 100],
                 showTotal: (total: number) => `Tổng số ${total} kết quả`,

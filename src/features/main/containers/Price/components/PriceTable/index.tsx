@@ -23,7 +23,7 @@ const PriceTable = () =>
         dataSource={priceListData?.data?.content || []}
         loading={isPriceListLoading}
         pagination={{
-          total: priceListData?.data?.totalPages,
+          total: priceListData?.data?.totalElements,
           current: (queryParams.page ?? 0) + 1,
           pageSize: queryParams.limit,
           onChange: (page, pageSize) => {

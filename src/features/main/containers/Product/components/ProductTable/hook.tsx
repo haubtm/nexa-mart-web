@@ -12,10 +12,12 @@ import { queryClient } from '@/providers/ReactQuery';
 import { useState } from 'react';
 import type { IProductListResponse } from '@/dtos';
 import UpdateProductModal from '../UpdateProductModal';
+import { useCommonHook } from '../../hook';
 
 export const useHook = () => {
   const { notify } = useNotification();
   const { modal } = useModal();
+  const { queryParams } = useCommonHook();
   const { mutateAsync: deleteBranches } = useProductDelete();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
@@ -27,7 +29,7 @@ export const useHook = () => {
       title: 'STT',
       fixed: 'left',
       width: 60,
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) => index + 1 + queryParams.page * queryParams.size,
     },
     {
       key: 'name',

@@ -15,10 +15,12 @@ import { useState } from 'react';
 import type { ICustomerListResponse } from '@/dtos';
 import UpdateCustomerModal from '../UpdateCustomerModal';
 import { Tag } from 'antd';
+import { useCommonHook } from '../../hook';
 
 export const useHook = () => {
   const { notify } = useNotification();
   const { modal } = useModal();
+  const { queryParams } = useCommonHook();
   const { mutateAsync: deleteBranches } = useCustomerDelete();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
@@ -30,7 +32,8 @@ export const useHook = () => {
       title: 'STT',
       fixed: 'left',
       width: 60,
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) =>
+        index + 1 + queryParams.page * queryParams.limit,
     },
     {
       key: 'name',

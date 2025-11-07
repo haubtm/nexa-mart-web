@@ -27,7 +27,7 @@ const ImportsHistoryTable = () =>
         dataSource={importsListData?.data?.content || []}
         loading={isImportsListLoading}
         pagination={{
-          total: importsListData?.data?.totalPages,
+          total: importsListData?.data?.totalElements,
           current: (queryParams.page ?? 0) + 1,
           pageSize: queryParams.limit,
           onChange: (page, pageSize) => {
