@@ -93,15 +93,19 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
       },
       [ROUTE_PATH.ADMIN.ORDER.PATH()]: {
         key: ROUTE_PATH.ADMIN.ORDER.PATH(),
-        label: 'Danh sách bán hàng',
+        label: 'Hóa đơn bán hàng',
       },
       [ROUTE_PATH.ADMIN.REFUND.PATH()]: {
         key: ROUTE_PATH.ADMIN.REFUND.PATH(),
-        label: 'Danh sách trả hàng',
+        label: 'Hóa đơn trả hàng',
       },
       [ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()]: {
         key: ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH(),
-        label: 'Danh sách đơn đặt hàng',
+        label: 'Đơn đặt hàng',
+      },
+      [ROUTE_PATH.ADMIN.SALE.PATH()]: {
+        key: ROUTE_PATH.ADMIN.SALE.PATH(),
+        label: 'Tạo hóa đơn',
       },
     };
   }, []);
@@ -207,8 +211,31 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
         ],
       },
       {
+        key: 'sales',
+        label: 'Bán hàng',
+        children: [
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.SALE.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.SALE.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.SALE.PATH()].label}
+              </Link>
+            ),
+          },
+
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()].label}
+              </Link>
+            ),
+          },
+        ],
+      },
+      {
         key: 'order',
-        label: 'Đơn hàng',
+        label: 'Hóa đơn',
         children: [
           {
             key: routePathMapping[ROUTE_PATH.ADMIN.ORDER.PATH()].key,
@@ -223,14 +250,6 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
             label: (
               <Link to={ROUTE_PATH.ADMIN.REFUND.PATH()}>
                 {routePathMapping[ROUTE_PATH.ADMIN.REFUND.PATH()].label}
-              </Link>
-            ),
-          },
-          {
-            key: routePathMapping[ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()].key,
-            label: (
-              <Link to={ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()}>
-                {routePathMapping[ROUTE_PATH.ADMIN.ORDER_ADMIN.PATH()].label}
               </Link>
             ),
           },

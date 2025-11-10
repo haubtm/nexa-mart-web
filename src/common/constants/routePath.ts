@@ -62,6 +62,9 @@ export const ROUTE_PATH = {
           `${ROUTE_PATH.ADMIN.REFUND.PATH()}/${refundId}`,
       },
     },
+    SALE: {
+      PATH: () => `/admin/sale`,
+    },
   },
   SALE: {
     PATH: () => `/sale`,
