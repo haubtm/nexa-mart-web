@@ -18,3 +18,4 @@ export * from './refund';
 export * from './report';
 export * from './promotion';
 export * from './sale';
+export * from './order';

@@ -7,6 +7,7 @@ export * from './category';
 export * from './employee';
 export * from './imports';
 export * from './inventory';
+export * from './order-admin';
 export * from './price';
 export * from './product';
 export * from './productImage';

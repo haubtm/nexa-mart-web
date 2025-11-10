@@ -51,3 +51,13 @@ export enum EInvoiceStatus {
   PARTIALLY_PAID = 'PARTIALLY_PAID',
   REFUNDED = 'REFUNDED',
 }
+
+export enum EDiscountType {
+  FIXED = 'fixed',
+  PERCENTAGE = 'percentage',
+}
+
+export enum EDeliveryType {
+  HOME_DELIVERY = 'HOME_DELIVERY',
+  PICKUP_AT_STORE = 'PICKUP_AT_STORE',
+}

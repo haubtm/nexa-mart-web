@@ -13,3 +13,4 @@ export * from './Report';
 export * from './Refund';
 export * from './Order';
 export * from './OrderDetail';
+export * from './OrderAdmin';

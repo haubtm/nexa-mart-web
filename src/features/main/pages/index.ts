@@ -14,3 +14,4 @@ export { default as ReportPage } from './Report';
 export { default as RefundPage } from './Refund';
 export { default as OrderPage } from './Order';
 export { default as OrderDetailPage } from './OrderDetail';
+export { default as OrderAdminPage } from './OrderAdmin';

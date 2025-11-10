@@ -16,3 +16,20 @@ export enum EPromotionStatus {
   UPCOMING = 'UPCOMING',
   CANCELLED = 'CANCELLED',
 }
+
+export enum EPaymentStatus {
+  FAILED = 'FAILED',
+  PAID = 'PAID',
+  REFUNDED = 'REFUNDED',
+  UNPAID = 'UNPAID',
+}
+
+export enum EOrderStatus {
+  UNPAID = 'UNPAID',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING',
+  PREPARED = 'PREPARED',
+  SHIPPING = 'SHIPPING',
+  DELIVERED = 'DELIVERED',
+}

@@ -7,6 +7,7 @@ export * from './imports';
 export * from './inventory';
 export * from './price';
 export * from './product';
+export * from './order-admin';
 export * from './productImage';
 export * from './productUnitImage';
 export * from './promotion';
