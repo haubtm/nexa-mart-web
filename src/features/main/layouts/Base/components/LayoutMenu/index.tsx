@@ -3,11 +3,15 @@ import { Flex, type IMenuProps, Link, Menu } from '@/lib';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
-const LayoutMenu = () => {
+interface ILayoutMenuProps {
+  setPageLabel: (label: string) => void;
+}
+const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
   const isStablePathname = useRef<boolean>(false);
   const { pathname } = useRoutePath();
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
+
   useEffect(() => {
     setTimeout(() => {
       isStablePathname.current = true;
@@ -16,6 +20,7 @@ const LayoutMenu = () => {
 
   useEffect(() => {
     if (routePathMapping[pathname]) {
+      setPageLabel(routePathMapping[pathname].label);
       setSelectedKeys([routePathMapping[pathname].key]);
       if (!isStablePathname.current) {
         const initialOpenKeys = routePathMapping[pathname].key

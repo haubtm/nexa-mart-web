@@ -15,6 +15,7 @@ export const useOrderAdminById = (body: IAdminOrderByIdRequest) => {
   return useQuery({
     queryKey: orderAdminKeys.detail(body.orderId),
     queryFn: async () => await orderAdminApi.byId(body),
+    enabled: !!body.orderId,
   });
 };
 

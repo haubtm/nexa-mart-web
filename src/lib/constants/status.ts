@@ -11,7 +11,7 @@ export const orderStatusMap: Record<string, string> = {
   [EOrderStatus.PENDING]: 'Đang chờ',
   [EOrderStatus.COMPLETED]: 'Đã hoàn thành',
   [EOrderStatus.CANCELLED]: 'Đã hủy',
-  [EOrderStatus.DELIVERED]: 'Đã giao',
-  [EOrderStatus.SHIPPING]: 'Đang vận chuyển',
-  [EOrderStatus.PREPARING]: 'Đang chuẩn bị',
+  [EOrderStatus.DELIVERED]: 'Đã giao hàng',
+  [EOrderStatus.SHIPPING]: 'Đang giao hàng',
+  [EOrderStatus.PREPARED]: 'Đã chuẩn bị',
 };
