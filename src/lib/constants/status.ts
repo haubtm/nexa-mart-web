@@ -8,7 +8,8 @@ export const paymentStatusMap: Record<string, string> = {
 };
 
 export const orderStatusMap: Record<string, string> = {
-  [EOrderStatus.PENDING]: 'Đang chờ',
+  [EOrderStatus.UNPAID]: 'Chờ xử lý',
+  [EOrderStatus.PENDING]: 'Đang xử lý',
   [EOrderStatus.COMPLETED]: 'Đã hoàn thành',
   [EOrderStatus.CANCELLED]: 'Đã hủy',
   [EOrderStatus.DELIVERED]: 'Đã giao hàng',

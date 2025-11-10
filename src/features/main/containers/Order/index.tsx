@@ -66,9 +66,10 @@ const formatDateTime = (iso?: string) =>
   iso ? dayjs(iso).format('DD/MM/YYYY HH:mm') : '';
 const statusTag = (s?: EInvoiceStatus) => {
   const map: Record<EInvoiceStatus, { color: string; text: string }> = {
-    [EInvoiceStatus.CANCELLED]: { color: 'default', text: 'Đã hủy' },
+    [EInvoiceStatus.UNPAID]: { color: 'warning', text: 'Chưa thanh toán' },
+    [EInvoiceStatus.CANCELLED]: { color: 'red', text: 'Đã hủy' },
     [EInvoiceStatus.DRAFT]: { color: 'processing', text: 'Nháp' },
-    [EInvoiceStatus.ISSUED]: { color: 'warning', text: 'Chưa thanh toán' },
+    [EInvoiceStatus.ISSUED]: { color: 'default', text: 'Đã phát hành' },
     [EInvoiceStatus.PAID]: { color: 'success', text: 'Đã thanh toán' },
     [EInvoiceStatus.PARTIALLY_PAID]: {
       color: 'purple',
@@ -310,7 +311,7 @@ const OrderContainer: React.FC = () => {
           </Col>
 
           <Col xs={24} md={12} lg={6}>
-            <div style={{ marginBottom: 6 }}>Sản phẩm (Product Unit)</div>
+            <div style={{ marginBottom: 6 }}>Sản phẩm</div>
             <Select
               allowClear
               showSearch

@@ -11,10 +11,6 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
-/**
- * TODO: Chỉnh lại import hooks cho đúng path dự án của bạn
- * Ví dụ: import { useProductList, usePromotionCheck } from '@/hooks';
- */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   useProductList,
@@ -35,9 +31,6 @@ import {
 } from '@/lib';
 import { useAppSelector } from '@/redux/hooks';
 
-/**
- * ---------- Kiểu dữ liệu ----------
- */
 export type ProductUnit = {
   id: number; // productUnitId
   code: string;
@@ -45,7 +38,7 @@ export type ProductUnit = {
   conversionValue: number;
   isBaseUnit: boolean;
   isActive: boolean;
-  unitName: string; // "lon" | "lốc" | "thùng" | ...
+  unitName: string;
   unitId: number;
 };
 
@@ -87,11 +80,11 @@ export type ProductListResponse = {
 export type PromotionLineItem = {
   lineItemId: number;
   productUnitId: number;
-  unit: string; // tên đơn vị: lon/lốc/thùng...
+  unit: string;
   productName: string;
   quantity: number;
-  unitPrice: number; // giá gốc 1 đơn vị theo backend (nếu có)
-  lineTotal: number; // tổng tiền dòng (đã trừ khuyến mãi nếu có)
+  unitPrice: number;
+  lineTotal: number;
   hasPromotion: boolean | null;
   promotionApplied: null | {
     promotionId: string;
@@ -99,16 +92,16 @@ export type PromotionLineItem = {
     promotionDetailId: number;
     promotionSummary: string;
     discountType: 'fixed' | 'percentage';
-    discountValue: number; // VND nếu fixed, % nếu percentage
-    sourceLineItemId: number | null; // id dòng nguồn (ví dụ: dòng mua X tặng Y)
+    discountValue: number;
+    sourceLineItemId: number | null;
   };
 };
 
 export type PromotionSummary = {
   subTotal: number;
-  orderDiscount: number; // tổng KM cấp đơn hàng
-  lineItemDiscount: number; // tổng KM cấp dòng
-  totalPayable: number; // khách phải trả
+  orderDiscount: number;
+  lineItemDiscount: number;
+  totalPayable: number;
 };
 
 export type PromotionResponse = {
@@ -129,22 +122,19 @@ export type PromotionResponse = {
   timestamp: string;
 };
 
-/**
- * ---------- Giỏ hàng & Tab ----------
- */
 export type CartItem = {
-  key: string; // dùng productUnitId làm key ổn định
+  key: string; // dùng productUnitId làm key
   productId: number;
   productUnitId: number;
   productName: string;
   unitName: string;
-  unitPrice: number; // giá tham chiếu (nếu có). Net price sẽ lấy từ promotionData
+  unitPrice: number;
   quantity: number;
 };
 
 export type CartState = {
-  id: string; // '1', '2' ...
-  name: string; // 'Đơn 1', 'Đơn 2'
+  id: string;
+  name: string;
   items: CartItem[];
 };
 
@@ -163,9 +153,18 @@ const CartTab: React.FC<{
   onCartChange: (next: CartState) => void;
   onSummaryChange?: (sum: CartSummary) => void;
   onCloseCurrent: () => void;
-}> = ({ cart, onCartChange, onSummaryChange, onCloseCurrent }) => {
+  // map productId -> units (để render Select đổi đơn vị)
+  unitsByProductId: Record<number, ProductUnit[]>;
+}> = ({
+  cart,
+  onCartChange,
+  onSummaryChange,
+  onCloseCurrent,
+  unitsByProductId,
+}) => {
   const user = useAppSelector((state) => state.user).profile;
   const employeeId = user?.employeeId || 0;
+
   /** ---- Tìm kiếm & chọn khách hàng ---- */
   const [customerSearch, setCustomerSearch] = useState<string>('');
   const searchCustomerDebounced = useDebounce(customerSearch);
@@ -204,7 +203,7 @@ const CartTab: React.FC<{
 
   const { message } = App.useApp();
 
-  // Gọi KM cho tab hiện tại
+  // payload khuyến mãi
   const promoPayload = useMemo(
     () =>
       cart.items.map((i) => ({
@@ -219,7 +218,7 @@ const CartTab: React.FC<{
       items: promoPayload as any,
     }) as unknown as { data?: PromotionResponse; isLoading: boolean };
 
-  // Map đơn giá net theo từng productUnit từ kết quả KM
+  // Map đơn giá net theo productUnit
   const netUnitPriceByPU: Record<number, number> = useMemo(() => {
     const map: Record<number, number> = {};
     const lines = promotionData?.data?.items ?? [];
@@ -232,7 +231,7 @@ const CartTab: React.FC<{
     return map;
   }, [promotionData]);
 
-  // Tính summary ưu tiên theo backend, fallback local
+  // Summary
   const computed: CartSummary = useMemo(() => {
     const summary = promotionData?.data?.summary;
     if (summary) {
@@ -256,8 +255,6 @@ const CartTab: React.FC<{
     };
   }, [cart.items, netUnitPriceByPU, promotionData]);
 
-  // Báo summary lên parent để hiển thị ở nhãn tab
-  // NOTE: Không đưa onSummaryChange vào deps để tránh đổi identity mỗi lần render gây loop
   useEffect(() => {
     onSummaryChange?.(computed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -274,13 +271,15 @@ const CartTab: React.FC<{
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'ONLINE'>('CASH');
   const [amountPaid, setAmountPaid] = useState<number>(0);
 
-  // QR & tracking ONLINE
+  // QR ONLINE
   const [qrVisible, setQrVisible] = useState(false);
   const [qrCodeValue, setQrCodeValue] = useState<string | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [orderIdToTrack, setOrderIdToTrack] = useState<number | null>(null);
   const { data: orderStatusData, refetch: refetchOrderStatus } = useOrderStatus(
-    { orderId: orderIdToTrack ?? 0 },
+    {
+      orderId: orderIdToTrack ?? 0,
+    },
   );
 
   useEffect(() => {
@@ -295,16 +294,13 @@ const CartTab: React.FC<{
 
     const payload: any = {
       amountPaid: paymentMethod === 'CASH' ? amountPaid : 0,
-      employeeId, // <-- Lấy từ redux user
+      employeeId,
       paymentMethod,
       items: promotionData.data.items,
       appliedOrderPromotions: promotionData.data.appliedOrderPromotions,
     };
 
-    // Chỉ gắn customerId khi đã chọn khách hàng
-    if (selectedCustomerId) {
-      payload.customerId = selectedCustomerId;
-    }
+    if (selectedCustomerId) payload.customerId = selectedCustomerId;
 
     createOrder(payload, {
       onSuccess: (res: any) => {
@@ -330,7 +326,7 @@ const CartTab: React.FC<{
     });
   };
 
-  // Polling trạng thái khi ONLINE
+  // Polling ONLINE
   useEffect(() => {
     if (!qrVisible || !orderIdToTrack) return;
     const id = setInterval(async () => {
@@ -351,7 +347,7 @@ const CartTab: React.FC<{
     return () => clearInterval(id);
   }, [qrVisible, orderIdToTrack]);
 
-  // Handlers số lượng / xoá
+  // ---- Handlers số lượng / xoá ----
   const changeQty = (productUnitId: number, qty: number) => {
     const nextItems = cart.items
       .map((it) =>
@@ -377,20 +373,83 @@ const CartTab: React.FC<{
     });
   };
 
-  // Bảng giỏ hàng
+  // ---- Đổi đơn vị cho 1 dòng ----
+  const changeUnitForItem = (
+    productUnitIdCurrent: number,
+    productId: number,
+    newUnitId: number,
+    newUnitName: string,
+  ) => {
+    const existsIdx = cart.items.findIndex(
+      (i) => i.productUnitId === newUnitId,
+    );
+    const currIdx = cart.items.findIndex(
+      (i) => i.productUnitId === productUnitIdCurrent,
+    );
+    if (currIdx < 0) return;
+
+    const curr = cart.items[currIdx];
+
+    // eslint-disable-next-line prefer-const
+    let nextItems = [...cart.items];
+    if (existsIdx >= 0 && existsIdx !== currIdx) {
+      // gộp vào dòng đã tồn tại cùng đơn vị mới
+      nextItems[existsIdx] = {
+        ...nextItems[existsIdx],
+        quantity: nextItems[existsIdx].quantity + curr.quantity,
+      };
+      nextItems.splice(currIdx, 1);
+    } else {
+      // cập nhật đơn vị ngay trên dòng hiện tại
+      nextItems[currIdx] = {
+        ...curr,
+        key: String(newUnitId),
+        productUnitId: newUnitId,
+        unitName: newUnitName,
+      };
+    }
+
+    onCartChange({ ...cart, items: nextItems });
+  };
+
   const columns: ColumnsType<CartItem> = [
     {
       title: 'Sản phẩm',
       dataIndex: 'productName',
       key: 'name',
-      render: (_: any, r) => (
-        <Space direction="vertical" size={0}>
-          <Text strong>{r.productName}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Đơn vị: {r.unitName}
-          </Text>
-        </Space>
-      ),
+      render: (_: any, r) => {
+        const unitOptions =
+          (unitsByProductId[r.productId] ?? []).map((u) => ({
+            value: u.id,
+            label: u.unitName,
+          })) || [];
+
+        return (
+          <Space direction="vertical" size={0}>
+            <Text strong>{r.productName}</Text>
+            {/* Select đổi đơn vị */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Đơn vị:
+              </Text>
+              <Select
+                size="small"
+                style={{ minWidth: 120 }}
+                value={r.productUnitId}
+                onChange={(val, option: any) =>
+                  changeUnitForItem(
+                    r.productUnitId,
+                    r.productId,
+                    Number(val),
+                    option?.label ?? '',
+                  )
+                }
+                options={unitOptions}
+              />
+            </div>
+          </Space>
+        );
+      },
     },
     {
       title: 'Đơn giá',
@@ -468,8 +527,8 @@ const CartTab: React.FC<{
   // --- Helpers hiển thị tiền ---
   const payable = computed.totalPayable || 0;
   const cash = Number.isFinite(amountPaid) ? Number(amountPaid) : 0;
-  const shortage = Math.max(0, payable - cash); // thiếu tiền
-  const change = cash > payable ? cash - payable : 0; // tiền thừa
+  const shortage = Math.max(0, payable - cash);
+  const change = cash > payable ? cash - payable : 0;
 
   return (
     <>
@@ -485,7 +544,7 @@ const CartTab: React.FC<{
             locale={{ emptyText: 'Chưa có sản phẩm' }}
           />
 
-          {/* Khuyến mãi áp dụng (preview từ backend) */}
+          {/* Khuyến mãi áp dụng */}
           {isLoadingPromotion ? (
             <div style={{ padding: 12, opacity: 0.7 }}>
               Đang áp dụng khuyến mãi…
@@ -499,30 +558,32 @@ const CartTab: React.FC<{
               }}
             >
               <Divider orientation="left">Khuyến mãi áp dụng</Divider>
-              {(promotionData.data.items ?? []).map((li) => (
-                <Flex
-                  key={li.lineItemId}
-                  justify="space-between"
-                  style={{ marginBottom: 6 }}
-                >
-                  <div>
-                    <Text>
-                      {li.productName} ({li.unit}) × {li.quantity}
-                    </Text>
-                    {li.promotionApplied ? (
+
+              {(promotionData.data.items ?? [])
+                .filter((li) => li.promotionApplied !== null)
+                .map((li) => (
+                  <Flex
+                    key={li.lineItemId}
+                    justify="space-between"
+                    style={{ marginBottom: 6 }}
+                  >
+                    <div>
+                      <Text>
+                        {li.productName} ({li.unit}) × {li.quantity}
+                      </Text>
                       <div style={{ fontSize: 12, color: '#1677ff' }}>
-                        {li.promotionApplied.promotionSummary}
+                        {li.promotionApplied?.promotionSummary}
                       </div>
-                    ) : null}
-                  </div>
-                  <Text strong>
-                    {Number(li.lineTotal ?? 0).toLocaleString('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND',
-                    })}
-                  </Text>
-                </Flex>
-              ))}
+                    </div>
+
+                    <Text strong>
+                      {Number(li.lineTotal ?? 0).toLocaleString('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                      })}
+                    </Text>
+                  </Flex>
+                ))}
 
               {(promotionData.data.appliedOrderPromotions ?? []).length > 0 && (
                 <>
@@ -648,9 +709,8 @@ const CartTab: React.FC<{
         onOk={handleCreateOrder}
         confirmLoading={isCreatingOrder}
         okText="Hoàn tất"
-        // Disable nút Hoàn tất khi tiền mặt < phải trả
         okButtonProps={{
-          disabled: paymentMethod === 'CASH' && cash < payable, // thiếu tiền -> không cho hoàn tất
+          disabled: paymentMethod === 'CASH' && cash < payable,
         }}
       >
         <Space direction="vertical" style={{ width: '100%' }}>
@@ -681,7 +741,6 @@ const CartTab: React.FC<{
                 />
               </Flex>
 
-              {/* Dòng cảnh báo/nhắc nhở theo yêu cầu */}
               {cash < payable && (
                 <Flex
                   justify="space-between"
@@ -729,7 +788,6 @@ const CartTab: React.FC<{
             </Text>
           </Flex>
 
-          {/* Gợi nhắc khách hàng (chỉ hiển thị) */}
           <div style={{ marginTop: 8 }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
               {selectedCustomerLabel
@@ -740,7 +798,7 @@ const CartTab: React.FC<{
         </Space>
       </Modal>
 
-      {/* Modal QR cho chuyển khoản */}
+      {/* Modal QR */}
       <Modal
         title="Quét QR để thanh toán"
         open={qrVisible}
@@ -783,7 +841,7 @@ const CartTab: React.FC<{
 const SaleContainer: React.FC = () => {
   const { message } = App.useApp();
 
-  // Tìm kiếm toàn cục (add vào tab đang active)
+  // Tìm kiếm sản phẩm (chỉ hiện sản phẩm gốc)
   const [searchTerm, setSearchTerm] = useState<string>('');
   const searchDebounced = useDebounce(searchTerm);
   const { data: productData, isLoading: isLoadingProduct } = useProductList({
@@ -797,59 +855,81 @@ const SaleContainer: React.FC = () => {
   ]);
   const [activeKey, setActiveKey] = useState<string>('1');
 
-  // Tóm tắt theo tab để hiển thị ở nhãn tab
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [summaries, setSummaries] = useState<Record<string, CartSummary>>({});
-
-  console.log(summaries);
 
   const setCart = (id: string, updater: (curr: CartState) => CartState) => {
     setCarts((prev) => prev.map((c) => (c.id === id ? updater(c) : c)));
   };
 
-  // Options tìm kiếm theo đơn vị
-  const productUnitOptions = useMemo(() => {
+  // Map productId -> units (để render Select đổi đơn vị trong giỏ)
+  const unitsByProductId = useMemo(() => {
     const products = productData?.data?.products ?? [];
-    return products.flatMap((p) =>
-      (p.units ?? []).map((u) => ({
-        value: `${p.id}-${u.id}`,
-        label: `${p.name} — ${u.unitName}`,
+    const map: Record<number, ProductUnit[]> = {};
+    products.forEach((p) => {
+      map[p.id] = [...(p.units ?? [])];
+    });
+    return map;
+  }, [productData]);
+
+  // Options sản phẩm (không liệt kê đơn vị)
+  const productOptions = useMemo(() => {
+    const products = productData?.data?.products ?? [];
+    return products.map((p) => {
+      const units = p.units ?? [];
+      const base = units.find((u) => u.isBaseUnit) || units[0];
+      return {
+        value: p.id,
+        label: p.name,
         meta: {
           productId: p.id,
           productName: p.name,
-          productUnitId: u.id,
-          unitName: u.unitName,
+          defaultUnitId: base?.id,
+          defaultUnitName: base?.unitName,
         },
-      })),
-    );
+      };
+    });
   }, [productData]);
 
-  // Thêm vào cart đang active (gộp theo productUnitId)
-  const onSelectProductUnit = (meta: {
+  // Khi chọn sản phẩm: tự động thêm với đơn vị mặc định
+  const onSelectProduct = (meta: {
     productId: number;
     productName: string;
-    productUnitId: number;
-    unitName: string;
+    defaultUnitId?: number;
+    defaultUnitName?: string;
   }) => {
+    const unitId =
+      meta.defaultUnitId ?? unitsByProductId[meta.productId]?.[0]?.id;
+    const unitName =
+      meta.defaultUnitName ??
+      unitsByProductId[meta.productId]?.[0]?.unitName ??
+      '';
+
+    if (!unitId) {
+      message?.warning('Sản phẩm chưa có đơn vị bán.');
+      return;
+    }
+
     setCart(activeKey, (c) => {
-      const idx = c.items.findIndex(
-        (i) => i.productUnitId === meta.productUnitId,
-      );
+      // nếu đã có dòng với đúng productUnitId => +1
+      const idx = c.items.findIndex((i) => i.productUnitId === unitId);
       if (idx >= 0) {
         const next = [...c.items];
         next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
         return { ...c, items: next };
       }
       const newItem: CartItem = {
-        key: String(meta.productUnitId),
+        key: String(unitId),
         productId: meta.productId,
-        productUnitId: meta.productUnitId,
+        productUnitId: unitId,
         productName: meta.productName,
-        unitName: meta.unitName,
+        unitName,
         unitPrice: 0,
         quantity: 1,
       };
       return { ...c, items: [...c.items, newItem] };
     });
+
     setSearchTerm('');
   };
 
@@ -885,7 +965,6 @@ const SaleContainer: React.FC = () => {
     setActiveKey(newActiveKey);
   };
 
-  // Render label tab có tổng tiền (nếu có)
   const renderTabLabel = (c: CartState) => {
     return <span>{c.name}</span>;
   };
@@ -893,7 +972,7 @@ const SaleContainer: React.FC = () => {
   return (
     <div style={{ padding: 16 }}>
       <Space direction="vertical" style={{ width: '100%' }} size={12}>
-        {/* Tìm kiếm theo đơn vị bán (áp vào tab đang active) */}
+        {/* Tìm kiếm theo sản phẩm (không liệt kê đơn vị) */}
         <Select
           showSearch
           value={undefined}
@@ -901,8 +980,8 @@ const SaleContainer: React.FC = () => {
           style={{ width: '40%' }}
           filterOption={false}
           onSearch={setSearchTerm}
-          onSelect={(_val, option: any) => onSelectProductUnit(option.meta)}
-          options={productUnitOptions}
+          onSelect={(_val, option: any) => onSelectProduct(option.meta)}
+          options={productOptions}
           loading={isLoadingProduct}
           notFoundContent={searchTerm ? 'Không có kết quả' : 'Nhập để tìm kiếm'}
         />
@@ -934,6 +1013,7 @@ const SaleContainer: React.FC = () => {
                     setSummaries((prev) => ({ ...prev, [c.id]: sum }))
                   }
                   onCloseCurrent={() => removeTab(c.id)}
+                  unitsByProductId={unitsByProductId}
                 />
               ),
               closable: true,

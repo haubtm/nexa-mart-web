@@ -44,6 +44,7 @@ export enum EPaymentMethod {
 }
 
 export enum EInvoiceStatus {
+  UNPAID = 'UNPAID',
   CANCELLED = 'CANCELLED',
   DRAFT = 'DRAFT',
   ISSUED = 'ISSUED',
