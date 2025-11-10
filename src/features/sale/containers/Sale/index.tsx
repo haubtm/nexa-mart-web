@@ -376,7 +376,7 @@ const CartTab: React.FC<{
   // ---- Đổi đơn vị cho 1 dòng ----
   const changeUnitForItem = (
     productUnitIdCurrent: number,
-    productId: number,
+    _productId: number,
     newUnitId: number,
     newUnitName: string,
   ) => {
@@ -857,7 +857,7 @@ const SaleContainer: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [summaries, setSummaries] = useState<Record<string, CartSummary>>({});
-
+  console.log(summaries);
   const setCart = (id: string, updater: (curr: CartState) => CartState) => {
     setCarts((prev) => prev.map((c) => (c.id === id ? updater(c) : c)));
   };
