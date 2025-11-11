@@ -59,8 +59,8 @@ const STATUS_COLORS: Record<EOrderStatus, string> = {
 };
 
 const STATUS_VI: Record<EOrderStatus, string> = {
-  [EOrderStatus.UNPAID]: 'Chờ xử lý',
-  [EOrderStatus.PENDING]: 'Đang xử lý',
+  [EOrderStatus.UNPAID]: 'Chưa thanh toán',
+  [EOrderStatus.PENDING]: 'Chờ xử lý',
   [EOrderStatus.PREPARED]: 'Đã chuẩn bị',
   [EOrderStatus.SHIPPING]: 'Đang giao hàng',
   [EOrderStatus.DELIVERED]: 'Đã giao hàng',
@@ -185,10 +185,13 @@ const OrderAdminContainer: React.FC = () => {
   const [detailOrderId, setDetailOrderId] = useState<number | null>(null);
   const detailEnabled = detailOrderId != null;
 
-  const { data: detailData, isFetching: isOrderAdminDetailLoading } =
-    useOrderAdminById(
-      detailEnabled ? { orderId: Number(detailOrderId) } : ({} as any),
-    );
+  const {
+    data: detailData,
+    isFetching: isOrderAdminDetailLoading,
+    refetch: refetchDetail,
+  } = useOrderAdminById(
+    detailEnabled ? { orderId: Number(detailOrderId) } : ({} as any),
+  );
 
   const {
     mutateAsync: updateOrderStatus,
@@ -391,6 +394,7 @@ const OrderAdminContainer: React.FC = () => {
     );
     setLocalStatus(next); // giữ trạng thái mới trong modal để không hiện lại trạng thái vừa chuyển
     await refetchList();
+    await refetchDetail(); // Refetch detail data để cập nhật trạng thái hiện tại
     // Không đóng modal để có thể cập nhật tiếp
   };
 
@@ -418,21 +422,6 @@ const OrderAdminContainer: React.FC = () => {
       nextStatus,
       'Admin update',
     );
-
-    // Auto-update to COMPLETED if just updated to DELIVERED
-    if (
-      nextStatus === EOrderStatus.DELIVERED &&
-      detailOrder.deliveryType === EDeliveryType.HOME_DELIVERY
-    ) {
-      // Set a small delay to ensure the status is updated first
-      setTimeout(async () => {
-        await handleUpdateStatus(
-          detailOrder.orderId,
-          EOrderStatus.COMPLETED,
-          'Auto completed after delivered',
-        );
-      }, 500);
-    }
 
     setStatusUpdateConfirm(null);
   };
@@ -747,6 +736,7 @@ const OrderAdminContainer: React.FC = () => {
         cancelText="Hủy"
         onOk={() => handleConfirmStatusUpdate()}
         confirmLoading={isUpdateOrderStatusLoading}
+        zIndex={1001}
       >
         <p>
           Bạn chắc chắn muốn cập nhật trạng thái đơn hàng thành{' '}
