@@ -44,18 +44,11 @@ export default function PromotionLineCreateForm({
     >
       <>
         {/* 1) Chương trình khuyến mãi (Line) */}
-        <Card
-          title="Chương trình khuyến mãi (Line)"
-          style={{ marginBottom: 16 }}
-        >
+        <Card title="Chương trình khuyến mãi" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
             <Col xs={24} md={12}>
-              <Form.Item
-                label="Tên dòng (lineName)"
-                name="lineName"
-                rules={[rules, { required: true, message: 'Nhập tên dòng' }]}
-              >
-                <Input placeholder="VD: Mid-Nov Line #1" />
+              <Form.Item label="Tên khuyến mãi" name="lineName" rules={[rules]}>
+                <Input placeholder="VD: Khuyến mãi 11/11" />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
@@ -63,21 +56,15 @@ export default function PromotionLineCreateForm({
                 <Select
                   allowClear
                   options={[
-                    { label: 'UPCOMING', value: 'UPCOMING' },
-                    { label: 'ACTIVE', value: 'ACTIVE' },
-                    { label: 'PAUSED', value: 'PAUSED' },
-                    { label: 'EXPIRED', value: 'EXPIRED' },
+                    { label: 'Hoạt động', value: 'ACTIVE' },
+                    { label: 'Tạm dừng', value: 'PAUSED' },
                   ]}
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <Form.Item
-            label="Mô tả"
-            name="description"
-            rules={[rules, { required: true, message: 'Vui lòng nhập mô tả' }]}
-          >
+          <Form.Item label="Mô tả" name="description" rules={[rules]}>
             <Input placeholder="Mô tả ngắn" />
           </Form.Item>
 

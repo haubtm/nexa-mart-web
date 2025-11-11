@@ -182,20 +182,35 @@ export default function PromotionDetailCreateForm({
                 <InputNumber min={1} style={{ width: '100%' }} />
               </Form.Item>
             </Col>
-            <Col xs={24} md={6}>
-              <Form.Item
-                label="Giá trị mua tối thiểu"
-                name={['detail', 'buyMinValue']}
-                rules={[rules]}
-              >
-                <InputNumber
-                  min={0}
-                  style={{ width: '100%' }}
-                  addonAfter="đ"
-                  parser={currencyParser}
-                />
-              </Form.Item>
-            </Col>
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const giftType = form.getFieldValue(['detail', 'giftDiscountType']);
+                if (giftType === 'FREE') return null;
+                return (
+                  <Col xs={24} md={6}>
+                    <Form.Item
+                      label="Giá trị mua tối thiểu"
+                      name={['detail', 'buyMinValue']}
+                      rules={[rules]}
+                    >
+                      <InputNumber
+                        min={0}
+                        style={{ width: '100%' }}
+                        addonAfter="đ"
+                        parser={currencyParser}
+                      />
+                    </Form.Item>
+                  </Col>
+                );
+              }}
+            </Form.Item>
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const giftType = form.getFieldValue(['detail', 'giftDiscountType']);
+                if (giftType !== 'FREE') return null;
+                return <Col xs={24} md={6} style={{ minHeight: 36 }} />;
+              }}
+            </Form.Item>
           </Row>
           <Row gutter={16}>
             <Col xs={24} md={12}>

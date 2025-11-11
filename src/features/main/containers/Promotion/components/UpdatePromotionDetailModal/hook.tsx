@@ -44,7 +44,10 @@ export const useHook = (
         // BUY_X_GET_Y (chỉ theo PRODUCT)
         buyProductId: values.buyProductId,
         buyMinQuantity: values.buyMinQuantity,
-        buyMinValue: values.buyMinValue,
+        buyMinValue:
+          values.giftDiscountType === 'FREE'
+            ? undefined
+            : values.buyMinValue,
 
         giftProductId: values.giftProductId,
         giftQuantity: values.giftQuantity, // ✅ KHÔNG lấy từ giftMaxQuantity nữa

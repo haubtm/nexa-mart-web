@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   DEFAULT_PAGE,
   DEFAULT_PAGE_SIZE,
   EDeliveryType,
   EOrderStatus,
+  useNotification,
 } from '@/lib';
 import {
   NumberParam,
@@ -33,7 +34,7 @@ import {
   Spin,
 } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { ExclamationCircleOutlined, StopOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { SvgPencilIcon, SvgReloadIcon } from '@/assets';
 
 /** ===== Utils / Labels ===== */
@@ -159,7 +160,7 @@ type OrderRow = {
 };
 
 const OrderAdminContainer: React.FC = () => {
-  const { modal, message } = App.useApp();
+  const { modal } = App.useApp();
 
   // ===== Query params =====
   const [queryParams, setQueryParams] = useQueryParams({
@@ -170,7 +171,7 @@ const OrderAdminContainer: React.FC = () => {
     status: StringParam,
     deliveryType: withDefault(StringParam, EDeliveryType.HOME_DELIVERY),
   });
-
+  const { notify } = useNotification();
   const currentType =
     (queryParams.deliveryType as EDeliveryType) ?? EDeliveryType.HOME_DELIVERY;
 
@@ -195,6 +196,28 @@ const OrderAdminContainer: React.FC = () => {
   } = useOrderAdminUpdateStatus();
   const { mutateAsync: cancelOrder, isPending: isCancelOrderLoading } =
     useOrderAdminCancel();
+
+  // ===== Local modal status (để không hiển thị lại trạng thái vừa chuyển) =====
+  const [localStatus, setLocalStatus] = useState<EOrderStatus | null>(null);
+
+  // ===== Confirmation modal state =====
+  const [statusUpdateConfirm, setStatusUpdateConfirm] = useState<{
+    orderId: number;
+    status: EOrderStatus;
+  } | null>(null);
+
+  // Đồng bộ localStatus khi mở modal hoặc khi detailData thay đổi
+  useEffect(() => {
+    const s = (detailData as any)?.data?.orderStatus as
+      | EOrderStatus
+      | undefined;
+    if (detailEnabled && s) {
+      setLocalStatus(s);
+    }
+    if (!detailEnabled) {
+      setLocalStatus(null);
+    }
+  }, [detailEnabled, (detailData as any)?.data?.orderStatus]);
 
   // ===== Table config =====
   const pagination: TablePaginationConfig = {
@@ -294,25 +317,14 @@ const OrderAdminContainer: React.FC = () => {
         title: 'Thao tác',
         key: 'actions',
         fixed: 'right' as const,
-        width: 150,
+        width: 90,
         render: (_: any, row: OrderRow) => (
-          <Space>
-            <Button
-              size="large"
-              type="text"
-              onClick={() => setDetailOrderId(row.orderId)}
-              icon={<SvgPencilIcon height={16} width={16} />}
-            />
-            <Button
-              size="large"
-              danger
-              type="text"
-              disabled={row.orderStatus === EOrderStatus.CANCELLED}
-              onClick={() => handleCancelOrder(row)}
-              loading={isCancelOrderLoading}
-              icon={<StopOutlined />}
-            />
-          </Space>
+          <Button
+            size="large"
+            type="text"
+            onClick={() => setDetailOrderId(row.orderId)}
+            icon={<SvgPencilIcon height={16} width={16} />}
+          />
         ),
       },
     ],
@@ -332,8 +344,23 @@ const OrderAdminContainer: React.FC = () => {
       okButtonProps: { danger: true },
       cancelText: 'Đóng',
       onOk: async () => {
-        await cancelOrder({ orderId: row.orderId, reason: 'Admin cancelled' });
-        message.success('Đã hủy đơn hàng');
+        await cancelOrder(
+          { orderId: row.orderId, reason: 'Admin cancelled' },
+          {
+            onSuccess: () => {
+              notify('success', {
+                message: 'Thành công',
+                description: 'Hủy đơn hàng thành công',
+              });
+            },
+            onError: (error) => {
+              notify('error', {
+                message: 'Thất bại',
+                description: error.message || 'Có lỗi xảy ra',
+              });
+            },
+          },
+        );
         await refetchList();
       },
     });
@@ -344,10 +371,70 @@ const OrderAdminContainer: React.FC = () => {
     next: EOrderStatus,
     note?: string,
   ) => {
-    await updateOrderStatus({ newStatus: next, orderId, note });
-    message.success('Cập nhật trạng thái thành công');
+    await updateOrderStatus(
+      { newStatus: next, orderId, note },
+      {
+        onSuccess: () => {
+          notify('success', {
+            message: 'Thành công',
+            description: 'Cập nhật trạng thái đơn hàng thành công',
+          });
+          setLocalStatus(next);
+        },
+        onError: (error) => {
+          notify('error', {
+            message: 'Thất bại',
+            description: error.message || 'Có lỗi xảy ra',
+          });
+        },
+      },
+    );
+    setLocalStatus(next); // giữ trạng thái mới trong modal để không hiện lại trạng thái vừa chuyển
     await refetchList();
-    setDetailOrderId(null);
+    // Không đóng modal để có thể cập nhật tiếp
+  };
+
+  // Show confirmation modal before updating status
+  const handleQuickUpdate = () => {
+    if (!detailOrder) return;
+
+    const nextStatus = possibleNext[0];
+    if (!nextStatus) return;
+
+    setStatusUpdateConfirm({
+      orderId: detailOrder.orderId,
+      status: nextStatus,
+    });
+  };
+
+  // Confirm and execute status update
+  const handleConfirmStatusUpdate = async () => {
+    if (!statusUpdateConfirm || !detailOrder) return;
+
+    const { status: nextStatus } = statusUpdateConfirm;
+
+    await handleUpdateStatus(
+      statusUpdateConfirm.orderId,
+      nextStatus,
+      'Admin update',
+    );
+
+    // Auto-update to COMPLETED if just updated to DELIVERED
+    if (
+      nextStatus === EOrderStatus.DELIVERED &&
+      detailOrder.deliveryType === EDeliveryType.HOME_DELIVERY
+    ) {
+      // Set a small delay to ensure the status is updated first
+      setTimeout(async () => {
+        await handleUpdateStatus(
+          detailOrder.orderId,
+          EOrderStatus.COMPLETED,
+          'Auto completed after delivered',
+        );
+      }, 500);
+    }
+
+    setStatusUpdateConfirm(null);
   };
 
   // ===== Toolbar (Filter + Reload) =====
@@ -372,9 +459,15 @@ const OrderAdminContainer: React.FC = () => {
 
   // ===== Detail Modal =====
   const detailOrder = detailData?.data as OrderRow | undefined;
-  const possibleNext = detailOrder
-    ? nextStatuses(detailOrder.deliveryType, detailOrder.orderStatus)
-    : [];
+
+  // Trạng thái hiệu lực trong modal: ưu tiên localStatus nếu có
+  const effectiveStatus: EOrderStatus | undefined =
+    (localStatus as EOrderStatus) ?? detailOrder?.orderStatus;
+
+  const possibleNext =
+    detailOrder && effectiveStatus
+      ? nextStatuses(detailOrder.deliveryType, effectiveStatus)
+      : [];
 
   // table sản phẩm trong modal
   const itemCols: ColumnsType<OrderItem> = [
@@ -526,7 +619,10 @@ const OrderAdminContainer: React.FC = () => {
               <Button onClick={() => setDetailOrderId(null)}>Đóng</Button>
               <Button
                 danger
-                disabled={detailOrder.orderStatus === EOrderStatus.CANCELLED}
+                disabled={
+                  effectiveStatus === EOrderStatus.CANCELLED ||
+                  effectiveStatus === EOrderStatus.COMPLETED
+                }
                 loading={isCancelOrderLoading}
                 onClick={() =>
                   handleCancelOrder(detailOrder as unknown as OrderRow)
@@ -534,38 +630,18 @@ const OrderAdminContainer: React.FC = () => {
               >
                 Hủy đơn
               </Button>
-              <Select
-                style={{ minWidth: 220 }}
-                placeholder="Chọn trạng thái kế tiếp"
-                options={possibleNext.map((s) => ({
-                  label: STATUS_VI[s],
-                  value: s,
-                }))}
-                value={undefined}
-                disabled={possibleNext.length === 0}
-                onChange={(v) =>
-                  handleUpdateStatus(
-                    detailOrder.orderId,
-                    v! as EOrderStatus,
-                    'Admin update',
-                  )
-                }
-                loading={isUpdateOrderStatusLoading}
-              />
               <Button
                 type="primary"
-                disabled={possibleNext.length === 0}
-                onClick={() =>
-                  possibleNext[0] &&
-                  handleUpdateStatus(
-                    detailOrder.orderId,
-                    possibleNext[0],
-                    'Admin update',
-                  )
+                disabled={
+                  possibleNext.length === 0 ||
+                  effectiveStatus === EOrderStatus.CANCELLED
                 }
+                onClick={() => handleQuickUpdate()}
                 loading={isUpdateOrderStatusLoading}
               >
-                Cập nhật nhanh
+                {possibleNext.length > 0
+                  ? `Cập nhật: ${STATUS_VI[possibleNext[0]]}`
+                  : 'Cập nhật nhanh'}
               </Button>
             </Space>
           ) : (
@@ -598,9 +674,9 @@ const OrderAdminContainer: React.FC = () => {
                   {detailOrder && DELIVERY_VI[detailOrder.deliveryType]}
                 </Descriptions.Item>
                 <Descriptions.Item label="Trạng thái" span={1}>
-                  {detailOrder && (
-                    <Tag color={STATUS_COLORS[detailOrder.orderStatus]}>
-                      {STATUS_VI[detailOrder.orderStatus]}
+                  {detailOrder && effectiveStatus && (
+                    <Tag color={STATUS_COLORS[effectiveStatus]}>
+                      {STATUS_VI[effectiveStatus]}
                     </Tag>
                   )}
                 </Descriptions.Item>
@@ -660,6 +736,25 @@ const OrderAdminContainer: React.FC = () => {
             />
           </div>
         </div>
+      </Modal>
+
+      {/* Confirmation Modal for Status Update */}
+      <Modal
+        title="Xác nhận cập nhật trạng thái"
+        open={!!statusUpdateConfirm}
+        onCancel={() => setStatusUpdateConfirm(null)}
+        okText="Cập nhật"
+        cancelText="Hủy"
+        onOk={() => handleConfirmStatusUpdate()}
+        confirmLoading={isUpdateOrderStatusLoading}
+      >
+        <p>
+          Bạn chắc chắn muốn cập nhật trạng thái đơn hàng thành{' '}
+          <strong>
+            {statusUpdateConfirm ? STATUS_VI[statusUpdateConfirm.status] : ''}
+          </strong>
+          ?
+        </p>
       </Modal>
     </div>
   );

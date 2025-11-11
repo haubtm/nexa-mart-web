@@ -26,7 +26,10 @@ export const useHook = (
   const [rules, Schema] = useMemo(() => {
     const Schema = z
       .object({
-        lineName: z.string().trim().nonempty(),
+        lineName: z
+          .string('Nhập tên khuyến mãi')
+          .trim()
+          .nonempty('Nhập tên khuyến mãi'),
         promotionType: z.nativeEnum(EPromotionType),
         description: z.string().trim().optional(),
         startDate: z.preprocess(

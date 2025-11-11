@@ -64,6 +64,11 @@ export const useHook = (
     try {
       const d = { ...(rawValues?.detail ?? {}) };
 
+      // BUY_X_GET_Y: nếu FREE thì không gửi buyMinValue
+      if (d.giftDiscountType === 'FREE') {
+        d.buyMinValue = undefined;
+      }
+
       // ORDER_DISCOUNT mapping
       if (d._orderConditionType === 'NONE') {
         d.orderMinTotalValue = undefined;
