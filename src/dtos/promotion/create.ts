@@ -11,16 +11,18 @@ import {
 } from '@/lib';
 
 interface IPromotionDetail {
+  promotionCode: string;
+  usageLimit: number;
+  usageCount: number;
   // Buy X Get Y
-  buyCategoryId?: number;
-  buyMinValue?: number;
   buyProductId: number;
   buyMinQuantity: number;
+  buyMinValue?: number;
   giftProductId: number;
+  giftQuantity?: number;
   giftDiscountType: EGiftDiscountType;
   giftDiscountValue: number;
   giftMaxQuantity: number;
-  giftQuantity?: number;
   // Order Discount
   orderDiscountType?: EOrderDiscountType;
   orderDiscountValue?: number;
@@ -31,7 +33,6 @@ interface IPromotionDetail {
   productDiscountType?: EProductDiscountType;
   productDiscountValue?: number;
   applyToType?: EApplyToType;
-  applyToCategoryId?: number;
   applyToProductId?: number;
   productMinOrderValue?: number;
   productMinPromotionValue?: number;
@@ -50,14 +51,12 @@ export interface IPromotionDetailCreateResponse
 
 export interface IPromotionLineCreateRequest {
   headerId: number;
-  promotionCode: string;
+  lineName: string;
   promotionType: EPromotionType;
   description?: string;
   startDate: Dayjs | string;
   endDate: Dayjs | string;
   status?: EPromotionStatus;
-  maxUsageTotal?: number;
-  maxUsagePerCustomer?: number;
 }
 
 export interface IPromotionLineCreateResponse

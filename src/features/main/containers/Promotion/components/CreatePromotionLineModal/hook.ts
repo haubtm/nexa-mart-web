@@ -20,18 +20,15 @@ export const useHook = (headerId: number) => {
   };
 
   const handleSubmit = async (values: IPromotionLineCreateRequest) => {
-    console.log('values', values);
     await createPromotion(
       {
-        promotionCode: values.promotionCode,
         promotionType: values.promotionType,
         description: values.description,
-        maxUsagePerCustomer: values?.maxUsagePerCustomer,
-        maxUsageTotal: values?.maxUsageTotal,
         startDate: values.startDate,
         endDate: values.endDate,
         status: values.status,
         headerId: headerId,
+        lineName: values.lineName,
       },
       {
         onSuccess: () => {

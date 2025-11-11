@@ -10,14 +10,6 @@ import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { type MouseEvent, useRef } from 'react';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const VN_TZ = 'Asia/Ho_Chi_Minh';
-const toIsoUTCZ = (v?: any) =>
-  v ? dayjs(v).tz(VN_TZ).toDate().toISOString() : v;
 
 export const useHook = (
   record?:
@@ -43,15 +35,15 @@ export const useHook = (
     await updatePromotionLine(
       {
         lineId: record.promotionLineId,
-        promotionCode: values.promotionCode,
+        // ✅ đổi sang lineName
+        lineName: values.lineName,
         promotionType: values.promotionType,
         description: values.description,
-        maxUsagePerCustomer: values?.maxUsagePerCustomer,
-        maxUsageTotal: values?.maxUsageTotal,
-        startDate: toIsoUTCZ(values.startDate),
-        endDate: toIsoUTCZ(values.endDate),
+        // ✅ gửi chuỗi YYYY-MM-DD
+        startDate: values.startDate,
+        endDate: values.endDate,
         status: values.status,
-        // ❌ Không gửi `detail` ở update line
+        // ❌ không gửi usage*, không gửi detail
       } as any,
       {
         onSuccess: () => {
@@ -71,14 +63,16 @@ export const useHook = (
 
   const handleOpen = () => {
     ref?.current?.open();
-
     form.setFieldsValue({
       ...record,
+      // ✅ parse từ YYYY-MM-DD
       startDate: record?.startDate
-        ? dayjs.tz(record.startDate, VN_TZ)
+        ? dayjs(record.startDate, 'YYYY-MM-DD')
         : undefined,
-      endDate: record?.endDate ? dayjs.tz(record.endDate, VN_TZ) : undefined,
-      // ❌ Không set `detail` vào form của line
+      endDate: record?.endDate
+        ? dayjs(record.endDate, 'YYYY-MM-DD')
+        : undefined,
+      // ❌ không set detail vào form của line
     } as any);
   };
 

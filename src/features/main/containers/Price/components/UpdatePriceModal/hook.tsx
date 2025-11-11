@@ -192,12 +192,8 @@ export const useHook = (
         },
       );
     }
-
     // ==== 2) Nếu có thay đổi field (header/details) → updatePrice ====
-    if (
-      (headerChangedExceptStatus || detailsChanged) &&
-      values.status !== PriceStatus.ACTIVE
-    ) {
+    if (detailsChanged) {
       await updatePrice(
         {
           priceId: record.priceId,

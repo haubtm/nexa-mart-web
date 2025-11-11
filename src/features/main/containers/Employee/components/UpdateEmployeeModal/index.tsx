@@ -5,7 +5,7 @@ import EmployeeForm from '../CommonForm';
 import { useHook } from './hook';
 
 interface IUpdateEmployeeModalProps {
-  record?: IEmployeeListResponse['data'][number] | null;
+  record?: IEmployeeListResponse['data']['employees'][number] | null;
 }
 
 const UpdateEmployeeModal = ({ record }: IUpdateEmployeeModalProps) => {

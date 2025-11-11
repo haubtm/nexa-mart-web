@@ -93,9 +93,9 @@ const OrderContainer: React.FC = () => {
 
   // lookups
   const { data: employeeResp, isPending: isEmployeeLoading } = useEmployeeList({
-    search: debouncedSearchInput.employeeName,
+    keyword: debouncedSearchInput.employeeName,
   });
-  const employees: Employee[] = employeeResp?.data ?? [];
+  const employees: Employee[] = employeeResp?.data?.employees ?? [];
 
   const { data: customerResp, isPending: isCustomerLoading } = useCustomerList({
     search: debouncedSearchInput.customerName,

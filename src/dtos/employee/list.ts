@@ -1,6 +1,15 @@
 import type { ERole } from '@/lib';
 import type { IResponse } from '../common';
 
+export interface IEmployeeListRequest {
+  page?: number;
+  size?: number;
+  keyword?: string;
+  role?: ERole;
+  sortDirection?: 'ASC' | 'DESC';
+  sortBy?: string;
+}
+
 export interface IEmployeeListResponseData {
   employeeId: number;
   name: string;
@@ -13,4 +22,12 @@ export interface IEmployeeListResponseData {
 }
 
 export interface IEmployeeListResponse
-  extends IResponse<IEmployeeListResponseData[]> {}
+  extends IResponse<{
+    employees: IEmployeeListResponseData[];
+    totalElements: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  }> {}

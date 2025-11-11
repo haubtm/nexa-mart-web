@@ -1,11 +1,11 @@
 import type {
-  IBaseListRequest,
   IEmployeeByIdRequest,
   IEmployeeByIdResponse,
   IEmployeeCreateRequest,
   IEmployeeCreateResponse,
   IEmployeeDeleteRequest,
   IEmployeeDeleteResponse,
+  IEmployeeListRequest,
   IEmployeeListResponse,
   IEmployeeUpdateRequest,
   IEmployeeUpdateResponse,
@@ -15,13 +15,11 @@ import { apiService } from '../axiosService';
 const BASE_ENDPOINT = '/employees';
 
 export const employeeApi = {
-  list: async (body: IBaseListRequest) => {
+  list: async (body: IEmployeeListRequest) => {
     const response = await apiService.get<IEmployeeListResponse>(
-      `${BASE_ENDPOINT}`,
+      `${BASE_ENDPOINT}/search`,
       {
-        params: {
-          name: body.search,
-        },
+        params: body,
       },
     );
 

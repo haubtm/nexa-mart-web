@@ -60,13 +60,13 @@ export const useHook = () => {
       key: 'start',
       title: 'Bắt đầu',
       width: 160,
-      render: (_, record) => formatDate(record?.startDate),
+      render: (_, record) => formatDate(record?.startDate, 'DD/MM/YYYY'),
     },
     {
       key: 'end',
       title: 'Kết thúc',
       width: 160,
-      render: (_, record) => formatDate(record?.endDate),
+      render: (_, record) => formatDate(record?.endDate, 'DD/MM/YYYY'),
     },
     {
       key: 'status',
@@ -174,7 +174,7 @@ export const useHook = () => {
     const title = `Xóa dòng khuyến mãi`;
     const content = isDeleteSelected
       ? `Bạn có chắc chắn muốn xóa các dòng khuyến mãi này không?`
-      : `Bạn có chắc chắn muốn xóa dòng khuyến mãi ${record?.promotionCode} này không?`;
+      : `Bạn có chắc chắn muốn xóa dòng khuyến mãi ${record?.lineName} này không?`;
     modal('confirm', {
       title,
       content,

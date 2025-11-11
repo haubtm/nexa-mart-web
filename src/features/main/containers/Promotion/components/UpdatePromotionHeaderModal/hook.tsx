@@ -10,12 +10,6 @@ import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { type MouseEvent, useRef } from 'react';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const VN_TZ = 'Asia/Ho_Chi_Minh';
 
 export const useHook = (
   record?: IPromotionListResponse['data']['content'][number] | null,
@@ -33,15 +27,14 @@ export const useHook = (
   };
 
   const handleSubmit = async (values: IPromotionHeaderCreateRequest) => {
-    if (!record) {
-      return;
-    }
+    if (!record) return;
 
     await updatePromotionHeader(
       {
         promotionId: record.promotionId,
         promotionName: values.promotionName,
         description: values.description,
+        // ✅ Gửi chuỗi YYYY-MM-DD (không giờ)
         startDate: values.startDate,
         endDate: values.endDate,
         status: values.status,
@@ -52,17 +45,11 @@ export const useHook = (
             message: 'Thành công',
             description: 'Cập nhật chương trình thành công',
           });
-
-          queryClient.invalidateQueries({
-            queryKey: promotionKeys.all,
-          });
+          queryClient.invalidateQueries({ queryKey: promotionKeys.all });
           handleCancel();
         },
         onError: (error: any) => {
-          notify('error', {
-            message: 'Thất bại',
-            description: error.message,
-          });
+          notify('error', { message: 'Thất bại', description: error.message });
         },
       },
     );
@@ -72,10 +59,13 @@ export const useHook = (
     ref?.current?.open();
     form.setFieldsValue({
       ...record,
+      // ✅ parse từ YYYY-MM-DD để hiển thị DatePicker (không tz)
       startDate: record?.startDate
-        ? dayjs.tz(record.startDate, VN_TZ)
+        ? dayjs(record.startDate, 'YYYY-MM-DD')
         : undefined,
-      endDate: record?.endDate ? dayjs.tz(record.endDate, VN_TZ) : undefined,
+      endDate: record?.endDate
+        ? dayjs(record.endDate, 'YYYY-MM-DD')
+        : undefined,
     });
   };
 

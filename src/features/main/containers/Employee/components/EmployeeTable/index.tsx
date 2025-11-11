@@ -6,7 +6,9 @@ import type { IEmployeeListResponse } from '@/dtos';
 
 interface IEmployeeTableProps {
   ref: React.RefObject<IModalRef | null>;
-  setRecord: (record: IEmployeeListResponse['data'][number]) => void;
+  setRecord: (
+    record: IEmployeeListResponse['data']['employees'][number],
+  ) => void;
 }
 
 const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
@@ -20,7 +22,7 @@ const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
   } = useCommonHook();
 
   return (
-    <Table<IEmployeeListResponse['data'][number]>
+    <Table<IEmployeeListResponse['data']['employees'][number]>
       selectionBar={{
         actionButtons: (
           <Button
@@ -39,7 +41,7 @@ const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
           setSelectedRowKeys(selectedRowKeys as number[]),
       }}
       columns={columns}
-      dataSource={employeeListData?.data}
+      dataSource={employeeListData?.data?.employees || []}
       loading={isEmployeeListLoading}
       pagination={{
         total: employeeListData?.metadata?.total,
@@ -61,7 +63,7 @@ const EmployeeTable = ({ ref, setRecord }: IEmployeeTableProps) => {
       //     sorts,
       //   });
       // }}
-      onRow={(record: IEmployeeListResponse['data'][number]) => ({
+      onRow={(record: IEmployeeListResponse['data']['employees'][number]) => ({
         onClick: () => {
           setRecord(record);
           ref?.current?.open();

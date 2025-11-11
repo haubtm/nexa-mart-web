@@ -9,30 +9,27 @@ import { Dayjs } from 'dayjs';
 
 export interface IPromotionDetail {
   detailId: number;
+  promotionCode: string;
+  usageLimit: number;
+  usageCount: number;
   // Buy X Get Y
   buyProduct: {
     productUnitId: number;
-    code: string;
     barcode: string;
     conversionValue: number;
     productName: string;
     unit: string;
-  };
-  buyCategory: {
-    categoryId: number;
-    categoryName: string;
-    description: string;
   };
   buyMinQuantity: number;
   buyMinValue?: number;
   giftProduct: {
     productUnitId: number;
-    code: string;
     barcode: string;
     conversionValue: number;
     productName: string;
     unit: string;
   };
+  giftQuantity?: number;
   giftDiscountType: EGiftDiscountType;
   giftDiscountValue: number;
   giftMaxQuantity: number;
@@ -48,16 +45,10 @@ export interface IPromotionDetail {
   applyToType?: string;
   applyToProduct?: {
     productUnitId: number;
-    code: string;
     barcode: string;
     conversionValue: number;
     productName: string;
     unit: string;
-  };
-  applyToCategory?: {
-    categoryId: number;
-    categoryName: string;
-    description: string;
   };
   productMinOrderValue?: number;
   productMinPromotionValue?: number;
@@ -67,21 +58,16 @@ export interface IPromotionDetail {
 
 export interface IPromotionLine {
   promotionLineId: number;
-  promotionCode: string;
+  lineName: string;
   promotionType: EPromotionType;
   description?: string;
   startDate: string | Dayjs;
   endDate: string | Dayjs;
   status: EPromotionStatus;
-  maxUsageTotal?: number;
-  maxUsagePerCustomer?: number;
-  currentUsageCount?: number;
   createdAt: string;
   updatedAt: string;
-  usagePercentage?: number;
-  activeStatus?: EPromotionStatus;
-  remainingUsage?: number;
   details: IPromotionDetail[];
+  activeStatus?: EPromotionStatus;
 }
 
 export interface IPromotionResponseData {

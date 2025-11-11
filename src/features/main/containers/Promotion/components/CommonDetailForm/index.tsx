@@ -11,10 +11,9 @@ import {
   Select,
   Spin,
   Empty,
-  TreeSelect,
 } from 'antd';
 import { useHook } from './hook';
-import { EPromotionType } from '@/lib';
+import { EPromotionType, Input } from '@/lib';
 
 const currencyParser = (v?: string) =>
   v ? Number(String(v).replace(/[.,\s]/g, '')) : 0;
@@ -64,38 +63,6 @@ function ProductUnitSelect({
     />
   );
 }
-function CategoryTreeSelect({
-  categoriesData,
-  loading,
-  value,
-  onChange,
-  placeholder = 'Chọn danh mục…',
-}: any) {
-  const treeData = useMemo(() => {
-    const roots = categoriesData?.data ?? [];
-    return roots.map((r: any) => ({
-      title: r.name,
-      value: r.id,
-      children: (r.children ?? [])?.map((c: any) => ({
-        title: c.name,
-        value: c.id,
-      })),
-    }));
-  }, [categoriesData]);
-
-  return (
-    <TreeSelect
-      treeData={treeData}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      style={{ width: '100%' }}
-      dropdownRender={(menu) =>
-        loading ? <Spin style={{ margin: 8 }} /> : menu
-      }
-    />
-  );
-}
 
 export default function PromotionDetailCreateForm({
   handleSubmit,
@@ -108,18 +75,8 @@ export default function PromotionDetailCreateForm({
   promotionType: EPromotionType;
   isUpdate?: boolean;
 }) {
-  const {
-    rules,
-    onFinish,
-    productData,
-    isLoadingProduct,
-    categoriesData,
-    isCategoriesLoading,
-    setSearch,
-  } = useHook(handleSubmit);
-
-  const buyConditionType = Form.useWatch(['detail', '_buyConditionType'], form);
-  // const applyToType = Form.useWatch(['detail', 'applyToType'], form);
+  const { rules, onFinish, productData, isLoadingProduct, setSearch } =
+    useHook(handleSubmit);
 
   return (
     <Form
@@ -128,144 +85,118 @@ export default function PromotionDetailCreateForm({
       onFinish={onFinish}
       initialValues={{
         detail: {
+          // meta
+          usageLimit: 1,
+          usageCount: 1,
+
+          // BUY_X_GET_Y
           buyProductId: 0,
-          buyCategoryId: 0,
           buyMinQuantity: 1,
           buyMinValue: 0.01,
           giftProductId: 0,
           giftDiscountType: 'PERCENTAGE',
           giftDiscountValue: 0,
           giftMaxQuantity: 1,
+
+          // ORDER_DISCOUNT
           orderDiscountType: 'PERCENTAGE',
           orderDiscountValue: 0.01,
           orderDiscountMaxValue: 0.01,
           orderMinTotalValue: 0.01,
           orderMinTotalQuantity: 1,
+
+          // PRODUCT_DISCOUNT (không Category)
           productDiscountType: 'PERCENTAGE',
           productDiscountValue: 0.01,
           applyToType: 'ALL',
           applyToProductId: 0,
-          applyToCategoryId: 0,
           productMinOrderValue: 0.01,
           productMinPromotionValue: 0.01,
           productMinPromotionQuantity: 1,
-          _buyConditionType: 'PRODUCT_QTY',
+
+          // chỉ còn 2 UI keys (order/product)
           _orderConditionType: 'NONE',
           _productConditionType: 'NONE',
         },
       }}
     >
+      {/* Thông tin mã & usage */}
+      <Card title="Thông tin áp dụng" style={{ marginBottom: 16 }}>
+        <Row gutter={16}>
+          <Col xs={24} md={8}>
+            <Form.Item
+              label="Mã khuyến mãi"
+              name={['detail', 'promotionCode']}
+              rules={[rules, { required: true, message: 'Nhập mã khuyến mãi' }]}
+            >
+              <Input placeholder="Nhập mã khuyến mãi" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={8}>
+            <Form.Item
+              label="Giới hạn sử dụng"
+              name={['detail', 'usageLimit']}
+              rules={[rules]}
+            >
+              <InputNumber min={0} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={8}>
+            <Form.Item
+              label="Số lần sử dụng"
+              name={['detail', 'usageCount']}
+              rules={[rules]}
+            >
+              <InputNumber min={0} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Card>
+
       {/* BUY_X_GET_Y */}
       {promotionType === EPromotionType.BUY_X_GET_Y && (
         <Card title="Mua X tặng Y" style={{ marginBottom: 16 }}>
-          <Form.Item
-            label="Loại điều kiện mua"
-            name={['detail', '_buyConditionType']}
-            rules={[rules, { required: true, message: 'Chọn loại điều kiện' }]}
-          >
-            <Radio.Group>
-              <Space direction="vertical">
-                {isUpdate ? (
-                  (() => {
-                    const current = form.getFieldValue([
-                      'detail',
-                      '_buyConditionType',
-                    ]);
-                    const label =
-                      current === 'PRODUCT_QTY'
-                        ? 'Theo sản phẩm & số lượng'
-                        : 'Theo danh mục & giá trị';
-                    return <Radio value={current}>{label}</Radio>;
-                  })()
-                ) : (
-                  <>
-                    <Radio value="PRODUCT_QTY">Theo sản phẩm & số lượng</Radio>
-                    <Radio value="CATEGORY_VALUE">
-                      Theo danh mục & giá trị
-                    </Radio>
-                  </>
-                )}
-              </Space>
-            </Radio.Group>
-          </Form.Item>
-
-          {buyConditionType === 'PRODUCT_QTY' && (
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Sản phẩm mua"
-                  name={['detail', 'buyProductId']}
-                  rules={[
-                    rules,
-                    { required: true, message: 'Chọn sản phẩm mua' },
-                  ]}
-                >
-                  <ProductUnitSelect
-                    productData={productData}
-                    loading={isLoadingProduct}
-                    onSearch={setSearch}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Số lượng mua tối thiểu"
-                  name={['detail', 'buyMinQuantity']}
-                  rules={[
-                    rules,
-                    { required: true, message: 'Nhập số lượng' },
-                    {
-                      validator: (_: any, v: number) =>
-                        v && v >= 1
-                          ? Promise.resolve()
-                          : Promise.reject('Số lượng phải ≥ 1'),
-                    },
-                  ]}
-                >
-                  <InputNumber min={1} style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-            </Row>
-          )}
-          {buyConditionType === 'CATEGORY_VALUE' && (
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Danh mục mua"
-                  name={['detail', 'buyCategoryId']}
-                  rules={[rules, { required: true, message: 'Chọn danh mục' }]}
-                >
-                  <CategoryTreeSelect
-                    categoriesData={categoriesData}
-                    loading={isCategoriesLoading}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Giá trị mua tối thiểu"
-                  name={['detail', 'buyMinValue']}
-                  rules={[
-                    rules,
-                    { required: true, message: 'Nhập giá trị' },
-                    {
-                      validator: (_: any, v: number) =>
-                        v && v > 0
-                          ? Promise.resolve()
-                          : Promise.reject('Giá trị phải > 0'),
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    min={1}
-                    parser={currencyParser}
-                    addonAfter="đ"
-                    style={{ width: '100%' }}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          )}
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Sản phẩm mua"
+                name={['detail', 'buyProductId']}
+                rules={[
+                  rules,
+                  { required: true, message: 'Chọn sản phẩm mua' },
+                ]}
+              >
+                <ProductUnitSelect
+                  productData={productData}
+                  loading={isLoadingProduct}
+                  onSearch={setSearch}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={6}>
+              <Form.Item
+                label="SL mua tối thiểu"
+                name={['detail', 'buyMinQuantity']}
+                rules={[rules]}
+              >
+                <InputNumber min={1} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={6}>
+              <Form.Item
+                label="Giá trị mua tối thiểu"
+                name={['detail', 'buyMinValue']}
+                rules={[rules]}
+              >
+                <InputNumber
+                  min={0}
+                  style={{ width: '100%' }}
+                  addonAfter="đ"
+                  parser={currencyParser}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
@@ -567,37 +498,15 @@ export default function PromotionDetailCreateForm({
                         rules,
                         { required: true, message: 'Chọn đối tượng áp dụng' },
                       ]}
-                      style={{ marginBottom: 12 }}
                     >
                       <Radio.Group>
                         <Space direction="vertical" size="small">
-                          {isUpdate ? (
-                            (() => {
-                              const current = form.getFieldValue([
-                                'detail',
-                                'applyToType',
-                              ]);
-                              const map: Record<string, string> = {
-                                ALL: 'Tất cả sản phẩm',
-                                PRODUCT: 'Sản phẩm cụ thể',
-                                CATEGORY: 'Danh mục cụ thể',
-                              };
-                              return (
-                                <Radio value={current}>{map[current]}</Radio>
-                              );
-                            })()
-                          ) : (
-                            <>
-                              <Radio value="ALL">Tất cả sản phẩm</Radio>
-                              <Radio value="PRODUCT">Sản phẩm cụ thể</Radio>
-                              <Radio value="CATEGORY">Danh mục cụ thể</Radio>
-                            </>
-                          )}
+                          <Radio value="ALL">Tất cả sản phẩm</Radio>
+                          <Radio value="PRODUCT">Sản phẩm cụ thể</Radio>
                         </Space>
                       </Radio.Group>
                     </Form.Item>
                   </Col>
-
                   <Col xs={24} md={12}>
                     <Form.Item noStyle shouldUpdate>
                       {() => {
@@ -614,7 +523,6 @@ export default function PromotionDetailCreateForm({
                                   message: 'Chọn sản phẩm áp dụng',
                                 },
                               ]}
-                              style={{ marginBottom: 12 }}
                             >
                               <ProductUnitSelect
                                 productData={productData}
@@ -624,30 +532,7 @@ export default function PromotionDetailCreateForm({
                             </Form.Item>
                           );
                         }
-                        if (a === 'CATEGORY') {
-                          return (
-                            <Form.Item
-                              label="Danh mục (applyToCategoryId)"
-                              name={['detail', 'applyToCategoryId']}
-                              rules={[
-                                rules,
-                                {
-                                  required: true,
-                                  message: 'Chọn danh mục áp dụng',
-                                },
-                              ]}
-                              style={{ marginBottom: 12 }}
-                            >
-                              <CategoryTreeSelect
-                                categoriesData={categoriesData}
-                                loading={isCategoriesLoading}
-                              />
-                            </Form.Item>
-                          );
-                        }
-                        return (
-                          <div style={{ minHeight: 36 }} /> // giữ chiều cao để hai cột cân hàng
-                        );
+                        return <div style={{ minHeight: 36 }} />;
                       }}
                     </Form.Item>
                   </Col>

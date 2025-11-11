@@ -21,78 +21,79 @@ export const useHook = () => {
   const { queryParams } = useCommonHook();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
 
-  const columns: ITableProps<IEmployeeListResponse['data'][number]>['columns'] =
-    [
-      {
-        key: 'id',
-        title: 'STT',
-        fixed: 'left',
-        width: 60,
-        render: (_, __, index) =>
-          index + 1 + queryParams.page * queryParams.limit,
-      },
-      {
-        key: 'name',
-        title: 'Họ và tên',
-        width: 120,
-        render: (_, record) => record?.name,
-      },
-      {
-        key: 'employeeCode',
-        title: 'Mã nhân viên',
-        width: 120,
-        render: (_, record) => record?.employeeCode,
-      },
-      {
-        key: 'email',
-        title: 'Email',
-        width: 200,
-        render: (_, record) => record?.email,
-      },
-      {
-        key: 'role',
-        title: 'Vai trò',
-        width: 200,
-        render: (_, record) => record?.role,
-      },
-      {
-        key: 'created_at',
-        title: 'Ngày tạo',
-        width: 130,
-        render: (_, record) => formatDate(record?.createdAt),
-      },
-      {
-        key: 'updated_at',
-        title: 'Ngày cập nhật',
-        width: 120,
-        render: (_, record) => formatDate(record?.updatedAt),
-      },
-      {
-        key: 'action',
-        width: 120,
-        fixed: 'right',
-        align: 'center',
-        render: (_, record) => (
-          <Flex gap={8} style={{ display: 'inline-flex' }}>
-            <div onClick={(e) => e.stopPropagation()}>
-              <UpdateEmployeeModal record={record} />
-            </div>
-            <Button
-              type="text"
-              icon={<SvgTrashIcon width={18} height={18} />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete([record?.employeeId], record);
-              }}
-            />
-          </Flex>
-        ),
-      },
-    ];
+  const columns: ITableProps<
+    IEmployeeListResponse['data']['employees'][number]
+  >['columns'] = [
+    {
+      key: 'id',
+      title: 'STT',
+      fixed: 'left',
+      width: 60,
+      render: (_, __, index) =>
+        index + 1 + queryParams.page * queryParams.limit,
+    },
+    {
+      key: 'name',
+      title: 'Họ và tên',
+      width: 120,
+      render: (_, record) => record?.name,
+    },
+    {
+      key: 'employeeCode',
+      title: 'Mã nhân viên',
+      width: 120,
+      render: (_, record) => record?.employeeCode,
+    },
+    {
+      key: 'email',
+      title: 'Email',
+      width: 200,
+      render: (_, record) => record?.email,
+    },
+    {
+      key: 'role',
+      title: 'Vai trò',
+      width: 200,
+      render: (_, record) => record?.role,
+    },
+    {
+      key: 'created_at',
+      title: 'Ngày tạo',
+      width: 130,
+      render: (_, record) => formatDate(record?.createdAt),
+    },
+    {
+      key: 'updated_at',
+      title: 'Ngày cập nhật',
+      width: 120,
+      render: (_, record) => formatDate(record?.updatedAt),
+    },
+    {
+      key: 'action',
+      width: 120,
+      fixed: 'right',
+      align: 'center',
+      render: (_, record) => (
+        <Flex gap={8} style={{ display: 'inline-flex' }}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <UpdateEmployeeModal record={record} />
+          </div>
+          <Button
+            type="text"
+            icon={<SvgTrashIcon width={18} height={18} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete([record?.employeeId], record);
+            }}
+          />
+        </Flex>
+      ),
+    },
+  ];
 
   const handleDelete = (
     ids: number[],
-    record?: IEmployeeListResponse['data'][number],
+    record?: IEmployeeListResponse['data']['employees'][number],
   ) => {
     const isDeleteSelected = !record;
 

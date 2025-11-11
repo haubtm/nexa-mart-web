@@ -101,9 +101,9 @@ const RefundContainer: React.FC = () => {
 
   // Gọi 3 API lookup theo text search
   const { data: employeeResp, isPending: isEmployeeLoading } = useEmployeeList({
-    search: debouncedSearchInput.employeeName,
+    keyword: debouncedSearchInput.employeeName,
   });
-  const employees: Employee[] = employeeResp?.data ?? [];
+  const employees: Employee[] = employeeResp?.data?.employees ?? [];
 
   const { data: customerResp, isPending: isCustomerLoading } = useCustomerList({
     search: debouncedSearchInput.customerName,

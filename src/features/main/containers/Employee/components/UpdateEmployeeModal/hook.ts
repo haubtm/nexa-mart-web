@@ -5,7 +5,7 @@ import { queryClient } from '@/providers/ReactQuery';
 import { type MouseEvent, useRef } from 'react';
 
 export const useHook = (
-  record?: IEmployeeListResponse['data'][number] | null,
+  record?: IEmployeeListResponse['data']['employees'][number] | null,
 ) => {
   const ref = useRef<IModalRef>(null);
   const [form] = Form.useForm<IEmployeeCreateRequest>();

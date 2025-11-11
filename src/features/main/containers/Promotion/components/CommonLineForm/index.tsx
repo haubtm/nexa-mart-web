@@ -1,15 +1,5 @@
 import type { FormInstance } from 'antd';
-import {
-  Card,
-  Col,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  Radio,
-  Row,
-  Select,
-} from 'antd';
+import { Card, Col, DatePicker, Form, Input, Radio, Row, Select } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { EPromotionType } from '@/lib';
 import { useHook } from './hook';
@@ -43,14 +33,12 @@ export default function PromotionLineCreateForm({
     <Form
       form={form}
       initialValues={{
-        promotionCode: '',
+        lineName: 'string',
         promotionType: EPromotionType.BUY_X_GET_Y,
         description: '',
         startDate: hdrStart ?? dayjs(),
-        endDate: hdrEnd ?? dayjs().add(1, 'day'),
+        endDate: hdrEnd ?? dayjs(),
         status: 'ACTIVE',
-        maxUsagePerCustomer: 1,
-        maxUsageTotal: 1,
       }}
       onFinish={onFinish}
     >
@@ -63,18 +51,11 @@ export default function PromotionLineCreateForm({
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
-                label="Mã chương trình"
-                name="promotionCode"
-                rules={[
-                  rules,
-                  { required: true, message: 'Nhập mã chương trình' },
-                  {
-                    pattern: /^[A-Za-z0-9_-]+$/,
-                    message: 'Mã chương trình không hợp lệ',
-                  },
-                ]}
+                label="Tên dòng (lineName)"
+                name="lineName"
+                rules={[rules, { required: true, message: 'Nhập tên dòng' }]}
               >
-                <Input placeholder="VD: 8aC" />
+                <Input placeholder="VD: Mid-Nov Line #1" />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
@@ -91,6 +72,7 @@ export default function PromotionLineCreateForm({
               </Form.Item>
             </Col>
           </Row>
+
           <Form.Item
             label="Mô tả"
             name="description"
@@ -129,12 +111,11 @@ export default function PromotionLineCreateForm({
                 name="startDate"
                 rules={[
                   rules,
-                  { required: true, message: 'Vui lòng chọn ngày bắt đầu' },
+                  { required: true, message: 'Chọn ngày bắt đầu' },
                 ]}
               >
                 <DatePicker
-                  showTime
-                  format="DD/MM/YYYY HH:mm"
+                  format="DD/MM/YYYY"
                   style={{ width: '100%' }}
                   disabledDate={disabledDate}
                 />
@@ -146,38 +127,14 @@ export default function PromotionLineCreateForm({
                 name="endDate"
                 rules={[
                   rules,
-                  { required: true, message: 'Vui lòng chọn ngày kết thúc' },
+                  { required: true, message: 'Chọn ngày kết thúc' },
                 ]}
               >
                 <DatePicker
-                  showTime
-                  format="DD/MM/YYYY HH:mm"
+                  format="DD/MM/YYYY"
                   style={{ width: '100%' }}
                   disabledDate={disabledDate}
                 />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Card>
-        {/* 3) Giới hạn sử dụng */}
-        <Card title="Giới hạn sử dụng" style={{ marginBottom: 16 }}>
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                rules={[rules]}
-                label="Tối đa mỗi khách"
-                name="maxUsagePerCustomer"
-              >
-                <InputNumber min={0} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                rules={[rules]}
-                label="Tổng số lượt"
-                name="maxUsageTotal"
-              >
-                <InputNumber min={0} style={{ width: '100%' }} />
               </Form.Item>
             </Col>
           </Row>

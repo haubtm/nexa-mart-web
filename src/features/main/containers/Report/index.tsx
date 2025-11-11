@@ -109,11 +109,11 @@ const ReportContainer: React.FC = () => {
   const [search, setSearch] = useState('');
   const searchDebounced = useDebounce(search);
   const { data: empResp, isLoading: isEmpLoading } = useEmployeeList({
-    search: searchDebounced,
+    keyword: searchDebounced,
   });
 
   const employeeOptions = useMemo(() => {
-    const list: IEmployeeItem[] = empResp?.data ?? [];
+    const list: IEmployeeItem[] = empResp?.data?.employees ?? [];
     return list.map((e) => ({
       label: `${e.name}${e.employeeCode ? ` — ${e.employeeCode}` : ''}`,
       value: e.employeeId,

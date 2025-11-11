@@ -4,7 +4,7 @@ import { useHook } from './hook';
 import EmployeeForm from '../CommonForm';
 
 interface IDetailEmployeeModalProps {
-  record?: IEmployeeListResponse['data'][number];
+  record?: IEmployeeListResponse['data']['employees'][number];
   ref?: React.RefObject<IModalRef | null>;
 }
 

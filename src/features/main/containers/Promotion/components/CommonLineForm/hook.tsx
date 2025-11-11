@@ -4,19 +4,11 @@ import { z } from 'zod';
 import { EPromotionType } from '@/lib';
 import { createSchemaFieldRule } from 'antd-zod';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
-const VN_TZ = 'Asia/Ho_Chi_Minh';
-
-// ISO UTC có 'Z'
-const toIsoWithVNOffset = (v: unknown) => {
-  if (dayjs.isDayjs(v)) return v.tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
-  if (v instanceof Date)
-    return dayjs(v).tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
-  return v; // nếu đã là string thì giữ nguyên (hoặc tự parse nếu cần)
+const toDateStr = (v: unknown) => {
+  if (dayjs.isDayjs(v)) return v.format('YYYY-MM-DD');
+  if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD');
+  return v;
 };
 
 export type SubmitFn = (values: IPromotionLineCreateRequest) => Promise<void>;
@@ -26,85 +18,67 @@ export const useHook = (
   headerStartDate?: string,
   headerEndDate?: string,
 ) => {
-  const hdrStart = headerStartDate ? dayjs(headerStartDate) : null;
-  const hdrEnd = headerEndDate ? dayjs(headerEndDate) : null;
+  const hdrStart = headerStartDate
+    ? dayjs(headerStartDate, 'YYYY-MM-DD')
+    : null;
+  const hdrEnd = headerEndDate ? dayjs(headerEndDate, 'YYYY-MM-DD') : null;
+
   const [rules, Schema] = useMemo(() => {
     const Schema = z
       .object({
-        promotionCode: z.string().trim(),
+        lineName: z.string().trim().nonempty(),
         promotionType: z.nativeEnum(EPromotionType),
         description: z.string().trim().optional(),
         startDate: z.preprocess(
-          toIsoWithVNOffset,
-          z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
-            message: 'Ngày bắt đầu không hợp lệ',
-          }),
+          toDateStr,
+          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày bắt đầu không hợp lệ'),
         ),
-        endDate: z
-          .preprocess(
-            toIsoWithVNOffset,
-            z.string().refine((s) => !Number.isNaN(Date.parse(s!)), {
-              message: 'Ngày kết thúc không hợp lệ',
-            }),
-          )
-          .optional(),
+        endDate: z.preprocess(
+          toDateStr,
+          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày kết thúc không hợp lệ'),
+        ),
         status: z.enum(['ACTIVE', 'EXPIRED', 'PAUSED', 'UPCOMING']).optional(),
-        maxUsagePerCustomer: z.number().int().nonnegative().optional(),
-        maxUsageTotal: z.number().int().nonnegative().optional(),
       })
       .superRefine((val, ctx) => {
+        const s = dayjs(val.startDate, 'YYYY-MM-DD');
+        const e = dayjs(val.endDate, 'YYYY-MM-DD');
+
+        if (e.isBefore(s)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['endDate'],
+            message: 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu',
+          });
+        }
         if (hdrStart && hdrEnd) {
-          const s = dayjs(val.startDate);
-          const e = dayjs(val.endDate);
           if (s.isBefore(hdrStart) || s.isAfter(hdrEnd)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: ['startDate'],
-              message: 'Ngày bắt đầu Line phải nằm trong thời gian của Header',
+              message: 'StartDate của Line phải nằm trong Header',
             });
           }
           if (e.isBefore(hdrStart) || e.isAfter(hdrEnd)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: ['endDate'],
-              message: 'Ngày kết thúc Line phải nằm trong thời gian của Header',
+              message: 'EndDate của Line phải nằm trong Header',
             });
           }
         }
-
-        if (
-          val.startDate &&
-          val.endDate &&
-          dayjs(val.endDate).isBefore(dayjs(val.startDate))
-        ) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['endDate'],
-            message: 'Ngày kết thúc phải sau ngày bắt đầu',
-          });
-        }
       });
-
     return [createSchemaFieldRule(Schema), Schema] as const;
   }, [headerStartDate, headerEndDate]);
 
-  const onFinish = async (rawValues: any) => {
+  const onFinish = async (values: any) => {
     try {
-      const values = { ...rawValues };
-
-      // Chuẩn hoá thời gian về ISO UTC 'Z'
-      values.startDate = toIsoWithVNOffset(values.startDate);
-      values.endDate = toIsoWithVNOffset(values.endDate);
-
+      values.startDate = toDateStr(values.startDate);
+      values.endDate = toDateStr(values.endDate);
       const parsed = (Schema as any).parse(values);
       await handleSubmit?.(parsed);
     } catch (err) {
       console.error(err);
     }
   };
-
-  return {
-    rules,
-    onFinish,
-  };
+  return { rules, onFinish };
 };

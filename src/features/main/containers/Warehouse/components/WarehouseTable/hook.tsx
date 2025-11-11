@@ -25,10 +25,10 @@ export const useHook = () => {
       render: (_, record) => record?.productUnit?.productName,
     },
     {
-      key: 'productCode',
-      title: 'Mã sản phẩm',
+      key: 'barcode',
+      title: 'Mã vạch',
       width: 120,
-      render: (_, record) => record?.productUnit?.code,
+      render: (_, record) => record?.productUnit?.barcode,
     },
     {
       key: 'unit',

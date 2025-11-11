@@ -12,7 +12,8 @@ import {
 
 export const useCommonHook = () => {
   const ref = useRef<IModalRef>(null);
-  const [record, setRecord] = useState<IEmployeeListResponse['data'][number]>();
+  const [record, setRecord] =
+    useState<IEmployeeListResponse['data']['employees'][number]>();
 
   const [queryParams, setQueryParams] = useQueryParams({
     page: withDefault(NumberParam, DEFAULT_PAGE),
@@ -21,7 +22,11 @@ export const useCommonHook = () => {
     sorts: withDefault(JsonParam, undefined),
   });
   const { data: employeeListData, isFetching: isEmployeeListLoading } =
-    useEmployeeList(queryParams);
+    useEmployeeList({
+      keyword: queryParams.search,
+      page: queryParams.page,
+      size: queryParams.limit,
+    });
 
   return {
     ref,

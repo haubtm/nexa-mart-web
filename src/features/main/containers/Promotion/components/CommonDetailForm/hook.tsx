@@ -3,19 +3,20 @@ import { useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useDebounce } from '@/lib';
 import { createSchemaFieldRule } from 'antd-zod';
-import {
-  useProductList,
-  useCategoryRootList,
-} from '@/features/main/react-query';
+import { useProductList } from '@/features/main/react-query';
 
 export const useHook = (
   handleSubmit?: (values: IPromotionDetailCreateRequest) => Promise<void>,
 ) => {
   const [rules, Schema] = useMemo(() => {
     const Schema = z.object({
-      // BUY_X_GET_Y
+      // meta
+      promotionCode: z.string().trim().nonempty(),
+      usageLimit: z.number().int().nonnegative(),
+      usageCount: z.number().int().nonnegative(),
+
+      // BUY_X_GET_Y (không còn theo Category)
       buyProductId: z.number().int().nonnegative().optional(),
-      buyCategoryId: z.number().int().nonnegative().optional(),
       buyMinQuantity: z.number().int().positive().optional(),
       buyMinValue: z.number().nonnegative().optional(),
 
@@ -25,6 +26,7 @@ export const useHook = (
         .optional(),
       giftDiscountValue: z.number().nonnegative().optional(),
       giftMaxQuantity: z.number().int().positive().optional(),
+
       // ORDER_DISCOUNT
       orderDiscountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT']).optional(),
       orderDiscountValue: z.number().nonnegative().optional(),
@@ -32,18 +34,16 @@ export const useHook = (
       orderMinTotalValue: z.number().nonnegative().optional(),
       orderMinTotalQuantity: z.number().int().nonnegative().optional(),
 
-      // PRODUCT_DISCOUNT
+      // PRODUCT_DISCOUNT (không còn apply CATEGORY)
       productDiscountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT']).optional(),
       productDiscountValue: z.number().nonnegative().optional(),
-      applyToType: z.enum(['ALL', 'PRODUCT', 'CATEGORY']).optional(),
+      applyToType: z.enum(['ALL', 'PRODUCT']).optional(),
       applyToProductId: z.number().int().nonnegative().optional(),
-      applyToCategoryId: z.number().int().nonnegative().optional(),
       productMinOrderValue: z.number().nonnegative().optional(),
       productMinPromotionValue: z.number().nonnegative().optional(),
       productMinPromotionQuantity: z.number().int().nonnegative().optional(),
 
-      // --- UI-only keys (stripped before submit)
-      _buyConditionType: z.enum(['PRODUCT_QTY', 'CATEGORY_VALUE']).optional(),
+      // UI-only keys (cắt bỏ phần liên quan category)
       _orderConditionType: z
         .enum(['NONE', 'MIN_ORDER_VALUE', 'MIN_DISCOUNTED_QTY'])
         .optional(),
@@ -56,22 +56,14 @@ export const useHook = (
         ])
         .optional(),
     });
+
     return [createSchemaFieldRule(Schema), Schema] as const;
   }, []);
 
   const onFinish = async (rawValues: any) => {
     try {
-      // UI is still nested under `detail` for convenience -> flatten to API shape
       const d = { ...(rawValues?.detail ?? {}) };
 
-      // BUY_X_GET_Y mapping
-      if (d._buyConditionType === 'PRODUCT_QTY') {
-        d.buyCategoryId = undefined;
-        d.buyMinValue = undefined;
-      } else if (d._buyConditionType === 'CATEGORY_VALUE') {
-        d.buyProductId = undefined;
-        d.buyMinQuantity = undefined;
-      }
       // ORDER_DISCOUNT mapping
       if (d._orderConditionType === 'NONE') {
         d.orderMinTotalValue = undefined;
@@ -97,8 +89,7 @@ export const useHook = (
         d.productMinOrderValue = undefined;
         d.productMinPromotionValue = undefined;
       }
-      // strip UI-only keys
-      delete d._buyConditionType;
+
       delete d._orderConditionType;
       delete d._productConditionType;
 
@@ -114,16 +105,12 @@ export const useHook = (
   const { data: productData, isLoading: isLoadingProduct } = useProductList({
     searchTerm: searchDebounce,
   });
-  const { data: categoriesData, isLoading: isCategoriesLoading } =
-    useCategoryRootList();
 
   return {
     rules,
     onFinish,
     productData,
     isLoadingProduct,
-    categoriesData,
-    isCategoriesLoading,
     search,
     setSearch,
   };

@@ -1,9 +1,9 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { employeeKeys } from '../query-keys';
-import type { IBaseListRequest, IEmployeeByIdRequest } from '@/dtos';
+import type { IEmployeeByIdRequest, IEmployeeListRequest } from '@/dtos';
 import { employeeApi } from '@/api';
 
-export const useEmployeeList = (filters: IBaseListRequest) => {
+export const useEmployeeList = (filters: IEmployeeListRequest) => {
   return useQuery({
     queryKey: employeeKeys.list(filters),
     queryFn: async () => await employeeApi.list(filters),

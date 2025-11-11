@@ -4,19 +4,11 @@ import { createSchemaFieldRule } from 'antd-zod';
 import { useMemo } from 'react';
 import { z } from 'zod';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
-const VN_TZ = 'Asia/Ho_Chi_Minh';
-
-// Thay vì toISOString() -> dùng format có offset +07:00
-const toIsoWithVNOffset = (v: unknown) => {
-  if (dayjs.isDayjs(v)) return v.tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
-  if (v instanceof Date)
-    return dayjs(v).tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
-  return v; // nếu đã là string thì giữ nguyên (hoặc tự parse nếu cần)
+const toDateStr = (v: unknown) => {
+  if (dayjs.isDayjs(v)) return v.format('YYYY-MM-DD');
+  if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD');
+  return v;
 };
 
 export const useHook = (
@@ -25,40 +17,32 @@ export const useHook = (
   const [rules, Schema] = useMemo(() => {
     const Schema = z
       .object({
-        promotionName: z
-          .string('Tên chương trình là bắt buộc')
-          .nonempty('Tên chương trình là bắt buộc')
-          .trim(),
-        description: z.string('Mô tả chương trình').trim().optional(),
+        promotionName: z.string().nonempty().trim(),
+        description: z.string().trim().optional(),
         startDate: z.preprocess(
-          toIsoWithVNOffset,
-          z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
-            message: 'Ngày bắt đầu không hợp lệ',
-          }),
+          toDateStr,
+          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày bắt đầu không hợp lệ'),
         ),
         status: z.enum(EPromotionStatus),
         endDate: z.preprocess(
-          (v) => (v == null || v === '' ? undefined : toIsoWithVNOffset(v)),
-          z.string().refine((s) => s == null || !Number.isNaN(Date.parse(s!)), {
-            message: 'Ngày kết thúc không hợp lệ',
-          }),
+          (v) => (v == null || v === '' ? undefined : toDateStr(v)),
+          z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày kết thúc không hợp lệ')
+            .optional(),
         ),
       })
       .superRefine((val, ctx) => {
-        const s = val.startDate ? dayjs(val.startDate).tz(VN_TZ) : null;
-        const e = val.endDate ? dayjs(val.endDate).tz(VN_TZ) : null;
-        if (s && e) {
-          const min = s.startOf('day').add(1, 'day');
-          if (e.isBefore(min)) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ['endDate'],
-              message: 'Ngày kết thúc phải sau ngày bắt đầu ít nhất 1 ngày',
-            });
-          }
+        const s = val.startDate ? dayjs(val.startDate, 'YYYY-MM-DD') : null;
+        const e = val.endDate ? dayjs(val.endDate, 'YYYY-MM-DD') : null;
+        if (s && e && e.isBefore(s)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['endDate'],
+            message: 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu',
+          });
         }
       });
-
     return [createSchemaFieldRule(Schema), Schema] as const;
   }, []);
 

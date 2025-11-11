@@ -70,11 +70,7 @@ const PromotionHeaderCreateForm = ({
                 { required: true, message: 'Vui lòng chọn ngày bắt đầu' },
               ]}
             >
-              <DatePicker
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                style={{ width: '100%' }}
-              />
+              <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
             </AntForm.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -85,11 +81,7 @@ const PromotionHeaderCreateForm = ({
                 { required: true, message: 'Vui lòng chọn ngày kết thúc' },
               ]}
             >
-              <DatePicker
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                style={{ width: '100%' }}
-              />
+              <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
             </AntForm.Item>
           </Col>
         </Row>

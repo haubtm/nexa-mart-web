@@ -59,6 +59,24 @@ const DetailsSubtable: React.FC<{
     IPromotionListResponse['data']['content'][number]['promotionLines'][number]['details'][number]
   >['columns'] = [
     {
+      key: 'code',
+      title: 'Mã khuyến mãi',
+      dataIndex: 'promotionCode',
+      width: 160,
+      ellipsis: true,
+    },
+    {
+      key: 'usage',
+      title: 'Sử dụng',
+      width: 140,
+      render: (_: any, r) => (
+        <>
+          Giới hạn: <b>{r?.usageLimit ?? '—'}</b> • Đã sử dụng:{' '}
+          <b>{r?.usageCount ?? 0}</b>
+        </>
+      ),
+    },
+    {
       key: 'summary',
       title: 'Tóm tắt',
       width: 300,
@@ -152,6 +170,13 @@ const LinesSubtableV2: React.FC<{
   >['columns'] = [
     { key: 'code', title: 'Mã', dataIndex: 'promotionCode', width: 160 },
     {
+      key: 'line_name',
+      title: 'Tên khuyến mãi',
+      dataIndex: 'lineName',
+      width: 260,
+      ellipsis: true,
+    },
+    {
       key: 'type',
       title: 'Loại',
       width: 160,
@@ -170,17 +195,6 @@ const LinesSubtableV2: React.FC<{
       },
     },
     {
-      key: 'usage',
-      title: 'Giới hạn',
-      width: 200,
-      render: (_: any, r) => (
-        <>
-          KH/khách: <b>{r.maxUsagePerCustomer ?? '—'}</b> • Tổng:{' '}
-          <b>{r.maxUsageTotal ?? '—'}</b>
-        </>
-      ),
-    },
-    {
       key: 'start_at',
       title: 'Bắt đầu',
       width: 130,
@@ -194,7 +208,7 @@ const LinesSubtableV2: React.FC<{
     },
     {
       key: 'action',
-      width: 110,
+      width: 140,
       fixed: 'right',
       align: 'center',
       render: (_: any, r) => (

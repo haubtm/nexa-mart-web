@@ -13,13 +13,13 @@ const PromotionContainer = () => {
   return (
     <BasePageLayout
       searchProps={{
-        defaultValue: queryParams.search,
+        defaultValue: queryParams.keyword,
         placeholder: 'Tìm kiếm',
         prefix: <SvgSearchIcon />,
         onSearchChange: (value) => {
           setQueryParams({
             ...queryParams,
-            search: value.trim().toLowerCase(),
+            keyword: value.trim().toLowerCase(),
           });
         },
       }}
