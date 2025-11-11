@@ -12,8 +12,7 @@ export const useHook = (
     const Schema = z.object({
       // meta
       promotionCode: z.string().trim().nonempty(),
-      usageLimit: z.number().int().nonnegative(),
-      usageCount: z.number().int().nonnegative(),
+      usageLimit: z.number().int().nonnegative().optional().nullable(),
 
       // BUY_X_GET_Y (không còn theo Category)
       buyProductId: z.number().int().nonnegative().optional(),
@@ -21,6 +20,7 @@ export const useHook = (
       buyMinValue: z.number().nonnegative().optional(),
 
       giftProductId: z.number().int().nonnegative().optional(),
+      giftQuantity: z.number().int().positive().optional(),
       giftDiscountType: z
         .enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE'])
         .optional(),
@@ -44,6 +44,7 @@ export const useHook = (
       productMinPromotionQuantity: z.number().int().nonnegative().optional(),
 
       // UI-only keys (cắt bỏ phần liên quan category)
+      _buyMinConditionType: z.enum(['QUANTITY', 'VALUE']).optional(),
       _orderConditionType: z
         .enum(['NONE', 'MIN_ORDER_VALUE', 'MIN_DISCOUNTED_QTY'])
         .optional(),
@@ -63,6 +64,13 @@ export const useHook = (
   const onFinish = async (rawValues: any) => {
     try {
       const d = { ...(rawValues?.detail ?? {}) };
+
+      // BUY_X_GET_Y: lựa chọn điều kiện mua
+      if (d._buyMinConditionType === 'QUANTITY') {
+        d.buyMinValue = undefined;
+      } else if (d._buyMinConditionType === 'VALUE') {
+        d.buyMinQuantity = undefined;
+      }
 
       // BUY_X_GET_Y: nếu FREE thì không gửi buyMinValue
       if (d.giftDiscountType === 'FREE') {
@@ -95,6 +103,7 @@ export const useHook = (
         d.productMinPromotionValue = undefined;
       }
 
+      delete d._buyMinConditionType;
       delete d._orderConditionType;
       delete d._productConditionType;
 

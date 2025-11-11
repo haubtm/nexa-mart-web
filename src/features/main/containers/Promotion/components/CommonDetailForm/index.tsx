@@ -87,13 +87,13 @@ export default function PromotionDetailCreateForm({
         detail: {
           // meta
           usageLimit: 1,
-          usageCount: 1,
 
           // BUY_X_GET_Y
           buyProductId: 0,
           buyMinQuantity: 1,
           buyMinValue: 0.01,
           giftProductId: 0,
+          giftQuantity: 1,
           giftDiscountType: 'PERCENTAGE',
           giftDiscountValue: 0,
           giftMaxQuantity: 1,
@@ -114,7 +114,8 @@ export default function PromotionDetailCreateForm({
           productMinPromotionValue: 0.01,
           productMinPromotionQuantity: 1,
 
-          // chỉ còn 2 UI keys (order/product)
+          // UI-only keys
+          _buyMinConditionType: 'QUANTITY',
           _orderConditionType: 'NONE',
           _productConditionType: 'NONE',
         },
@@ -141,21 +142,43 @@ export default function PromotionDetailCreateForm({
               <InputNumber min={0} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
-          <Col xs={24} md={8}>
-            <Form.Item
-              label="Số lần sử dụng"
-              name={['detail', 'usageCount']}
-              rules={[rules]}
-            >
-              <InputNumber min={0} style={{ width: '100%' }} />
-            </Form.Item>
-          </Col>
         </Row>
       </Card>
 
       {/* BUY_X_GET_Y */}
       {promotionType === EPromotionType.BUY_X_GET_Y && (
         <Card title="Mua X tặng Y" style={{ marginBottom: 16 }}>
+          {/* Điều kiện mua (radio chọn SL hoặc Giá trị) */}
+          <Form.Item
+            label="Điều kiện mua"
+            name={['detail', '_buyMinConditionType']}
+            rules={[rules, { required: true, message: 'Chọn điều kiện mua' }]}
+            style={{ marginBottom: 16 }}
+          >
+            <Radio.Group>
+              <Space direction="vertical">
+                {isUpdate ? (
+                  (() => {
+                    const current = form.getFieldValue([
+                      'detail',
+                      '_buyMinConditionType',
+                    ]);
+                    const map: Record<string, string> = {
+                      QUANTITY: 'SL mua tối thiểu',
+                      VALUE: 'Giá trị mua tối thiểu',
+                    };
+                    return <Radio value={current}>{map[current]}</Radio>;
+                  })()
+                ) : (
+                  <>
+                    <Radio value="QUANTITY">SL mua tối thiểu</Radio>
+                    <Radio value="VALUE">Giá trị mua tối thiểu</Radio>
+                  </>
+                )}
+              </Space>
+            </Radio.Group>
+          </Form.Item>
+
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
@@ -173,19 +196,34 @@ export default function PromotionDetailCreateForm({
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={6}>
-              <Form.Item
-                label="SL mua tối thiểu"
-                name={['detail', 'buyMinQuantity']}
-                rules={[rules]}
-              >
-                <InputNumber min={1} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
             <Form.Item noStyle shouldUpdate>
               {() => {
+                const condType = form.getFieldValue([
+                  'detail',
+                  '_buyMinConditionType',
+                ]);
+                if (condType !== 'QUANTITY') return null;
+                return (
+                  <Col xs={24} md={6}>
+                    <Form.Item
+                      label="SL mua tối thiểu"
+                      name={['detail', 'buyMinQuantity']}
+                      rules={[rules]}
+                    >
+                      <InputNumber min={1} style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                );
+              }}
+            </Form.Item>
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const condType = form.getFieldValue([
+                  'detail',
+                  '_buyMinConditionType',
+                ]);
                 const giftType = form.getFieldValue(['detail', 'giftDiscountType']);
-                if (giftType === 'FREE') return null;
+                if (condType !== 'VALUE' || giftType === 'FREE') return null;
                 return (
                   <Col xs={24} md={6}>
                     <Form.Item
@@ -202,13 +240,6 @@ export default function PromotionDetailCreateForm({
                     </Form.Item>
                   </Col>
                 );
-              }}
-            </Form.Item>
-            <Form.Item noStyle shouldUpdate>
-              {() => {
-                const giftType = form.getFieldValue(['detail', 'giftDiscountType']);
-                if (giftType !== 'FREE') return null;
-                return <Col xs={24} md={6} style={{ minHeight: 36 }} />;
               }}
             </Form.Item>
           </Row>
@@ -229,18 +260,27 @@ export default function PromotionDetailCreateForm({
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={6}>
               <Form.Item
-                label="Số lượng tặng tối đa"
+                label="Số lượng tặng"
+                name={['detail', 'giftQuantity']}
+                rules={[rules]}
+              >
+                <InputNumber min={1} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={6}>
+              <Form.Item
+                label="Số lần tặng tối đa"
                 name={['detail', 'giftMaxQuantity']}
                 rules={[
                   rules,
-                  { required: true, message: 'Nhập số lượng' },
+                  { required: true, message: 'Nhập số lần' },
                   {
                     validator: (_: any, v: number) =>
                       v && v >= 1
                         ? Promise.resolve()
-                        : Promise.reject('Số lượng phải ≥ 1'),
+                        : Promise.reject('Số lần phải ≥ 1'),
                   },
                 ]}
               >

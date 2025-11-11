@@ -113,6 +113,15 @@ export const useHook = (
       // ❌ Không dùng buyCategory*
       d.buyCategory = undefined;
       d.buyCategoryId = undefined;
+
+      // Detect điều kiện mua (QUANTITY hay VALUE) dựa vào dữ liệu hiện có
+      if (!d._buyMinConditionType) {
+        if (d.buyMinValue && d.buyMinValue > 0) {
+          d._buyMinConditionType = 'VALUE';
+        } else {
+          d._buyMinConditionType = 'QUANTITY';
+        }
+      }
     }
 
     if (promotionType === EPromotionType.PRODUCT_DISCOUNT) {
