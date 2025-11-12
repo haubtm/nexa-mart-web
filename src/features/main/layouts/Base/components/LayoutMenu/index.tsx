@@ -87,9 +87,13 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
         key: ROUTE_PATH.ADMIN.WAREHOUSE.PATH(),
         label: 'Tồn kho',
       },
-      [ROUTE_PATH.ADMIN.REPORT.PATH()]: {
-        key: ROUTE_PATH.ADMIN.REPORT.PATH(),
-        label: 'Doanh số',
+      [ROUTE_PATH.ADMIN.REPORT.SALE_DAILY.PATH()]: {
+        key: ROUTE_PATH.ADMIN.REPORT.SALE_DAILY.PATH(),
+        label: 'Doanh số theo ngày',
+      },
+      [ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()]: {
+        key: ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH(),
+        label: 'Doanh số theo khách hàng',
       },
       [ROUTE_PATH.ADMIN.ORDER.PATH()]: {
         key: ROUTE_PATH.ADMIN.ORDER.PATH(),
@@ -201,10 +205,26 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
         label: 'Báo cáo',
         children: [
           {
-            key: routePathMapping[ROUTE_PATH.ADMIN.REPORT.PATH()].key,
+            key: routePathMapping[ROUTE_PATH.ADMIN.REPORT.SALE_DAILY.PATH()]
+              .key,
             label: (
-              <Link to={ROUTE_PATH.ADMIN.REPORT.PATH()}>
-                {routePathMapping[ROUTE_PATH.ADMIN.REPORT.PATH()].label}
+              <Link to={ROUTE_PATH.ADMIN.REPORT.SALE_DAILY.PATH()}>
+                {
+                  routePathMapping[ROUTE_PATH.ADMIN.REPORT.SALE_DAILY.PATH()]
+                    .label
+                }
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()]
+              .key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()}>
+                {
+                  routePathMapping[ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()]
+                    .label
+                }
               </Link>
             ),
           },

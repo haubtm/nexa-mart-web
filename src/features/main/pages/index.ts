@@ -10,7 +10,7 @@ export { default as SettingPage } from './Setting';
 export { default as StockTakePage } from './StockTake';
 export { default as SupplierPage } from './Supplier';
 export { default as WarehousePage } from './Warehouse';
-export { default as ReportPage } from './Report';
+export * from './Report';
 export { default as RefundPage } from './Refund';
 export { default as OrderPage } from './Order';
 export { default as OrderDetailPage } from './OrderDetail';

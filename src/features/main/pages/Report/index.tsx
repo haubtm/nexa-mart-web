@@ -1,12 +1,24 @@
-import { ReportContainer } from '@/features/main';
+import {
+  ReportCustomerSaleContainer,
+  ReportSaleDailyContainer,
+} from '@/features/main';
 
-const ReportPage = () => {
+const ReportSaleDailyPage = () => {
   return (
     <>
-      <title>Báo cáo doanh số</title>
-      <ReportContainer />
+      <title>Doanh số theo ngày</title>
+      <ReportSaleDailyContainer />
     </>
   );
 };
 
-export default ReportPage;
+const ReportCustomerSalePage = () => {
+  return (
+    <>
+      <title>Doanh số theo khách hàng</title>
+      <ReportCustomerSaleContainer />
+    </>
+  );
+};
+
+export { ReportSaleDailyPage, ReportCustomerSalePage };

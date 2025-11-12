@@ -53,6 +53,18 @@ export const ROUTE_PATH = {
     },
     REPORT: {
       PATH: () => `/admin/report`,
+      SALE_DAILY: {
+        PATH: () => `${ROUTE_PATH.ADMIN.REPORT.PATH()}/sales-daily`,
+      },
+      SALE_CUSTOMER: {
+        PATH: () => `${ROUTE_PATH.ADMIN.REPORT.PATH()}/sales-customer`,
+      },
+      RETURN: {
+        PATH: () => `${ROUTE_PATH.ADMIN.REPORT.PATH()}/sales-return`,
+      },
+      PROMOTION: {
+        PATH: () => `${ROUTE_PATH.ADMIN.REPORT.PATH()}/sales-promotion`,
+      },
     },
     REFUND: {
       PATH: () => `/admin/refund`,

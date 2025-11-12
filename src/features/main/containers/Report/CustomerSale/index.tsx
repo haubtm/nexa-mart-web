@@ -19,37 +19,38 @@ import {
 import styled from 'styled-components';
 import dayjs from 'dayjs';
 import { useDebounce } from '@/lib';
-import { useEmployeeList, useReportList } from '../../react-query';
+import { useCustomerList, useReportCustomerSale } from '@/features/main';
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
 // ===== Types from API =====
-interface IEmployeeItem {
-  employeeId: number;
+interface ICustomerItem {
+  customerId: number;
   name: string;
+  code?: string;
+  address?: string;
+  customerType?: string;
   email?: string | null;
-  employeeCode?: string | null;
-  role?: string;
   isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
-interface IDailySaleRow {
-  employeeCode: string;
-  employeeName: string;
-  saleDate: string; // YYYY-MM-DD
-  totalDiscount: number;
+interface ICategorySaleRow {
+  categoryName: string;
   revenueBeforeDiscount: number;
+  discount: number;
   revenueAfterDiscount: number;
 }
 
-interface IEmployeeSalesBlock {
-  stt: number;
-  employeeCode: string;
-  employeeName: string;
-  dailySales: IDailySaleRow[];
+interface ICustomerSalesBlock {
+  customerId: number;
+  customerCode: string;
+  customerName: string;
+  address: string;
+  customerType: string;
+  categorySalesList: ICategorySaleRow[];
   totalDiscount: number;
   totalRevenueBeforeDiscount: number;
   totalRevenueAfterDiscount: number;
@@ -58,7 +59,7 @@ interface IEmployeeSalesBlock {
 interface IReportResponseData {
   fromDate: string; // YYYY-MM-DD
   toDate: string; // YYYY-MM-DD
-  employeeSalesList: IEmployeeSalesBlock[];
+  customerSalesList: ICustomerSalesBlock[];
   grandTotalDiscount: number;
   grandTotalRevenueBeforeDiscount: number;
   grandTotalRevenueAfterDiscount: number;
@@ -71,9 +72,11 @@ interface ITableRow {
   key: string;
   kind: RowKind;
   stt?: number | string;
-  employeeCode?: string;
-  employeeName?: string;
-  saleDate?: string; // formatted for UI
+  customerCode?: string;
+  customerName?: string;
+  address?: string;
+  customerType?: string;
+  categoryName?: string;
   totalDiscount?: number;
   revenueBeforeDiscount?: number;
   revenueAfterDiscount?: number;
@@ -104,35 +107,35 @@ const StyledWrapper = styled.div`
 `;
 
 // ===== Component =====
-const ReportContainer: React.FC = () => {
-  // Search employees
+const ReportCustomerSaleContainer: React.FC = () => {
+  // Search customers
   const [search, setSearch] = useState('');
   const searchDebounced = useDebounce(search);
-  const { data: empResp, isLoading: isEmpLoading } = useEmployeeList({
-    keyword: searchDebounced,
+  const { data: customerResp, isLoading: isCustomerLoading } = useCustomerList({
+    search: searchDebounced,
   });
 
-  const employeeOptions = useMemo(() => {
-    const list: IEmployeeItem[] = empResp?.data?.employees ?? [];
-    return list.map((e) => ({
-      label: `${e.name}${e.employeeCode ? ` — ${e.employeeCode}` : ''}`,
-      value: e.employeeId,
+  const customerOptions = useMemo(() => {
+    const list: ICustomerItem[] = customerResp?.data?.content ?? [];
+    return list.map((c) => ({
+      label: `${c.name}${c.code ? ` — ${c.code}` : ''}`,
+      value: c.customerId,
     }));
-  }, [empResp]);
+  }, [customerResp]);
 
   // Query params
   const [form] = Form.useForm();
   const [queryParams, setQueryParams] = useState<{
     fromDate?: string;
     toDate?: string;
-    employeeId?: number;
+    customerId?: number;
   }>(() => ({
     fromDate: dayjs().format('YYYY-MM-DD'),
     toDate: dayjs().format('YYYY-MM-DD'),
   }));
 
   // Fetch report
-  const { data: reportResp, isLoading: isReportLoading } = useReportList(
+  const { data: reportResp, isLoading: isReportLoading } = useReportCustomerSale(
     queryParams as any,
   );
   const reportData: IReportResponseData | undefined = reportResp?.data;
@@ -141,7 +144,7 @@ const ReportContainer: React.FC = () => {
   useEffect(() => {
     form.setFieldsValue({
       dateRange: [dayjs(queryParams.fromDate), dayjs(queryParams.toDate)],
-      employeeId: queryParams.employeeId,
+      customerId: queryParams.customerId,
       search,
     });
   }, []);
@@ -152,31 +155,31 @@ const ReportContainer: React.FC = () => {
 
     const rows: ITableRow[] = [];
 
-    (reportData.employeeSalesList || []).forEach((block, idx) => {
-      // Optional header per employee (visual separation)
+    (reportData.customerSalesList || []).forEach((block, idx) => {
+      // Section header per customer
       rows.push({
         key: `hdr-${idx}`,
         kind: 'sectionHeader',
         stt: idx + 1,
-        employeeCode: block.employeeCode,
-        employeeName: block.employeeName,
+        customerCode: block.customerCode,
+        customerName: block.customerName,
+        address: block.address,
+        customerType: block.customerType,
       });
 
-      (block.dailySales || []).forEach((d, i) => {
+      (block.categorySalesList || []).forEach((c, i) => {
         rows.push({
           key: `d-${idx}-${i}`,
           kind: 'detail',
           stt: i + 1,
-          employeeCode: d.employeeCode,
-          employeeName: d.employeeName,
-          saleDate: fmtDate(d.saleDate),
-          totalDiscount: d.totalDiscount,
-          revenueBeforeDiscount: d.revenueBeforeDiscount,
-          revenueAfterDiscount: d.revenueAfterDiscount,
+          categoryName: c.categoryName,
+          totalDiscount: c.discount,
+          revenueBeforeDiscount: c.revenueBeforeDiscount,
+          revenueAfterDiscount: c.revenueAfterDiscount,
         });
       });
 
-      // Subtotal row per employee
+      // Subtotal row per customer
       rows.push({
         key: `sub-${idx}`,
         kind: 'subtotal',
@@ -204,7 +207,7 @@ const ReportContainer: React.FC = () => {
     {
       title: 'STT',
       dataIndex: 'stt',
-      width: 80,
+      width: 60,
       render: (v, record) => {
         if (record.kind === 'sectionHeader')
           return <Text strong>{v as number}</Text>;
@@ -212,8 +215,35 @@ const ReportContainer: React.FC = () => {
       },
     },
     {
-      title: 'NVBH',
-      dataIndex: 'employeeCode',
+      title: 'Mã KH',
+      dataIndex: 'customerCode',
+      width: 100,
+      render: (v, record) => {
+        if (record.kind === 'sectionHeader') return <Text strong>{v}</Text>;
+        return v as React.ReactNode;
+      },
+    },
+    {
+      title: 'Tên KH',
+      dataIndex: 'customerName',
+      width: 180,
+      render: (v, record) => {
+        if (record.kind === 'sectionHeader') return <Text strong>{v}</Text>;
+        return v as React.ReactNode;
+      },
+    },
+    {
+      title: 'Địa chỉ',
+      dataIndex: 'address',
+      width: 200,
+      render: (v, record) => {
+        if (record.kind === 'sectionHeader') return <Text strong>{v}</Text>;
+        return v as React.ReactNode;
+      },
+    },
+    {
+      title: 'Nhóm KH',
+      dataIndex: 'customerType',
       width: 120,
       render: (v, record) => {
         if (record.kind === 'sectionHeader') return <Text strong>{v}</Text>;
@@ -221,22 +251,13 @@ const ReportContainer: React.FC = () => {
       },
     },
     {
-      title: 'Tên NVBH',
-      dataIndex: 'employeeName',
-      width: 220,
-      render: (v, record) => {
-        if (record.kind === 'sectionHeader') return <Text strong>{v}</Text>;
-        return v as React.ReactNode;
-      },
-    },
-    {
-      title: 'Ngày',
-      dataIndex: 'saleDate',
+      title: 'Nhóm SP',
+      dataIndex: 'categoryName',
       width: 140,
     },
     {
-      title: 'Chiết khấu',
-      dataIndex: 'totalDiscount',
+      title: 'Doanh số trước CK',
+      dataIndex: 'revenueBeforeDiscount',
       align: 'right',
       width: 160,
       render: (v, r) =>
@@ -247,10 +268,10 @@ const ReportContainer: React.FC = () => {
             : '',
     },
     {
-      title: 'Doanh số trước CK',
-      dataIndex: 'revenueBeforeDiscount',
+      title: 'Chiết khấu',
+      dataIndex: 'totalDiscount',
       align: 'right',
-      width: 180,
+      width: 140,
       render: (v, r) =>
         typeof v === 'number'
           ? fmtMoney(v)
@@ -262,7 +283,7 @@ const ReportContainer: React.FC = () => {
       title: 'Doanh số sau CK',
       dataIndex: 'revenueAfterDiscount',
       align: 'right',
-      width: 180,
+      width: 160,
       render: (v, r) =>
         typeof v === 'number'
           ? fmtMoney(v)
@@ -290,7 +311,7 @@ const ReportContainer: React.FC = () => {
     setQueryParams({
       fromDate: from ? dayjs(from).format('YYYY-MM-DD') : undefined,
       toDate: to ? dayjs(to).format('YYYY-MM-DD') : undefined,
-      employeeId: values.employeeId,
+      customerId: values.customerId,
     });
   };
 
@@ -323,15 +344,15 @@ const ReportContainer: React.FC = () => {
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item label="Nhân viên bán hàng" name="employeeId">
+              <Form.Item label="Khách hàng" name="customerId">
                 <Select
                   showSearch
-                  placeholder="Tất cả nhân viên"
-                  options={employeeOptions}
+                  placeholder="Tất cả khách hàng"
+                  options={customerOptions}
                   filterOption={false}
                   onSearch={setSearch}
                   notFoundContent={
-                    isEmpLoading ? (
+                    isCustomerLoading ? (
                       <Spin size="small" />
                     ) : (
                       <Empty
@@ -359,7 +380,7 @@ const ReportContainer: React.FC = () => {
                       setQueryParams({
                         fromDate: dayjs().format('YYYY-MM-DD'),
                         toDate: dayjs().format('YYYY-MM-DD'),
-                        employeeId: undefined,
+                        customerId: undefined,
                       });
                     }}
                   >
@@ -380,7 +401,7 @@ const ReportContainer: React.FC = () => {
         >
           <Col>
             <Title level={5} style={{ margin: 0 }}>
-              DOANH SỐ BÁN HÀNG THEO NGÀY
+              DOANH SỐ BÁN HÀNG THEO KHÁCH HÀNG
             </Title>
             <Text type="secondary">
               Từ ngày:{' '}
@@ -407,7 +428,7 @@ const ReportContainer: React.FC = () => {
               />
             ),
           }}
-          scroll={{ x: 900 }}
+          scroll={{ x: 1400 }}
         />
 
         {reportData && (
@@ -415,7 +436,7 @@ const ReportContainer: React.FC = () => {
             <Divider />
             <Row gutter={[16, 8]}>
               <Col xs={24} md={16}>
-                <div>- Thông tin nhân viên bán hàng theo ngày.</div>
+                <div>- Thông tin bán hàng theo khách hàng và nhóm sản phẩm.</div>
                 <div>
                   - Chiết khấu: bao gồm khuyến mãi/chiết khấu của hóa đơn và sản
                   phẩm.
@@ -441,4 +462,4 @@ const ReportContainer: React.FC = () => {
   );
 };
 
-export { ReportContainer };
+export { ReportCustomerSaleContainer };

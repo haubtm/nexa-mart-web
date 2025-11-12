@@ -13,7 +13,8 @@ import {
   SupplierPage as AdminSupplierPage,
   WarehousePage as AdminWarehousePage,
   PromotionPage as AdminPromotionPage,
-  ReportPage as AdminReportPage,
+  ReportSaleDailyPage as AdminReportSaleDailyPage,
+  ReportCustomerSalePage as AdminReportCustomerSalePage,
   RefundPage as AdminRefundPage,
   OrderPage as AdminOrderPage,
   OrderDetailPage as AdminOrderDetailPage,
@@ -92,8 +93,12 @@ export const AdminRoute = () => {
         element={<AdminWarehousePage />}
       />
       <Route
-        path={ROUTE_PATH.ADMIN.REPORT.PATH()}
-        element={<AdminReportPage />}
+        path={ROUTE_PATH.ADMIN.REPORT.SALE_DAILY.PATH()}
+        element={<AdminReportSaleDailyPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()}
+        element={<AdminReportCustomerSalePage />}
       />
       <Route
         path={ROUTE_PATH.ADMIN.REFUND.PATH()}
