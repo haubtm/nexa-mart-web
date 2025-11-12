@@ -31,25 +31,29 @@ const UpdateStockTakeModal = ({ record }: IUpdateStockTakeModalProps) => {
       footer={
         <>
           <Button onClick={handleCancel}>Hủy</Button>
-          <Button
-            style={{ backgroundColor: 'green' }}
-            type="primary"
-            onClick={() => {
-              form.setFieldValue('status', StockTakeStatus.PENDING);
-              form.submit();
-            }}
-          >
-            Lưu tạm
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => {
-              form.setFieldValue('status', StockTakeStatus.COMPLETED);
-              form.submit();
-            }}
-          >
-            Hoàn thành
-          </Button>
+          {record?.status !== StockTakeStatus.COMPLETED && (
+            <Button
+              style={{ backgroundColor: 'green' }}
+              type="primary"
+              onClick={() => {
+                form.setFieldValue('status', StockTakeStatus.PENDING);
+                form.submit();
+              }}
+            >
+              Lưu tạm
+            </Button>
+          )}
+          {record?.status !== StockTakeStatus.COMPLETED && (
+            <Button
+              type="primary"
+              onClick={() => {
+                form.setFieldValue('status', StockTakeStatus.COMPLETED);
+                form.submit();
+              }}
+            >
+              Hoàn thành
+            </Button>
+          )}
         </>
       }
       openButton={

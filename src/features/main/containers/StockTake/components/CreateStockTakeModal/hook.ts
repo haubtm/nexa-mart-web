@@ -36,7 +36,11 @@ export const useHook = () => {
           });
 
           queryClient.invalidateQueries({
-            queryKey: [stockTakeKeys.all, warehouseKeys.all],
+            queryKey: stockTakeKeys.all,
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: warehouseKeys.all,
           });
 
           handleCancel();

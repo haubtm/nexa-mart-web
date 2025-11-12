@@ -1,10 +1,9 @@
-import { Button, Flex, formatDate, type ITableProps } from '@/lib';
+import { Flex, formatDate, type ITableProps } from '@/lib';
 import { useState } from 'react';
 import { useCommonHook } from '@/features/main/containers/StockTake/hook';
 import type { IStockTakeListResponse } from '@/dtos';
 import { Tag } from 'antd';
 import UpdateStockTakeModal from '../UpdateStockTakeModal';
-import { SvgTrashIcon } from '@/assets';
 
 export const useHook = () => {
   const { queryParams } = useCommonHook();
@@ -57,7 +56,7 @@ export const useHook = () => {
     },
     {
       key: 'action',
-      width: 120,
+      width: 60,
       fixed: 'right',
       align: 'center',
       render: (_, record) => (
@@ -65,19 +64,18 @@ export const useHook = () => {
           <div
             onClick={(e) => {
               e.stopPropagation();
-              console.log('click update', record);
             }}
           >
             <UpdateStockTakeModal record={record} />
           </div>
-          <Button
+          {/* <Button
             type="text"
             icon={<SvgTrashIcon width={18} height={18} />}
             onClick={(e) => {
               e.stopPropagation();
               // handleDelete([record?.id], record);
             }}
-          />
+          /> */}
         </Flex>
       ),
     },
