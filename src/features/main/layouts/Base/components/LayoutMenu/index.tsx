@@ -95,6 +95,14 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
         key: ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH(),
         label: 'Doanh số theo khách hàng',
       },
+      [ROUTE_PATH.ADMIN.REPORT.RETURN.PATH()]: {
+        key: ROUTE_PATH.ADMIN.REPORT.RETURN.PATH(),
+        label: 'Bảng kê trả hàng',
+      },
+      [ROUTE_PATH.ADMIN.REPORT.PROMOTION.PATH()]: {
+        key: ROUTE_PATH.ADMIN.REPORT.PROMOTION.PATH(),
+        label: 'Tổng kết khuyến mãi',
+      },
       [ROUTE_PATH.ADMIN.ORDER.PATH()]: {
         key: ROUTE_PATH.ADMIN.ORDER.PATH(),
         label: 'Hóa đơn bán hàng',
@@ -223,6 +231,25 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
               <Link to={ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()}>
                 {
                   routePathMapping[ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()]
+                    .label
+                }
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.REPORT.RETURN.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.REPORT.RETURN.PATH()}>
+                {routePathMapping[ROUTE_PATH.ADMIN.REPORT.RETURN.PATH()].label}
+              </Link>
+            ),
+          },
+          {
+            key: routePathMapping[ROUTE_PATH.ADMIN.REPORT.PROMOTION.PATH()].key,
+            label: (
+              <Link to={ROUTE_PATH.ADMIN.REPORT.PROMOTION.PATH()}>
+                {
+                  routePathMapping[ROUTE_PATH.ADMIN.REPORT.PROMOTION.PATH()]
                     .label
                 }
               </Link>

@@ -15,6 +15,8 @@ import {
   PromotionPage as AdminPromotionPage,
   ReportSaleDailyPage as AdminReportSaleDailyPage,
   ReportCustomerSalePage as AdminReportCustomerSalePage,
+  ReportReturnPage as AdminReportReturnPage,
+  ReportPromotionPage as AdminReportPromotionPage,
   RefundPage as AdminRefundPage,
   OrderPage as AdminOrderPage,
   OrderDetailPage as AdminOrderDetailPage,
@@ -99,6 +101,14 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.REPORT.SALE_CUSTOMER.PATH()}
         element={<AdminReportCustomerSalePage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.REPORT.RETURN.PATH()}
+        element={<AdminReportReturnPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.REPORT.PROMOTION.PATH()}
+        element={<AdminReportPromotionPage />}
       />
       <Route
         path={ROUTE_PATH.ADMIN.REFUND.PATH()}

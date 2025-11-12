@@ -1,5 +1,7 @@
 import {
   ReportCustomerSaleContainer,
+  ReportPromotionContainer,
+  ReportReturnContainer,
   ReportSaleDailyContainer,
 } from '@/features/main';
 
@@ -21,4 +23,27 @@ const ReportCustomerSalePage = () => {
   );
 };
 
-export { ReportSaleDailyPage, ReportCustomerSalePage };
+const ReportReturnPage = () => {
+  return (
+    <>
+      <title>Báo cáo trả hàng</title>
+      <ReportReturnContainer />
+    </>
+  );
+};
+
+const ReportPromotionPage = () => {
+  return (
+    <>
+      <title>Báo cáo khuyến mãi</title>
+      <ReportPromotionContainer />
+    </>
+  );
+};
+
+export {
+  ReportSaleDailyPage,
+  ReportCustomerSalePage,
+  ReportReturnPage,
+  ReportPromotionPage,
+};

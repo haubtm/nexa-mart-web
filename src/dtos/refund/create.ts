@@ -2,7 +2,7 @@ import type { IResponse } from '../common';
 
 export type IRefundCreateRequest = {
   invoiceId: number;
-  refundLineItems: {
+  refundLineItems?: {
     lineItemId: number;
     quantity: number;
   }[];
