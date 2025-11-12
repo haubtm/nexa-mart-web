@@ -18,6 +18,7 @@ import {
   ReportReturnPage as AdminReportReturnPage,
   ReportPromotionPage as AdminReportPromotionPage,
   RefundPage as AdminRefundPage,
+  RefundDetailPage as AdminRefundDetailPage,
   OrderPage as AdminOrderPage,
   OrderDetailPage as AdminOrderDetailPage,
   OrderAdminPage as AdminOrderAdminPage,
@@ -113,6 +114,10 @@ export const AdminRoute = () => {
       <Route
         path={ROUTE_PATH.ADMIN.REFUND.PATH()}
         element={<AdminRefundPage />}
+      />
+      <Route
+        path={ROUTE_PATH.ADMIN.REFUND.DETAIL.PATH()}
+        element={<AdminRefundDetailPage />}
       />
       <Route
         path={ROUTE_PATH.ADMIN.ORDER.PATH()}

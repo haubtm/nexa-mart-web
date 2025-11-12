@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Card,
   Descriptions,
@@ -7,13 +7,22 @@ import {
   Typography,
   Space,
   Button,
+  Modal,
+  Form,
+  Input,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useOrderByInvoiceId } from '@/features/sale';
+import {
+  useOrderByInvoiceId,
+  useRefundCreate,
+  refundKeys,
+} from '@/features/sale';
 import { EInvoiceStatus } from '@/lib';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { queryClient } from '@/providers/ReactQuery';
+import { useNotification } from '@/lib';
 
 const { Title } = Typography;
 
@@ -28,6 +37,10 @@ const statusTag = (s?: EInvoiceStatus) => {
     'PARTIALLY-PAID': { color: 'purple', text: 'Thanh toán một phần' },
     PARTIALLY_PAID: { color: 'purple', text: 'Thanh toán một phần' },
     REFUNDED: { color: 'magenta', text: 'Đã hoàn' },
+    COMPLETED: { color: 'success', text: 'Hoàn thành' },
+    PENDING: { color: 'processing', text: 'Chờ xử lý' },
+    UNPAID: { color: 'warning', text: 'Chưa thanh toán' },
+    RETURNED: { color: 'error', text: 'Đã trả hàng' },
   };
   const v = s
     ? (map[s] ?? { color: 'default', text: s })
@@ -58,11 +71,61 @@ type Item = {
 const OrderDetailContainer: React.FC = () => {
   const { invoiceId } = useParams<{ invoiceId: string }>();
   const navigate = useNavigate();
+  const { notify } = useNotification();
+  const [form] = Form.useForm();
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
 
+  const { mutate: createRefund, isPending: isCreatingRefund } =
+    useRefundCreate();
   const { data, isPending } = useOrderByInvoiceId({
     invoiceId: Number(invoiceId),
   });
   const inv = data?.data;
+
+  const handleRefund = () => {
+    Modal.confirm({
+      title: 'Xác nhận trả hàng',
+      content: 'Bạn có chắc chắn muốn trả toàn bộ hàng cho đơn này?',
+      okText: 'Trả hàng',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk() {
+        setIsRefundModalOpen(true);
+      },
+    });
+  };
+
+  const handleSubmitRefund = (values: { reasonNote?: string }) => {
+    if (!invoiceId) return;
+
+    createRefund(
+      {
+        invoiceId: Number(invoiceId),
+        reasonNote: values?.reasonNote?.trim() || '',
+      },
+      {
+        onSuccess: () => {
+          notify('success', {
+            message: 'Thành công',
+            description: 'Tạo đơn trả hàng thành công',
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: refundKeys.all,
+          });
+
+          form.resetFields();
+          setIsRefundModalOpen(false);
+        },
+        onError: () => {
+          notify('error', {
+            message: 'Lỗi',
+            description: 'Không thể tạo đơn trả hàng',
+          });
+        },
+      },
+    );
+  };
 
   const itemColumns: ColumnsType<Item> = useMemo(
     () => [
@@ -128,9 +191,16 @@ const OrderDetailContainer: React.FC = () => {
         <Title level={4} style={{ margin: 0 }}>
           Chi tiết Hóa đơn
         </Title>
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
-          Quay lại
-        </Button>
+        <Space>
+          {inv?.status === EInvoiceStatus.PAID && (
+            <Button danger onClick={handleRefund}>
+              Trả hàng
+            </Button>
+          )}
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+            Quay lại
+          </Button>
+        </Space>
       </Space>
 
       <Card loading={isPending}>
@@ -199,6 +269,31 @@ const OrderDetailContainer: React.FC = () => {
           </Descriptions.Item>
         </Descriptions>
       </Card>
+
+      <Modal
+        title="Nhập lý do trả hàng"
+        open={isRefundModalOpen}
+        onCancel={() => setIsRefundModalOpen(false)}
+        confirmLoading={isCreatingRefund}
+        onOk={() => form.submit()}
+      >
+        <Form form={form} layout="vertical" onFinish={handleSubmitRefund}>
+          <Form.Item
+            name="reasonNote"
+            label="Lý do trả hàng"
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+          >
+            <Input.TextArea
+              placeholder="Nhập lý do trả hàng (tùy chọn)"
+              rows={4}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Space>
   );
 };

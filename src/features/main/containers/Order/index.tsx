@@ -76,6 +76,8 @@ const statusTag = (s?: EInvoiceStatus) => {
       text: 'Thanh toán một phần',
     },
     [EInvoiceStatus.REFUNDED]: { color: 'magenta', text: 'Đã hoàn' },
+    [EInvoiceStatus.COMPLETED]: { color: 'success', text: 'Hoàn thành' },
+    [EInvoiceStatus.RETURNED]: { color: 'error', text: 'Đã trả hàng' },
   };
   if (!s) return <Tag>-</Tag>;
   const v = map[s] ?? { color: 'default', text: s };

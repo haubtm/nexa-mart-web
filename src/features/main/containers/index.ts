@@ -11,6 +11,7 @@ export * from './Supplier';
 export * from './Warehouse';
 export * from './Report';
 export * from './Refund';
+export * from './RefundDetail';
 export * from './Order';
 export * from './OrderDetail';
 export * from './OrderAdmin';

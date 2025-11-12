@@ -17,6 +17,7 @@ import type {
   TableProps,
 } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 
 import {
   useCustomerList,
@@ -25,6 +26,7 @@ import {
   useRefundList,
 } from '@/features/main';
 import { useDebounce } from '@/lib';
+import { ROUTE_PATH } from '@/common';
 
 const { RangePicker } = DatePicker;
 
@@ -91,6 +93,8 @@ const formatDateTime = (iso?: string) =>
 
 /* ===== Component ===== */
 const RefundContainer: React.FC = () => {
+  const navigate = useNavigate();
+
   // Trạng thái text search cho 3 Select có showSearch
   const [searchInput, setSearchInput] = useState({
     employeeName: '',
@@ -451,6 +455,11 @@ const RefundContainer: React.FC = () => {
           dataSource={dataSource}
           pagination={pagination}
           onChange={onTableChange}
+          onRow={(record) => ({
+            onClick: () =>
+              navigate(ROUTE_PATH.ADMIN.REFUND.DETAIL.LINK(record.returnId)),
+            style: { cursor: 'pointer' },
+          })}
           scroll={{ x: 1100 }}
         />
       </Card>

@@ -12,6 +12,7 @@ export { default as SupplierPage } from './Supplier';
 export { default as WarehousePage } from './Warehouse';
 export * from './Report';
 export { default as RefundPage } from './Refund';
+export { default as RefundDetailPage } from './RefundDetail';
 export { default as OrderPage } from './Order';
 export { default as OrderDetailPage } from './OrderDetail';
 export { default as OrderAdminPage } from './OrderAdmin';

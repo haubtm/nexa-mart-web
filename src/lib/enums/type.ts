@@ -51,6 +51,8 @@ export enum EInvoiceStatus {
   PAID = 'PAID',
   PARTIALLY_PAID = 'PARTIALLY_PAID',
   REFUNDED = 'REFUNDED',
+  COMPLETED = 'COMPLETED',
+  RETURNED = 'RETURNED',
 }
 
 export enum EDiscountType {
