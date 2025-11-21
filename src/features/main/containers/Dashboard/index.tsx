@@ -15,7 +15,18 @@ import {
   useTopProduct,
 } from '@/features/main/react-query';
 import { EDashboardSortDirection, EPeriod } from '@/lib';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from 'recharts';
 
 const DashboardWrapper = styled.div`
   padding: 24px;
@@ -72,9 +83,9 @@ const TopProductsCard = styled(Card)`
 `;
 
 const DashboardContainer = () => {
-  const [period, setPeriod] = useState<EPeriod>(EPeriod.THIS_MONTH);
+  const [period, setPeriod] = useState<EPeriod>(EPeriod.TODAY);
   const [sortBy, setSortBy] = useState<EDashboardSortDirection>(
-    EDashboardSortDirection.REVENUE
+    EDashboardSortDirection.REVENUE,
   );
 
   const { data: topProducts, isFetching: isFetchingTopProducts } =
@@ -92,7 +103,8 @@ const DashboardContainer = () => {
     period,
   });
 
-  const isLoading = isFetchingTopProducts || isFetchingRevenueChart || isFetchingMetrics;
+  const isLoading =
+    isFetchingTopProducts || isFetchingRevenueChart || isFetchingMetrics;
 
   interface TopProduct {
     productUnitId: number;
@@ -113,13 +125,16 @@ const DashboardContainer = () => {
       width: 80,
       align: 'center' as const,
       render: (rank: number) => (
-        <span style={{
-          backgroundColor: rank === 1 ? '#ffd666' : rank === 2 ? '#d9d9d9' : '#ff7a45',
-          color: '#fff',
-          padding: '2px 8px',
-          borderRadius: '4px',
-          fontWeight: 'bold',
-        }}>
+        <span
+          style={{
+            backgroundColor:
+              rank === 1 ? '#ffd666' : rank === 2 ? '#d9d9d9' : '#ff7a45',
+            color: '#fff',
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontWeight: 'bold',
+          }}
+        >
           #{rank}
         </span>
       ),
@@ -167,19 +182,38 @@ const DashboardContainer = () => {
     <DashboardWrapper>
       <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
         <Col span={24}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <div>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, color: '#2c3e50' }}>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: '28px',
+                  fontWeight: 600,
+                  color: '#2c3e50',
+                }}
+              >
                 Bảng điều khiển
               </h1>
-              <p style={{ margin: '8px 0 0 0', color: '#8c92a4', fontSize: '14px' }}>
+              <p
+                style={{
+                  margin: '8px 0 0 0',
+                  color: '#8c92a4',
+                  fontSize: '14px',
+                }}
+              >
                 Tổng quan kinh doanh của bạn
               </p>
             </div>
             <Select
               value={period}
               onChange={setPeriod}
-              style={{ width: 180 }}
+              style={{ width: 250 }}
               options={[
                 { label: 'Hôm nay', value: EPeriod.TODAY },
                 { label: 'Hôm qua', value: EPeriod.YESTERDAY },
@@ -187,6 +221,7 @@ const DashboardContainer = () => {
                 { label: 'Tháng này', value: EPeriod.THIS_MONTH },
                 { label: 'Năm này', value: EPeriod.THIS_YEAR },
               ]}
+              size="large"
             />
           </div>
         </Col>
@@ -303,7 +338,10 @@ const DashboardContainer = () => {
       {/* Charts */}
       <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={12}>
-          <ChartCard title="Doanh thu theo ngày" loading={isFetchingRevenueChart}>
+          <ChartCard
+            title="Doanh thu theo ngày"
+            loading={isFetchingRevenueChart}
+          >
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
@@ -339,7 +377,10 @@ const DashboardContainer = () => {
           </ChartCard>
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="Số hóa đơn theo ngày" loading={isFetchingRevenueChart}>
+          <ChartCard
+            title="Số hóa đơn theo ngày"
+            loading={isFetchingRevenueChart}
+          >
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
@@ -375,7 +416,9 @@ const DashboardContainer = () => {
           <TopProductsCard
             title={
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <LineChartOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                <LineChartOutlined
+                  style={{ marginRight: 8, color: '#1890ff' }}
+                />
                 <span>Top sản phẩm bán chạy</span>
               </div>
             }
@@ -383,11 +426,18 @@ const DashboardContainer = () => {
               <Select
                 value={sortBy}
                 onChange={setSortBy}
-                style={{ width: 150 }}
+                style={{ width: 250 }}
                 options={[
-                  { label: 'Theo doanh thu', value: EDashboardSortDirection.REVENUE },
-                  { label: 'Theo số lượng', value: EDashboardSortDirection.QUANTITY },
+                  {
+                    label: 'Theo doanh thu',
+                    value: EDashboardSortDirection.REVENUE,
+                  },
+                  {
+                    label: 'Theo số lượng',
+                    value: EDashboardSortDirection.QUANTITY,
+                  },
                 ]}
+                size="large"
               />
             }
             loading={isFetchingTopProducts}

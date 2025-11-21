@@ -8,7 +8,7 @@ interface IProfileAccount {
   employeeId?: number;
   name?: string;
   email?: string;
-  role?: string;
+  userRole?: string;
 }
 
 export interface UserState {

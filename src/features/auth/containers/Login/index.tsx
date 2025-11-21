@@ -10,6 +10,7 @@ import {
   setStorageItem,
   STORAGE_KEY,
   Text,
+  useNotification,
 } from '@/lib';
 import { useAppDispatch } from '@/redux/hooks';
 import { getUserInfo } from '@/redux/slices/userSlice';
@@ -23,7 +24,7 @@ const LoginContainer = () => {
   const navigate = useNavigate();
   const { mutate: login, isPending: isLoadingLogin } = useLogin();
   const dispatch = useAppDispatch();
-
+  const { notify } = useNotification();
   const onLogin = async (values: ILoginRequest) => {
     login(
       {
@@ -33,15 +34,23 @@ const LoginContainer = () => {
       {
         onSuccess: async (data) => {
           setStorageItem(STORAGE_KEY.TOKEN, data.data.accessToken);
+
+          // Lưu thời gian hết hạn token (nếu có)
+          // expiresIn đã là milliseconds, không cần nhân 1000
+          if (data.data.expiresIn) {
+            const expiryTime = Date.now() + data.data.expiresIn;
+            setStorageItem(STORAGE_KEY.TOKEN_EXPIRY, expiryTime);
+          }
+
           await dispatch(getUserInfo());
           navigate(ROUTE_PATH.ADMIN.PATH());
         },
         onError: (error) => {
-          //   notify('error', {
-          //     message: t('error'),
-          //     description: error.message,
-          //   });
-          console.log('error', error);
+          notify('error', {
+            message: 'Đăng nhập thất bại',
+            description: error.message,
+          });
+          // console.log('error', error);
         },
       },
     );
