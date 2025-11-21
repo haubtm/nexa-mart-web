@@ -2,6 +2,7 @@ export * from './attribute';
 export * from './brand';
 export * from './customer';
 export * from './category';
+export * from './dashboard';
 export * from './employee';
 export * from './imports';
 export * from './inventory';

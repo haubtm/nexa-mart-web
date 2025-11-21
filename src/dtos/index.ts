@@ -5,6 +5,7 @@ export * from './customer';
 export * from './category';
 export * from './common';
 export * from './employee';
+export * from './dashboard';
 export * from './imports';
 export * from './inventory';
 export * from './price';

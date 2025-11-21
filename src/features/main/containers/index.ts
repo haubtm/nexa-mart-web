@@ -2,6 +2,7 @@ export * from './Employee';
 export * from './Customer';
 export * from './Product';
 export * from './Promotion';
+export * from './Dashboard';
 export * from './Imports';
 export * from './Transaction';
 export * from './Price';
