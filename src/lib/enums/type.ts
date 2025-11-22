@@ -8,6 +8,13 @@ export enum ECustomerType {
   VIP = 'VIP',
 }
 
+export enum EDivisionType {
+  CITY = 'thành phố trung ương',
+  PROVINCE = 'tỉnh',
+  WARD = 'phường',
+  COMMUNE = 'xã',
+}
+
 export enum EPromotionType {
   BUY_X_GET_Y = 'BUY_X_GET_Y',
   ORDER_DISCOUNT = 'ORDER_DISCOUNT',

@@ -5,7 +5,6 @@ import {
   RefundPage,
   CreateRefundOrderPage,
 } from '@/features/sale';
-import { DashboardPage as AdminDashboardPage } from '@/features/main';
 import { getStorageItem, STORAGE_KEY } from '@/lib';
 import QueryParamProvider from '@/providers/QueryParam';
 import { Navigate, Route } from 'react-router-dom';
@@ -27,11 +26,7 @@ export const SaleRoute = () => {
     <Route path={ROUTE_PATH.SALE.PATH()} element={<SaleMiddleware />}>
       <Route
         index
-        element={<Navigate to={ROUTE_PATH.SALE.DASHBOARD.PATH()} replace />}
-      />
-      <Route
-        path={ROUTE_PATH.SALE.DASHBOARD.PATH()}
-        element={<AdminDashboardPage />}
+        element={<Navigate to={ROUTE_PATH.SALE.ORDER.PATH()} replace />}
       />
       <Route
         path={ROUTE_PATH.SALE.CREATE_REFUND_ORDER.PATH()}

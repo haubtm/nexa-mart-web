@@ -59,16 +59,37 @@ const PrivateRoute = () => {
   return <WithQueryParams />;
 };
 
-const AdminOnlyWrapper = () => {
+const AdminOnlyRoute = () => {
+  const token = getStorageItem<string>(STORAGE_KEY.TOKEN);
   const userProfile = useSelector((state: RootState) => state.user.profile);
   const userRole = userProfile?.userRole;
 
-  // Chỉ ADMIN được vào
-  if (userRole !== ERole.ADMIN) {
+  // Kiểm tra token
+  if (!token || isTokenExpired()) {
+    clearStorage();
+    return <Navigate to={ROUTE_PATH.AUTH.LOGIN.PATH()} replace />;
+  }
+
+  // Nếu có profile và không phải ADMIN, redirect /sale
+  // Nếu chưa có profile, để render (sẽ load profile trong App.tsx)
+  if (userProfile && userRole !== ERole.ADMIN) {
     return <Navigate to={ROUTE_PATH.SALE.PATH()} replace />;
   }
 
-  return <Outlet />;
+  return <WithQueryParams />;
+};
+
+const SaleAndAdminRoute = () => {
+  const token = getStorageItem<string>(STORAGE_KEY.TOKEN);
+
+  // Kiểm tra token
+  if (!token || isTokenExpired()) {
+    clearStorage();
+    return <Navigate to={ROUTE_PATH.AUTH.LOGIN.PATH()} replace />;
+  }
+
+  // ADMIN và STAFF đều được vào
+  return <WithQueryParams />;
 };
 
 const AppRouterProvider = () => {
@@ -82,13 +103,11 @@ const AppRouterProvider = () => {
           <Route index element={<RoleBasedRedirect />} />
         </Route>
 
-        {/* Admin routes - chỉ ADMIN được vào */}
-        <Route element={<PrivateRoute />}>
-          <Route element={<AdminOnlyWrapper />}>{AdminRoute()}</Route>
-        </Route>
+        {/* Admin routes - chỉ ADMIN được vào, STAFF redirect /sale */}
+        <Route element={<AdminOnlyRoute />}>{AdminRoute()}</Route>
 
-        {/* Sale routes - ADMIN và STAFF được vào */}
-        <Route element={<PrivateRoute />}>{SaleRoute()}</Route>
+        {/* Sale routes - ADMIN và STAFF đều được vào */}
+        <Route element={<SaleAndAdminRoute />}>{SaleRoute()}</Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

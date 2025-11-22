@@ -5,11 +5,17 @@ import { queryClient } from '@/providers/ReactQuery';
 import dayjs from 'dayjs';
 import { type MouseEvent, useRef } from 'react';
 
+interface ICustomerFormValues extends ICustomerCreateRequest {
+  addressDetail?: string;
+  wardCode?: string | number;
+  provinceCode?: string | number;
+}
+
 export const useHook = (
   record?: ICustomerListResponse['data']['content'][number] | null,
 ) => {
   const ref = useRef<IModalRef>(null);
-  const [form] = Form.useForm<ICustomerCreateRequest>();
+  const [form] = Form.useForm<ICustomerFormValues>();
   const { mutateAsync: updateCustomer, isPending: isLoadingUpdateCustomer } =
     useCustomerUpdate();
   const { notify } = useNotification();
@@ -54,8 +60,23 @@ export const useHook = (
 
   const handleOpen = () => {
     ref?.current?.open();
+
+    // Parse address from format: "addressDetail, wardCode, wardName, provinceCode, provinceName"
+    const addressParts = record?.address ? record.address.split(', ') : [];
+    const addressDetail = addressParts[0] || '';
+    const wardCode = addressParts[1] ? Number(addressParts[1]) : undefined;
+    const provinceCode = addressParts[3] ? Number(addressParts[3]) : undefined;
+
     form.setFieldsValue({
-      ...record,
+      name: record?.name,
+      email: record?.email,
+      phone: record?.phone,
+      customerCode: record?.customerCode,
+      addressDetail,
+      wardCode,
+      provinceCode,
+      gender: record?.gender,
+      customerType: record?.customerType,
       dateOfBirth: record?.dateOfBirth ? dayjs(record.dateOfBirth) : null,
     });
   };

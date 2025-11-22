@@ -1,3 +1,4 @@
+export * from './address';
 export * from './auth';
 export * from './attribute';
 export * from './axiosService';

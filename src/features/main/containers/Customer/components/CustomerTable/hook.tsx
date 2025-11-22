@@ -23,7 +23,6 @@ export const useHook = () => {
   const { queryParams } = useCommonHook();
   const { mutateAsync: deleteBranches } = useCustomerDelete();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
-
   const columns: ITableProps<
     ICustomerListResponse['data']['content'][number]
   >['columns'] = [
@@ -70,8 +69,18 @@ export const useHook = () => {
     {
       key: 'address',
       title: 'Địa chỉ',
-      width: 200,
-      render: (_, record) => record?.address,
+      width: 300,
+      render: (_, record) => {
+        if (!record?.address) return '';
+        // Parse from format: "addressDetail, wardCode, wardName, provinceCode, provinceName"
+        const parts = record.address.split(', ');
+        const addressDetail = parts[0] || '';
+        const wardName = parts[2] || '';
+        const provinceName = parts[4] || '';
+
+        const displayParts = [addressDetail, wardName, provinceName].filter(Boolean);
+        return displayParts.join(', ');
+      },
     },
     {
       key: 'gender',

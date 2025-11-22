@@ -1,3 +1,4 @@
+export * from './address';
 export * from './attribute';
 export * from './brand';
 export * from './customer';

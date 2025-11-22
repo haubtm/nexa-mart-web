@@ -4,9 +4,15 @@ import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { useRef } from 'react';
 
+interface ICustomerFormValues extends ICustomerCreateRequest {
+  addressDetail?: string;
+  wardCode?: string | number;
+  provinceCode?: string | number;
+}
+
 export const useHook = () => {
   const ref = useRef<IModalRef>(null);
-  const [form] = Form.useForm<ICustomerCreateRequest>();
+  const [form] = Form.useForm<ICustomerFormValues>();
   const { mutateAsync: createRoom, isPending: isLoadingCreateRoom } =
     useCustomerCreate();
   const { notify } = useNotification();

@@ -7,6 +7,8 @@ export interface ICustomerResponseData {
   phone: string;
   gender: EGender;
   address: string;
+  wardCode?: string | number;
+  provinceCode?: string | number;
   dateOfBirth: string;
   customerType: ECustomerType;
   isDeleted: boolean;

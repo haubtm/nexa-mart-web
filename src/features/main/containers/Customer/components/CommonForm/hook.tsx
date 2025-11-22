@@ -1,13 +1,19 @@
 import type { ICustomerCreateRequest } from '@/dtos';
+import {
+  useAddressProvinceList,
+  useAddressWardList,
+} from '@/features/main/react-query';
 import { ECustomerType, EGender } from '@/lib';
 import { createSchemaFieldRule } from 'antd-zod';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { z } from 'zod';
 
 export const useHook = (
   handleSubmit: (values: ICustomerCreateRequest) => void,
 ) => {
+  const [selectedProvince, setSelectedProvince] = useState<number | null>(null);
+
   const [rules, Schema] = useMemo(() => {
     const sixteenYearsAgo = (() => {
       const d = new Date();
@@ -30,10 +36,12 @@ export const useHook = (
         .string('Số điện thoại không được để trống')
         .nonempty('Số điện thoại không được để trống')
         .trim(),
-      address: z
-        .string('Địa chỉ không được để trống')
-        .nonempty('Địa chỉ không được để trống')
+      addressDetail: z
+        .string('Địa chỉ chi tiết không được để trống')
+        .nonempty('Địa chỉ chi tiết không được để trống')
         .trim(),
+      provinceCode: z.union([z.string(), z.number()]).optional(),
+      wardCode: z.union([z.string(), z.number()]).optional(),
       gender: z
         .nativeEnum(EGender, {
           message: 'Giới tính không được để trống',
@@ -64,13 +72,38 @@ export const useHook = (
     return [createSchemaFieldRule(Schema), Schema];
   }, []);
 
-  const onFinish = (values: ICustomerCreateRequest) => {
+  const onFinish = (values: any) => {
     try {
       const parsed = Schema.parse(values);
 
+      // Find ward name and province name from form data
+      const selectedWard = wardOptions.find(
+        (w: any) => w.value === values.wardCode,
+      );
+      const selectedProvince = provinceOptions.find(
+        (p: any) => p.value === values.provinceCode,
+      );
+
+      // Concatenate address: addressDetail, wardCode, wardName, provinceCode, provinceName
+      const addressParts = [
+        parsed.addressDetail,
+        values.wardCode,
+        selectedWard?.label,
+        values.provinceCode,
+        selectedProvince?.label,
+      ].filter(Boolean);
+
+      const fullAddress = addressParts.join(', ');
+
       const payload: ICustomerCreateRequest = {
-        ...parsed,
+        name: parsed.name,
+        email: parsed.email,
+        phone: parsed.phone,
+        gender: parsed.gender,
+        address: fullAddress,
         dateOfBirth: dayjs(parsed.dateOfBirth).format('YYYY-MM-DD'),
+        customerType: parsed.customerType,
+        customerCode: parsed.customerCode,
       };
 
       handleSubmit?.(payload);
@@ -79,8 +112,33 @@ export const useHook = (
     }
   };
 
+  const { data: provinceData } = useAddressProvinceList({
+    search: '',
+  });
+
+  const { data: wardData } = useAddressWardList({
+    province: selectedProvince || 1,
+    search: '',
+  });
+
+  const provinceOptions = (Array.isArray(provinceData) ? provinceData : []).map(
+    (province: any) => ({
+      label: province.name,
+      value: province.code,
+    }),
+  );
+
+  const wardOptions = (Array.isArray(wardData) ? wardData : []).map((ward: any) => ({
+    label: ward.name,
+    value: ward.code,
+  }));
+
   return {
     rules,
     onFinish,
+    provinceOptions,
+    wardOptions,
+    selectedProvince,
+    setSelectedProvince,
   };
 };
