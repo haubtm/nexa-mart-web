@@ -52,6 +52,22 @@ export const useHook = () => {
       render: (_, record) => record?.email,
     },
     {
+      key: 'address',
+      title: 'Địa chỉ',
+      width: 250,
+      render: (_, record) => {
+        if (!record?.address) return '';
+        // Parse from format: "addressDetail, wardCode, wardName, provinceCode, provinceName"
+        const parts = record.address.split(', ');
+        const addressDetail = parts[0] || '';
+        const wardName = parts[2] || '';
+        const provinceName = parts[4] || '';
+
+        const displayParts = [addressDetail, wardName, provinceName].filter(Boolean);
+        return displayParts.join(', ');
+      },
+    },
+    {
       key: 'phone',
       title: 'Số điện thoại',
       width: 120,

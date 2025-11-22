@@ -4,11 +4,17 @@ import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { type MouseEvent, useRef } from 'react';
 
+interface ISupplierFormValues extends ISupplierCreateRequest {
+  addressDetail?: string;
+  wardCode?: string | number;
+  provinceCode?: string | number;
+}
+
 export const useHook = (
   record?: ISupplierListResponse['data']['content'][number] | null,
 ) => {
   const ref = useRef<IModalRef>(null);
-  const [form] = Form.useForm<ISupplierCreateRequest>();
+  const [form] = Form.useForm<ISupplierFormValues>();
   const { mutateAsync: updateSupplier, isPending: isLoadingUpdateSupplier } =
     useSupplierUpdate();
   const { notify } = useNotification();
@@ -50,8 +56,22 @@ export const useHook = (
 
   const handleOpen = () => {
     ref?.current?.open();
+
+    // Parse address from format: "addressDetail, wardCode, wardName, provinceCode, provinceName"
+    const addressParts = record?.address ? record.address.split(', ') : [];
+    const addressDetail = addressParts[0] || '';
+    const wardCode = addressParts[1] ? Number(addressParts[1]) : undefined;
+    const provinceCode = addressParts[3] ? Number(addressParts[3]) : undefined;
+
     form.setFieldsValue({
-      ...record,
+      code: record?.code,
+      name: record?.name,
+      email: record?.email,
+      phone: record?.phone,
+      isActive: record?.isActive,
+      addressDetail,
+      wardCode,
+      provinceCode,
     });
   };
 

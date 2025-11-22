@@ -3,6 +3,8 @@ export interface ISupplierResponseData {
   code: string;
   name: string;
   address: string;
+  wardCode?: string | number;
+  provinceCode?: string | number;
   email: string;
   phone: string;
   isActive: boolean;
