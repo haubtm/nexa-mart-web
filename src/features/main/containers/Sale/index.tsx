@@ -601,7 +601,7 @@ const CartTab: React.FC<{
           ) : null}
         </div>
 
-        {/* Panel tổng tiền + khách hàng */}
+        {/* Panel tổng tiền + khách hàng + phương thức thanh toán */}
         <div style={{ width: 320, maxWidth: '100%' }}>
           <div
             style={{
@@ -640,6 +640,27 @@ const CartTab: React.FC<{
                   Chưa chọn khách hàng
                 </Text>
               )}
+            </Space>
+
+            {/* Chọn phương thức thanh toán */}
+            <Divider orientation="left">
+              <Text strong style={{ fontSize: 16 }}>
+                Phương thức thanh toán
+              </Text>
+            </Divider>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Radio.Group
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                style={{ display: 'flex', width: '100%' }}
+              >
+                <Radio.Button value="CASH" style={{ flex: 1, textAlign: 'center' }}>
+                  Tiền mặt
+                </Radio.Button>
+                <Radio.Button value="ONLINE" style={{ flex: 1, textAlign: 'center' }}>
+                  Chuyển khoản
+                </Radio.Button>
+              </Radio.Group>
             </Space>
 
             <Divider orientation="left">
@@ -700,103 +721,132 @@ const CartTab: React.FC<{
         </div>
       </Flex>
 
-      {/* Modal chọn phương thức thanh toán */}
-      <Modal
-        title="Thanh toán"
-        open={payOpen}
-        cancelText="Huỷ"
-        onCancel={() => setPayOpen(false)}
-        onOk={handleCreateOrder}
-        confirmLoading={isCreatingOrder}
-        okText="Hoàn tất"
-        okButtonProps={{
-          disabled: paymentMethod === 'CASH' && cash < payable,
-        }}
-      >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Radio.Group
-            size="large"
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <Radio.Button value="CASH">Tiền mặt</Radio.Button>
-            <Radio.Button value="ONLINE">Chuyển khoản</Radio.Button>
-          </Radio.Group>
+      {/* Modal thanh toán tiền mặt */}
+      {paymentMethod === 'CASH' && (
+        <Modal
+          title="Thanh toán tiền mặt"
+          open={payOpen}
+          cancelText="Huỷ"
+          onCancel={() => setPayOpen(false)}
+          onOk={handleCreateOrder}
+          confirmLoading={isCreatingOrder}
+          okText="Hoàn tất"
+          okButtonProps={{
+            disabled: cash < payable,
+          }}
+        >
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Flex align="center" justify="space-between">
+              <Text style={{ fontSize: 20 }}>Tiền khách đưa</Text>
+              <InputNumber
+                style={{ width: 200 }}
+                min={0}
+                value={amountPaid}
+                formatter={(v) =>
+                  v === undefined ? '0' : Number(v).toLocaleString('vi-VN')
+                }
+                parser={(v) =>
+                  Number((v || '0').replace(/\D/g, ''))
+                }
+                onChange={(v) => setAmountPaid(Number(v ?? 0))}
+              />
+            </Flex>
 
-          {paymentMethod === 'CASH' && (
-            <>
-              <Flex align="center" justify="space-between">
-                <Text style={{ fontSize: 20 }}>Tiền khách đưa</Text>
-                <InputNumber
-                  style={{ width: 200 }}
-                  min={0}
-                  value={amountPaid}
-                  formatter={(v) =>
-                    v === undefined ? '0' : Number(v).toLocaleString('vi-VN')
-                  }
-                  parser={(v) =>
-                    Number((v || '0').toString().replace(/[^0-9.-]+/g, ''))
-                  }
-                  onChange={(v) => setAmountPaid(Number(v ?? 0))}
-                />
+            {cash < payable && (
+              <Flex
+                justify="space-between"
+                style={{ width: '100%', marginTop: 30 }}
+              >
+                <Text type="danger" style={{ fontSize: 20 }}>
+                  Khách phải đưa thêm
+                </Text>
+                <Text strong style={{ fontSize: 20 }}>
+                  {shortage.toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                  })}
+                </Text>
               </Flex>
+            )}
 
-              {cash < payable && (
-                <Flex
-                  justify="space-between"
-                  style={{ width: '100%', marginTop: 30 }}
-                >
-                  <Text type="danger" style={{ fontSize: 20 }}>
-                    Khách phải đưa thêm
-                  </Text>
-                  <Text strong style={{ fontSize: 20 }}>
-                    {shortage.toLocaleString('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND',
-                    })}
-                  </Text>
-                </Flex>
-              )}
+            {cash > payable && (
+              <Flex
+                justify="space-between"
+                style={{ width: '100%', marginTop: 30 }}
+              >
+                <Text type="success" style={{ fontSize: 20 }}>
+                  Thối lại khách
+                </Text>
+                <Text strong style={{ fontSize: 20 }}>
+                  {change.toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                  })}
+                </Text>
+              </Flex>
+            )}
 
-              {cash > payable && (
-                <Flex
-                  justify="space-between"
-                  style={{ width: '100%', marginTop: 30 }}
-                >
-                  <Text type="success" style={{ fontSize: 20 }}>
-                    Thối lại khách
-                  </Text>
-                  <Text strong style={{ fontSize: 20 }}>
-                    {change.toLocaleString('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND',
-                    })}
-                  </Text>
-                </Flex>
-              )}
-            </>
-          )}
+            <Divider />
+            <Flex justify="space-between">
+              <Text style={{ fontSize: 20 }}>Khách phải trả</Text>
+              <Text style={{ fontSize: 20 }} strong>
+                {payable.toLocaleString('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                })}
+              </Text>
+            </Flex>
 
-          <Divider />
-          <Flex justify="space-between">
-            <Text style={{ fontSize: 20 }}>Khách phải trả</Text>
-            <Text style={{ fontSize: 20 }} strong>
-              {payable.toLocaleString('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-              })}
-            </Text>
-          </Flex>
+            <div style={{ marginTop: 8 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {selectedCustomerLabel
+                  ? `Khách hàng: ${selectedCustomerLabel}`
+                  : 'Chưa chọn khách hàng'}
+              </Text>
+            </div>
+          </Space>
+        </Modal>
+      )}
 
-          <div style={{ marginTop: 8 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {selectedCustomerLabel
-                ? `Khách hàng: ${selectedCustomerLabel}`
-                : 'Chưa chọn khách hàng'}
-            </Text>
-          </div>
-        </Space>
-      </Modal>
+      {/* Modal thanh toán online */}
+      {paymentMethod === 'ONLINE' && (
+        <Modal
+          title="Xác nhận thanh toán online"
+          open={payOpen}
+          cancelText="Huỷ"
+          onCancel={() => setPayOpen(false)}
+          onOk={handleCreateOrder}
+          confirmLoading={isCreatingOrder}
+          okText="Hoàn tất"
+        >
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Divider />
+            <Flex justify="space-between">
+              <Text style={{ fontSize: 20 }}>Khách phải trả</Text>
+              <Text style={{ fontSize: 20 }} strong>
+                {payable.toLocaleString('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                })}
+              </Text>
+            </Flex>
+
+            <div style={{ marginTop: 8 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {selectedCustomerLabel
+                  ? `Khách hàng: ${selectedCustomerLabel}`
+                  : 'Chưa chọn khách hàng'}
+              </Text>
+            </div>
+
+            <div style={{ marginTop: 16, padding: '12px', background: '#f0f2f5', borderRadius: 4 }}>
+              <Text type="secondary">
+                Khách sẽ quét mã QR để thanh toán sau khi nhấn "Hoàn tất"
+              </Text>
+            </div>
+          </Space>
+        </Modal>
+      )}
 
       {/* Modal QR */}
       <Modal
