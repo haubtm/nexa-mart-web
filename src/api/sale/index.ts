@@ -34,7 +34,7 @@ export const saleApi = {
 
   byId: async (body: IOrderByIdRequest) => {
     const response = await apiService.get<IOrderByIdResponse>(
-      `${BASE_ENDPOINT}/orders/${body.orderId}/status`,
+      `${BASE_ENDPOINT}/invoices/${body.orderId}/status`,
       { params: body },
     );
 

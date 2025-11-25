@@ -317,7 +317,10 @@ const CartTab: React.FC<{
         } else {
           setQrCodeValue(data.qrCode || null);
           setPaymentUrl(data.paymentUrl || null);
-          setOrderIdToTrack(data.orderCode || null);
+          // Cắt 2 số cuối từ orderCode (ví dụ: 2000000041 -> 41)
+          const orderCode = data.orderCode;
+          const invoiceId = orderCode ? Number(String(orderCode).slice(-2)) : null;
+          setOrderIdToTrack(invoiceId);
           setPayOpen(false);
           setQrVisible(true);
         }
@@ -326,14 +329,15 @@ const CartTab: React.FC<{
     });
   };
 
-  // Polling ONLINE
+  // Polling ONLINE - kiểm tra trạng thái thanh toán
   useEffect(() => {
     if (!qrVisible || !orderIdToTrack) return;
     const id = setInterval(async () => {
       try {
         const r = await (refetchOrderStatus?.() as unknown as Promise<any>);
-        const status = r?.data?.data?.status || orderStatusData?.data?.status;
-        if (status === 'COMPLETED') {
+        const invoiceStatus = r?.data?.data?.invoiceStatus || orderStatusData?.data?.invoiceStatus;
+        // Dừng polling khi trạng thái là PAID hoặc COMPLETED
+        if (invoiceStatus === 'PAID' || invoiceStatus === 'COMPLETED') {
           message?.success('Thanh toán hoàn tất');
           setQrVisible(false);
           setQrCodeValue(null);
