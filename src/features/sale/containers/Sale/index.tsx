@@ -850,6 +850,8 @@ const SaleContainer: React.FC = () => {
   const searchDebounced = useDebounce(searchTerm);
   const { data: productData, isLoading: isLoadingProduct } = useProductList({
     searchTerm: searchDebounced,
+    hasPrice: true,
+    hasStock: true,
   }) as unknown as { data?: ProductListResponse; isLoading: boolean };
 
   // Quản lý nhiều đơn

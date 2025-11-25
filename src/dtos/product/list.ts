@@ -20,6 +20,8 @@ export interface IProductListRequest {
   categoryId?: number;
   brandId?: number;
   isActive?: boolean;
+  hasPrice?: boolean;
+  hasStock?: boolean;
   sort?: string[];
 }
 
