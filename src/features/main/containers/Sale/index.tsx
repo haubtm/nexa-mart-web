@@ -317,7 +317,10 @@ const CartTab: React.FC<{
         } else {
           setQrCodeValue(data.qrCode || null);
           setPaymentUrl(data.paymentUrl || null);
-          setOrderIdToTrack(data.orderCode || null);
+          // Cắt 2 số cuối từ orderCode (ví dụ: 2000000041 -> 41)
+          const orderCode = data.orderCode;
+          const invoiceId = orderCode ? Number(String(orderCode).slice(-2)) : null;
+          setOrderIdToTrack(invoiceId);
           setPayOpen(false);
           setQrVisible(true);
         }
