@@ -326,14 +326,15 @@ const CartTab: React.FC<{
     });
   };
 
-  // Polling ONLINE
+  // Polling ONLINE - kiểm tra trạng thái thanh toán
   useEffect(() => {
     if (!qrVisible || !orderIdToTrack) return;
     const id = setInterval(async () => {
       try {
         const r = await (refetchOrderStatus?.() as unknown as Promise<any>);
-        const status = r?.data?.data?.status || orderStatusData?.data?.status;
-        if (status === 'COMPLETED') {
+        const invoiceStatus = r?.data?.data?.invoiceStatus || orderStatusData?.data?.invoiceStatus;
+        // Dừng polling khi trạng thái là PAID hoặc COMPLETED
+        if (invoiceStatus === 'PAID' || invoiceStatus === 'COMPLETED') {
           message?.success('Thanh toán hoàn tất');
           setQrVisible(false);
           setQrCodeValue(null);

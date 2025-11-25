@@ -8,8 +8,8 @@ export interface IOrderByIdRequest {
 
 export interface IOrderByIdResponse
   extends IResponse<{
-    orderId: number;
-    status: 'COMPLETED' | 'PENDING' | 'CANCELLED';
+    invoiceId: number;
+    invoiceStatus: 'PAID' | 'COMPLETED' | 'PENDING' | 'CANCELLED';
     paymentMethod: EPaymentMethod;
     totalAmount: number;
     amountPaid: number;
