@@ -347,11 +347,19 @@ const OrderAdminContainer: React.FC = () => {
         await cancelOrder(
           { orderId: row.orderId, reason: 'Admin cancelled' },
           {
-            onSuccess: () => {
+            onSuccess: async () => {
               notify('success', {
                 message: 'Thành công',
                 description: 'Hủy đơn hàng thành công',
               });
+              // Cập nhật trạng thái trong modal
+              setLocalStatus(EOrderStatus.CANCELLED);
+              // Refresh dữ liệu bảng danh sách
+              await refetchList();
+              // Refresh dữ liệu chi tiết modal
+              await refetchDetail();
+              // Đóng modal sau khi hủy thành công
+              setDetailOrderId(null);
             },
             onError: (error) => {
               notify('error', {
@@ -361,7 +369,6 @@ const OrderAdminContainer: React.FC = () => {
             },
           },
         );
-        await refetchList();
       },
     });
   };

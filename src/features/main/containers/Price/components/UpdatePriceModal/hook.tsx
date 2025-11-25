@@ -180,6 +180,8 @@ export const useHook = (
               message: 'Thành công',
               description: 'Tạm dừng bảng giá thành công',
             });
+            queryClient.invalidateQueries({ queryKey: priceKeys.all });
+            handleCancel();
           },
           onError: (error: any) => {
             notify('error', {
