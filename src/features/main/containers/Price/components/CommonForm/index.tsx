@@ -36,6 +36,7 @@ type Props = {
 
 const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
   const [rows, setRows] = useState<Row[]>([]);
+  const [initialDetailsKey, setInitialDetailsKey] = useState<string>('');
 
   // Chiều cao vùng scroll cho bảng (responsive theo viewport)
   const [tableY, setTableY] = useState<number>(420);
@@ -130,11 +131,19 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
     setRows((prev) => prev.filter((r) => r.key !== rowKey));
 
   // Prefill khi UPDATE (nếu có priceDetails + products đã sẵn sàng)
+  // Chỉ prefill 1 lần khi initialDetailsKey thay đổi (modal mở lần đầu)
   useEffect(() => {
     const details = (form.getFieldValue('priceDetails') ?? []) as Array<{
       productUnitId: number;
       salePrice?: number;
     }>;
+
+    // Tạo key từ priceDetails để detect khi form mở
+    const detailsKey = details.map((d) => `${d.productUnitId}:${d.salePrice}`).join(',');
+
+    // Nếu key chưa thay đổi, không prefill lại (giữ state khi search)
+    if (detailsKey === initialDetailsKey) return;
+
     if (!details.length || !products.length) return;
 
     const unitToInfo = new Map<
@@ -167,7 +176,8 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
       .filter(Boolean) as Row[];
 
     setRows(pre);
-  }, [products]);
+    setInitialDetailsKey(detailsKey);
+  }, [products, initialDetailsKey]);
 
   // priceDetails để submit
   const priceDetails = useMemo(

@@ -75,14 +75,12 @@ const DELIVERY_VI: Record<EDeliveryType, string> = {
 
 const FLOW_BY_TYPE: Record<EDeliveryType, EOrderStatus[]> = {
   [EDeliveryType.PICKUP_AT_STORE]: [
-    EOrderStatus.UNPAID,
     EOrderStatus.PENDING,
     EOrderStatus.PREPARED,
     EOrderStatus.DELIVERED,
     EOrderStatus.COMPLETED,
   ],
   [EDeliveryType.HOME_DELIVERY]: [
-    EOrderStatus.UNPAID,
     EOrderStatus.PENDING,
     EOrderStatus.PREPARED,
     EOrderStatus.SHIPPING,
@@ -92,7 +90,6 @@ const FLOW_BY_TYPE: Record<EDeliveryType, EOrderStatus[]> = {
 };
 
 const ALL_STATUS: EOrderStatus[] = [
-  EOrderStatus.UNPAID,
   EOrderStatus.PENDING,
   EOrderStatus.PREPARED,
   EOrderStatus.SHIPPING,

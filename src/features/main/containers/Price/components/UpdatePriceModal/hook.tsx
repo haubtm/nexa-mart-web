@@ -81,6 +81,7 @@ export const useHook = (
 
   const handleCancel = (e?: MouseEvent<HTMLButtonElement>) => {
     e?.stopPropagation();
+    form.resetFields();
     ref?.current?.hide();
   };
 
