@@ -33,7 +33,7 @@ export default function PromotionLineCreateForm({
     <Form
       form={form}
       initialValues={{
-        lineName: 'string',
+        lineName: '',
         promotionType: EPromotionType.BUY_X_GET_Y,
         description: '',
         startDate: hdrStart ?? dayjs(),

@@ -77,6 +77,7 @@ export default function PromotionDetailCreateForm({
 }) {
   const { rules, onFinish, productData, isLoadingProduct, setSearch } =
     useHook(handleSubmit);
+  const buyConditionType = Form.useWatch(['detail', '_buyMinConditionType'], form);
 
   return (
     <Form
@@ -218,12 +219,8 @@ export default function PromotionDetailCreateForm({
             </Form.Item>
             <Form.Item noStyle shouldUpdate>
               {() => {
-                const condType = form.getFieldValue([
-                  'detail',
-                  '_buyMinConditionType',
-                ]);
-                const giftType = form.getFieldValue(['detail', 'giftDiscountType']);
-                if (condType !== 'VALUE' || giftType === 'FREE') return null;
+                const condType = buyConditionType;
+                if (condType !== 'VALUE') return null;
                 return (
                   <Col xs={24} md={6}>
                     <Form.Item
