@@ -37,9 +37,27 @@ type Props = {
 const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
   const [rows, setRows] = useState<Row[]>([]);
   const [initialDetailsKey, setInitialDetailsKey] = useState<string>('');
+  const priceDetailsWatch = Form.useWatch('priceDetails', form);
+  const clearFlag = Form.useWatch('__clearRowsFlag', form);
 
   // Chiều cao vùng scroll cho bảng (responsive theo viewport)
   const [tableY, setTableY] = useState<number>(420);
+
+  // Clear bảng khi form rỗng (đóng modal hoặc submit xong đã reset)
+  useEffect(() => {
+    if (!priceDetailsWatch || priceDetailsWatch.length === 0) {
+      setRows([]);
+      setInitialDetailsKey('');
+    }
+  }, [priceDetailsWatch]);
+
+  // Clear bảng khi nhận tín hiệu reset cưỡng bức
+  useEffect(() => {
+    if (clearFlag) {
+      setRows([]);
+      setInitialDetailsKey('');
+    }
+  }, [clearFlag]);
 
   useEffect(() => {
     const calc = () =>

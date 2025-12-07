@@ -12,6 +12,7 @@ export const useHook = () => {
   const { notify } = useNotification();
 
   const handleCancel = () => {
+    form.setFieldsValue({ priceDetails: [] });
     form.resetFields();
     ref?.current?.hide();
   };

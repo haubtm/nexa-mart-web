@@ -1,4 +1,4 @@
-import type { IPriceCreateRequest, IPriceListResponse } from '@/dtos';
+﻿import type { IPriceCreateRequest, IPriceListResponse } from '@/dtos';
 import {
   priceKeys,
   usePriceActivate,
@@ -81,6 +81,7 @@ export const useHook = (
 
   const handleCancel = (e?: MouseEvent<HTMLButtonElement>) => {
     e?.stopPropagation();
+    form.setFieldsValue({ priceDetails: [] });
     form.resetFields();
     ref?.current?.hide();
   };
@@ -196,7 +197,7 @@ export const useHook = (
       );
     }
     // ==== 2) Nếu có thay đổi field (header/details) → updatePrice ====
-    if (detailsChanged) {
+    if (detailsChanged || headerChangedExceptStatus) {
       await updatePrice(
         {
           priceId: record.priceId,
