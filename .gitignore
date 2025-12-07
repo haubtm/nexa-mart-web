@@ -16,6 +16,7 @@ dist-ssr/
 
 # Claude
 CLAUDE.*
+AGENTS.*
 
 # Local env files
 .env

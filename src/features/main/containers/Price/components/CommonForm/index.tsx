@@ -54,7 +54,7 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
   // dữ liệu sản phẩm (dùng cho search + prefill)
   const { data: productResp, isLoading: isLoadingProducts } = useProductList({
     page: 0,
-    size: 20,
+    size: 99,
     searchTerm: searchDebounce,
   });
   const products = productResp?.data?.products ?? [];
@@ -139,8 +139,9 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
     }>;
 
     // Tạo key từ priceDetails để detect khi form mở
-    const detailsKey = details.map((d) => `${d.productUnitId}:${d.salePrice}`).join(',');
-
+    const detailsKey = details
+      .map((d) => `${d.productUnitId}:${d.salePrice}`)
+      .join(',');
     // Nếu key chưa thay đổi, không prefill lại (giữ state khi search)
     if (detailsKey === initialDetailsKey) return;
 
@@ -174,7 +175,6 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
         } as Row;
       })
       .filter(Boolean) as Row[];
-
     setRows(pre);
     setInitialDetailsKey(detailsKey);
   }, [products, initialDetailsKey]);
@@ -263,7 +263,6 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
     },
   ];
   const { rules, onFinish } = useHook(handleSubmit, priceDetails);
-
   // ====== UI ======
   return (
     <Form<IPriceCreateRequest>
