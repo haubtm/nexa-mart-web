@@ -397,18 +397,41 @@ export const generateInvoicePdf = (data: InvoiceData): void => {
 </html>
   `;
 
-  // Open new window with invoice and auto trigger print
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    // Auto trigger print dialog after content is loaded
-    printWindow.onload = () => {
-      printWindow.print();
+  // Create hidden iframe for printing (no popup window)
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  iframe.style.left = '-9999px';
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentWindow?.document;
+  if (iframeDoc) {
+    iframeDoc.open();
+    iframeDoc.write(htmlContent);
+    iframeDoc.close();
+
+    // Use flag to ensure print is only called once
+    let hasPrinted = false;
+    const triggerPrint = () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
+      iframe.contentWindow?.print();
+      // Remove iframe after printing
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          document.body.removeChild(iframe);
+        }
+      }, 1000);
     };
-    // Fallback: trigger print after a short delay if onload doesn't fire
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
+
+    // Wait for content to load then print
+    iframe.onload = () => {
+      setTimeout(triggerPrint, 300);
+    };
+
+    // Fallback trigger if onload doesn't fire
+    setTimeout(triggerPrint, 800);
   }
 };

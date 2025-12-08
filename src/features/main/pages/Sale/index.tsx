@@ -3,7 +3,7 @@ import { SaleContainer } from '@/features/main';
 const SalePage = () => {
   return (
     <>
-      <title>Tạo hóa đơn</title>
+      <title>Bán hàng tại quầy</title>
       <SaleContainer />
     </>
   );

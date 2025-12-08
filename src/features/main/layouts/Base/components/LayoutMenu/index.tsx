@@ -117,7 +117,7 @@ const LayoutMenu = ({ setPageLabel }: ILayoutMenuProps) => {
       },
       [ROUTE_PATH.ADMIN.SALE.PATH()]: {
         key: ROUTE_PATH.ADMIN.SALE.PATH(),
-        label: 'Tạo hóa đơn',
+        label: 'Bán hàng tại quầy',
       },
     };
   }, []);

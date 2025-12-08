@@ -1037,8 +1037,18 @@ const SaleContainer: React.FC = () => {
   };
 
   const removeTab = (targetKey: string) => {
+    // Nếu chỉ còn 1 tab, tạo tab mới trước rồi mới xóa tab hiện tại
     if (carts.length <= 1) {
-      message?.warning('Phải còn ít nhất 1 đơn.');
+      const maxIndex = carts.reduce((max, c) => {
+        const parts = c.name.split(' ');
+        const n = parseInt(parts[parts.length - 1], 10) || 0;
+        return Math.max(max, n);
+      }, 0);
+      const nextIndex = maxIndex + 1;
+      const newId = String(Date.now());
+      const newCart = { id: newId, name: `Đơn ${nextIndex}`, items: [] };
+      setCarts([newCart]);
+      setActiveKey(newId);
       return;
     }
     let newActiveKey = activeKey;
