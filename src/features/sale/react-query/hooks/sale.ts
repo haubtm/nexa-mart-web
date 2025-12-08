@@ -33,3 +33,9 @@ export const useOrderCreate = () => {
     mutationFn: saleApi.create,
   });
 };
+
+export const useOrderPrintPDF = () => {
+  return useMutation({
+    mutationFn: saleApi.print,
+  });
+};

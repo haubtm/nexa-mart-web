@@ -8,6 +8,7 @@ import {
   Popconfirm,
   Modal,
   Radio,
+  Checkbox,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -18,6 +19,7 @@ import {
   useOrderCreate,
   useOrderStatus,
   useCustomerList,
+  useOrderPrintPDF,
 } from '@/features/sale';
 import {
   Button,
@@ -267,9 +269,12 @@ const CartTab: React.FC<{
 
   // ---- Tạo đơn & thanh toán ----
   const { mutate: createOrder, isPending: isCreatingOrder } = useOrderCreate();
+  const { mutateAsync: printOrder } = useOrderPrintPDF();
   const [payOpen, setPayOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'ONLINE'>('CASH');
   const [amountPaid, setAmountPaid] = useState<number>(0);
+  const [shouldPrint, setShouldPrint] = useState(true);
+  const [invoiceIdToPrint, setInvoiceIdToPrint] = useState<string | null>(null);
 
   // QR ONLINE
   const [qrVisible, setQrVisible] = useState(false);
@@ -285,6 +290,42 @@ const CartTab: React.FC<{
   useEffect(() => {
     if (payOpen) setAmountPaid(computed.totalPayable ?? 0);
   }, [payOpen, computed.totalPayable]);
+
+  const handlePrintInvoice = async (invoiceId: string) => {
+    try {
+      const htmlResponse = await printOrder({ invoiceId });
+      const htmlString =
+        typeof htmlResponse === 'string'
+          ? htmlResponse
+          : typeof (htmlResponse as any)?.data === 'string'
+            ? (htmlResponse as any).data
+            : typeof (htmlResponse as any)?.data?.data === 'string'
+              ? (htmlResponse as any).data.data
+              : null;
+
+      if (!htmlString) {
+        message?.warning('Không có dữ liệu hóa đơn để in.');
+        return;
+      }
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        message?.error('Trình duyệt chặn cửa sổ in hóa đơn.');
+        return;
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(htmlString);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 100);
+    } catch (error: any) {
+      message?.error(error || 'In hóa đơn thất bại.');
+    }
+  };
 
   const handleCreateOrder = () => {
     if (!promotionData?.data) {
@@ -303,23 +344,32 @@ const CartTab: React.FC<{
     if (selectedCustomerId) payload.customerId = selectedCustomerId;
 
     createOrder(payload, {
-      onSuccess: (res: any) => {
+      onSuccess: async (res: any) => {
         const data = res?.data;
         if (!data) return;
+        const invoiceIdValue = data.invoiceId ?? data.invoiceNumber;
         if (paymentMethod === 'CASH') {
           message?.success(
             `Đã tạo hoá đơn ${data.invoiceNumber}. Thối lại ${Number(
               data.changeAmount || 0,
             ).toLocaleString('vi-VN')}đ`,
           );
+          if (shouldPrint && invoiceIdValue) {
+            await handlePrintInvoice(String(invoiceIdValue));
+          }
           setPayOpen(false);
           onCloseCurrent();
         } else {
+          setInvoiceIdToPrint(
+            shouldPrint && invoiceIdValue ? String(invoiceIdValue) : null,
+          );
           setQrCodeValue(data.qrCode || null);
           setPaymentUrl(data.paymentUrl || null);
           // Cắt 2 số cuối từ orderCode (ví dụ: 2000000041 -> 41)
           const orderCode = data.orderCode;
-          const invoiceId = orderCode ? Number(String(orderCode).slice(-2)) : null;
+          const invoiceId = orderCode
+            ? Number(String(orderCode).slice(-2))
+            : null;
           setOrderIdToTrack(invoiceId);
           setPayOpen(false);
           setQrVisible(true);
@@ -335,22 +385,27 @@ const CartTab: React.FC<{
     const id = setInterval(async () => {
       try {
         const r = await (refetchOrderStatus?.() as unknown as Promise<any>);
-        const invoiceStatus = r?.data?.data?.invoiceStatus || orderStatusData?.data?.invoiceStatus;
+        const invoiceStatus =
+          r?.data?.data?.invoiceStatus || orderStatusData?.data?.invoiceStatus;
         // Dừng polling khi trạng thái là PAID hoặc COMPLETED
         if (invoiceStatus === 'PAID' || invoiceStatus === 'COMPLETED') {
           message?.success('Thanh toán hoàn tất');
+          if (invoiceIdToPrint) {
+            await handlePrintInvoice(invoiceIdToPrint);
+          }
           setQrVisible(false);
           setQrCodeValue(null);
           setOrderIdToTrack(null);
+          setInvoiceIdToPrint(null);
           onCloseCurrent();
+          clearInterval(id);
         }
       } catch {
         throw new Error('Lỗi khi kiểm tra trạng thái đơn hàng');
       }
     }, 2000);
     return () => clearInterval(id);
-  }, [qrVisible, orderIdToTrack]);
-
+  }, [qrVisible, orderIdToTrack, invoiceIdToPrint]);
   // ---- Handlers số lượng / xoá ----
   const changeQty = (productUnitId: number, qty: number) => {
     const nextItems = cart.items
@@ -573,7 +628,7 @@ const CartTab: React.FC<{
                   >
                     <div>
                       <Text>
-                        {li.productName} ({li.unit}) × {li.quantity}
+                        {li.productName} ({li.unit}) x {li.quantity}
                       </Text>
                       <div style={{ fontSize: 12, color: '#1677ff' }}>
                         {li.promotionApplied?.promotionSummary}
@@ -658,10 +713,16 @@ const CartTab: React.FC<{
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 style={{ display: 'flex', width: '100%' }}
               >
-                <Radio.Button value="CASH" style={{ flex: 1, textAlign: 'center' }}>
+                <Radio.Button
+                  value="CASH"
+                  style={{ flex: 1, textAlign: 'center' }}
+                >
                   Tiền mặt
                 </Radio.Button>
-                <Radio.Button value="ONLINE" style={{ flex: 1, textAlign: 'center' }}>
+                <Radio.Button
+                  value="ONLINE"
+                  style={{ flex: 1, textAlign: 'center' }}
+                >
                   Chuyển khoản
                 </Radio.Button>
               </Radio.Group>
@@ -711,6 +772,13 @@ const CartTab: React.FC<{
                 }
               />
 
+              <Checkbox
+                checked={shouldPrint}
+                onChange={(e) => setShouldPrint(e.target.checked)}
+              >
+                In hóa đơn
+              </Checkbox>
+
               <Button
                 type="primary"
                 size="large"
@@ -730,7 +798,7 @@ const CartTab: React.FC<{
         <Modal
           title="Thanh toán tiền mặt"
           open={payOpen}
-          cancelText="Huỷ"
+          cancelText="Hủy"
           onCancel={() => setPayOpen(false)}
           onOk={handleCreateOrder}
           confirmLoading={isCreatingOrder}
@@ -749,9 +817,7 @@ const CartTab: React.FC<{
                 formatter={(v) =>
                   v === undefined ? '0' : Number(v).toLocaleString('vi-VN')
                 }
-                parser={(v) =>
-                  Number((v || '0').replace(/\D/g, ''))
-                }
+                parser={(v) => Number((v || '0').replace(/\D/g, ''))}
                 onChange={(v) => setAmountPaid(Number(v ?? 0))}
               />
             </Flex>
@@ -817,7 +883,7 @@ const CartTab: React.FC<{
         <Modal
           title="Xác nhận thanh toán online"
           open={payOpen}
-          cancelText="Huỷ"
+          cancelText="Hủy"
           onCancel={() => setPayOpen(false)}
           onOk={handleCreateOrder}
           confirmLoading={isCreatingOrder}
@@ -843,7 +909,14 @@ const CartTab: React.FC<{
               </Text>
             </div>
 
-            <div style={{ marginTop: 16, padding: '12px', background: '#f0f2f5', borderRadius: 4 }}>
+            <div
+              style={{
+                marginTop: 16,
+                padding: '12px',
+                background: '#f0f2f5',
+                borderRadius: 4,
+              }}
+            >
               <Text type="secondary">
                 Khách sẽ quét mã QR để thanh toán sau khi nhấn "Hoàn tất"
               </Text>

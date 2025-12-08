@@ -1,3 +1,4 @@
+import { ISalePrintRequestData } from '@/dtos/sale/print';
 import { apiService } from '../axiosService';
 import {
   IOrderByIdRequest,
@@ -46,6 +47,15 @@ export const saleApi = {
       `${BASE_ENDPOINT}`,
       body,
     );
+    return response;
+  },
+
+  print: async (body: ISalePrintRequestData) => {
+    const response = await apiService.get(
+      `${BASE_ENDPOINT}/${body.invoiceId}/print`,
+      { params: body },
+    );
+
     return response;
   },
 };
