@@ -8,6 +8,7 @@ import {
   Popconfirm,
   Modal,
   Radio,
+  Checkbox,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -28,8 +29,10 @@ import {
   Table,
   Text,
   useDebounce,
+  generateInvoicePdf,
 } from '@/lib';
 import { useAppSelector } from '@/redux/hooks';
+import { saleApi } from '@/api';
 
 export type ProductUnit = {
   id: number; // productUnitId
@@ -270,6 +273,7 @@ const CartTab: React.FC<{
   const [payOpen, setPayOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'ONLINE'>('CASH');
   const [amountPaid, setAmountPaid] = useState<number>(0);
+  const [printInvoice, setPrintInvoice] = useState<boolean>(true);
 
   // QR ONLINE
   const [qrVisible, setQrVisible] = useState(false);
@@ -303,7 +307,7 @@ const CartTab: React.FC<{
     if (selectedCustomerId) payload.customerId = selectedCustomerId;
 
     createOrder(payload, {
-      onSuccess: (res: any) => {
+      onSuccess: async (res: any) => {
         const data = res?.data;
         if (!data) return;
         if (paymentMethod === 'CASH') {
@@ -312,6 +316,17 @@ const CartTab: React.FC<{
               data.changeAmount || 0,
             ).toLocaleString('vi-VN')}đ`,
           );
+          // In hóa đơn PDF nếu checkbox được check
+          if (printInvoice && data.invoiceId) {
+            try {
+              const invoiceRes = await saleApi.byInvoiceId({ invoiceId: data.invoiceId });
+              if (invoiceRes?.data) {
+                generateInvoicePdf(invoiceRes.data as any);
+              }
+            } catch (e) {
+              console.error('Lỗi khi in hóa đơn:', e);
+            }
+          }
           setPayOpen(false);
           onCloseCurrent();
         } else {
@@ -339,6 +354,17 @@ const CartTab: React.FC<{
         // Dừng polling khi trạng thái là PAID hoặc COMPLETED
         if (invoiceStatus === 'PAID' || invoiceStatus === 'COMPLETED') {
           message?.success('Thanh toán hoàn tất');
+          // In hóa đơn PDF nếu checkbox được check
+          if (printInvoice && orderIdToTrack) {
+            try {
+              const invoiceRes = await saleApi.byInvoiceId({ invoiceId: orderIdToTrack });
+              if (invoiceRes?.data) {
+                generateInvoicePdf(invoiceRes.data as any);
+              }
+            } catch (e) {
+              console.error('Lỗi khi in hóa đơn:', e);
+            }
+          }
           setQrVisible(false);
           setQrCodeValue(null);
           setOrderIdToTrack(null);
@@ -710,6 +736,14 @@ const CartTab: React.FC<{
                   })
                 }
               />
+
+              <Checkbox
+                checked={printInvoice}
+                onChange={(e) => setPrintInvoice(e.target.checked)}
+                style={{ marginBottom: 8 }}
+              >
+                In hóa đơn
+              </Checkbox>
 
               <Button
                 type="primary"

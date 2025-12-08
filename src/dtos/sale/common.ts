@@ -22,6 +22,7 @@ interface IItemPromotion {
 }
 
 export interface ISaleResponseData {
+  invoiceId: number;
   invoiceNumber: string;
   invoiceDate: string;
   subtotal: number;
