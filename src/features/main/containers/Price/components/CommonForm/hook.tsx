@@ -10,11 +10,11 @@ dayjs.extend(timezone);
 
 const VN_TZ = 'Asia/Ho_Chi_Minh';
 
-// Thay vì toISOString() -> dùng format có offset +07:00
+// Chỉ format ngày, không có giờ
 const toIsoWithVNOffset = (v: unknown) => {
-  if (dayjs.isDayjs(v)) return v.tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
+  if (dayjs.isDayjs(v)) return v.tz(VN_TZ).format('YYYY-MM-DD');
   if (v instanceof Date)
-    return dayjs(v).tz(VN_TZ).format('YYYY-MM-DDTHH:mm:ss');
+    return dayjs(v).tz(VN_TZ).format('YYYY-MM-DD');
   return v; // nếu đã là string thì giữ nguyên (hoặc tự parse nếu cần)
 };
 

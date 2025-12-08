@@ -198,13 +198,13 @@ const LinesSubtableV2: React.FC<{
       key: 'start_at',
       title: 'Bắt đầu',
       width: 130,
-      render: (_: any, r) => formatDate(r.startDate as string),
+      render: (_: any, r) => formatDate(r.startDate as string, 'DD/MM/YYYY'),
     },
     {
       key: 'end_at',
       title: 'Kết thúc',
       width: 130,
-      render: (_: any, r) => formatDate(r.endDate as string),
+      render: (_: any, r) => formatDate(r.endDate as string, 'DD/MM/YYYY'),
     },
     {
       key: 'action',

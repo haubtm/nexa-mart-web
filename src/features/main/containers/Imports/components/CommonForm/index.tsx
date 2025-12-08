@@ -191,8 +191,7 @@ const ImportForm = ({ form, handleSubmit }: Props) => {
         >
           <DatePicker
             allowClear={false}
-            showTime={{ format: 'HH:mm' }}
-            format="YYYY-MM-DD HH:mm"
+            format="DD/MM/YYYY"
             style={{ width: '100%' }}
           />
         </Form.Item>

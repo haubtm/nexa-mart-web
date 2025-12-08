@@ -47,7 +47,7 @@ export const useHook = () => {
       key: 'importDate',
       title: 'Ngày nhập',
       width: 120,
-      render: (_, record) => formatDate(record?.importDate),
+      render: (_, record) => formatDate(record?.importDate, 'DD/MM/YYYY'),
     },
     {
       key: 'note',

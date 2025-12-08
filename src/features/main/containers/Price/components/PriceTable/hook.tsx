@@ -64,13 +64,13 @@ export const useHook = () => {
       title: 'Ngày bắt đầu',
       width: 120,
       render: (_, record) =>
-        record.startDate ? formatDate(record.startDate) : '',
+        record.startDate ? formatDate(record.startDate, 'DD/MM/YYYY') : '',
     },
     {
       key: 'endDate',
       title: 'Ngày kết thúc',
       width: 120,
-      render: (_, record) => (record.endDate ? formatDate(record.endDate) : ''),
+      render: (_, record) => (record.endDate ? formatDate(record.endDate, 'DD/MM/YYYY') : ''),
     },
     {
       key: 'status',

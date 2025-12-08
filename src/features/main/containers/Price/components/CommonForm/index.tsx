@@ -347,8 +347,7 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
               required
             >
               <DatePicker
-                showTime
-                format="YYYY-MM-DD HH:mm"
+                format="DD/MM/YYYY"
                 style={{ width: '100%' }}
               />
             </Form.Item>
@@ -362,8 +361,7 @@ const PriceForm: React.FC<Props> = ({ form, handleSubmit }) => {
               style={{ marginBottom: 8 }}
             >
               <DatePicker
-                showTime
-                format="YYYY-MM-DD HH:mm"
+                format="DD/MM/YYYY"
                 style={{ width: '100%' }}
               />
             </Form.Item>
