@@ -15,6 +15,9 @@ import type {
   IProductUnitUpdateResponse,
   IProductUnitDeleteRequest,
   IProductUnitDeleteResponse,
+  IProductImportRequest,
+  IProductImportResponse,
+  IProductExportResponse,
 } from '@/dtos';
 import { apiService } from '../axiosService';
 
@@ -85,6 +88,38 @@ export const productApi = {
   deleteUnit: async (body: IProductUnitDeleteRequest) => {
     const response = await apiService.delete<IProductUnitDeleteResponse>(
       `${BASE_ENDPOINT}/${body.productId}/units/${body.unitId}`,
+    );
+    return response;
+  },
+
+  export: async () => {
+    const response = await apiService.get<IProductExportResponse>(
+      `${BASE_ENDPOINT}/export`,
+    );
+    // Download file từ URL trả về
+    if (response.data) {
+      const link = document.createElement('a');
+      link.href = response.data;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    return response;
+  },
+
+  import: async (body: IProductImportRequest) => {
+    const formData = new FormData();
+    formData.append('file', body.file);
+
+    const response = await apiService.post<IProductImportResponse>(
+      `${BASE_ENDPOINT}/import`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
     );
     return response;
   },

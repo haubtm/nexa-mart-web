@@ -52,3 +52,15 @@ export const useProductUnitDelete = () => {
     mutationFn: productApi.deleteUnit,
   });
 };
+
+export const useProductExport = () => {
+  return useMutation({
+    mutationFn: productApi.export,
+  });
+};
+
+export const useProductImport = () => {
+  return useMutation({
+    mutationFn: productApi.import,
+  });
+};

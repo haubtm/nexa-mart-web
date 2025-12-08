@@ -1,5 +1,5 @@
 import { SvgReloadIcon, SvgSearchIcon } from '@/assets';
-import { productKeys } from '@/features/main/react-query';
+import { productKeys, useProductExport } from '@/features/main/react-query';
 import { Button } from '@/lib';
 import BasePageLayout from '@/lib/components/BasePageLayout';
 import { queryClient } from '@/providers/ReactQuery';
@@ -8,11 +8,27 @@ import {
   CreateProductModal,
   DetailProductModal,
   ProductTable,
+  ImportProductModal,
 } from './components';
+import { DownloadOutlined } from '@ant-design/icons';
+import { message } from 'antd';
 
 const ProductContainer = () => {
   const { ref, record, queryParams, setQueryParams, isProductListLoading } =
     useCommonHook();
+
+  const { mutate: exportProducts, isPending: isExporting } = useProductExport();
+
+  const handleExport = () => {
+    exportProducts(undefined, {
+      onSuccess: () => {
+        message.success('Xuất file Excel thành công');
+      },
+      onError: (error: any) => {
+        message.error(error?.message || 'Có lỗi xảy ra khi xuất file');
+      },
+    });
+  };
 
   return (
     <BasePageLayout
@@ -38,6 +54,14 @@ const ProductContainer = () => {
               });
             }}
           />
+          <Button
+            icon={<DownloadOutlined />}
+            loading={isExporting}
+            onClick={handleExport}
+          >
+            Xuất Excel
+          </Button>
+          <ImportProductModal />
           <CreateProductModal />
         </>
       }
