@@ -1,12 +1,16 @@
-import type { ERole } from '@/lib';
+import type { EGender, ERole } from '@/lib';
 import type { IResponse } from '../common';
+import type { Dayjs } from 'dayjs';
 
 export interface IEmployeeUpdateRequest {
   id: number;
   name: string;
   email: string;
-  passwordHash: string;
+  phone: string;
+  password: string;
   role: ERole;
+  dateOfBirth: string | Dayjs | null;
+  gender: EGender;
   employeeCode: string;
 }
 

@@ -17,7 +17,8 @@ export const useHook = (
         .nonempty('Email không được để trống')
         .email('Email không hợp lệ')
         .trim(),
-      passwordHash: z
+      phone: z.string().trim().optional(),
+      password: z
         .string('Mật khẩu không được để trống')
         .nonempty('Mật khẩu không được để trống')
         .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
@@ -25,10 +26,11 @@ export const useHook = (
       role: z
         .string('Vai trò không được để trống')
         .nonempty('Vai trò không được để trống'),
-      employeeCode: z
-        .string('Mã nhân viên không được để trống')
-        .nonempty('Mã nhân viên không được để trống')
-        .trim(),
+      dateOfBirth: z.any().optional(),
+      gender: z
+        .string('Giới tính không được để trống')
+        .nonempty('Giới tính không được để trống'),
+      employeeCode: z.string().trim().optional(),
     });
 
     return [createSchemaFieldRule(Schema), Schema];

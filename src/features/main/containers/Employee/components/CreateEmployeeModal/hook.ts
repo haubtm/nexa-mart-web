@@ -3,6 +3,13 @@ import { employeeKeys, useEmployeeCreate } from '@/features/main/react-query';
 import { Form, type IModalRef, useNotification } from '@/lib';
 import { queryClient } from '@/providers/ReactQuery';
 import { useRef } from 'react';
+import dayjs from 'dayjs';
+
+const toDateStr = (v: unknown) => {
+  if (dayjs.isDayjs(v)) return v.format('YYYY-MM-DD');
+  if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD');
+  return v;
+};
 
 export const useHook = () => {
   const ref = useRef<IModalRef>(null);
@@ -21,8 +28,11 @@ export const useHook = () => {
       {
         name: values.name,
         email: values.email,
+        phone: values.phone,
+        password: values.password,
         role: values.role,
-        passwordHash: values.passwordHash,
+        dateOfBirth: toDateStr(values.dateOfBirth) as string,
+        gender: values.gender,
         employeeCode: values.employeeCode,
       },
       {

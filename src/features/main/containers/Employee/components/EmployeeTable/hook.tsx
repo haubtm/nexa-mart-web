@@ -51,6 +51,24 @@ export const useHook = () => {
       render: (_, record) => record?.email,
     },
     {
+      key: 'phone',
+      title: 'Số điện thoại',
+      width: 120,
+      render: (_, record) => record?.phone,
+    },
+    {
+      key: 'dateOfBirth',
+      title: 'Ngày sinh',
+      width: 120,
+      render: (_, record) => formatDate(record?.dateOfBirth),
+    },
+    {
+      key: 'gender',
+      title: 'Giới tính',
+      width: 100,
+      render: (_, record) => (record?.gender === 'MALE' ? 'Nam' : 'Nữ'),
+    },
+    {
       key: 'role',
       title: 'Vai trò',
       width: 200,

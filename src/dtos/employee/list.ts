@@ -1,4 +1,4 @@
-import type { ERole } from '@/lib';
+import type { EGender, ERole } from '@/lib';
 import type { IResponse } from '../common';
 
 export interface IEmployeeListRequest {
@@ -14,7 +14,10 @@ export interface IEmployeeListResponseData {
   employeeId: number;
   name: string;
   email: string;
+  phone: string;
   role: ERole;
+  dateOfBirth: string;
+  gender: EGender;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
