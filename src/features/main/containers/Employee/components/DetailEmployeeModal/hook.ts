@@ -1,6 +1,7 @@
 import type { IEmployeeCreateRequest, IEmployeeListResponse } from '@/dtos';
 import { Form, type IModalRef } from '@/lib';
 import { type MouseEvent, useEffect } from 'react';
+import dayjs from 'dayjs';
 
 export const useHook = (
   record?: IEmployeeListResponse['data']['employees'][number],
@@ -9,6 +10,7 @@ export const useHook = (
   useEffect(() => {
     form.setFieldsValue({
       ...record,
+      dateOfBirth: record?.dateOfBirth ? dayjs(record.dateOfBirth) : undefined,
     });
   }, [record]);
 

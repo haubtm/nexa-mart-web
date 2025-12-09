@@ -1,4 +1,5 @@
 import { SvgTrashIcon } from '@/assets';
+import { Tag } from 'antd';
 import { employeeKeys, useEmployeeDelete } from '@/features/main/react-query';
 import {
   Button,
@@ -71,8 +72,15 @@ export const useHook = () => {
     {
       key: 'role',
       title: 'Vai trò',
-      width: 200,
-      render: (_, record) => record?.role,
+      width: 160,
+      render: (_, record) => {
+        const isAdmin = record?.role === 'ADMIN';
+        return (
+          <Tag color={isAdmin ? 'blue' : 'orange'}>
+            {isAdmin ? 'Quản trị viên' : 'Nhân viên bán hàng'}
+          </Tag>
+        );
+      },
     },
     {
       key: 'created_at',

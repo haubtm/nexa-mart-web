@@ -62,6 +62,7 @@ export const useHook = (
     ref?.current?.open();
     form.setFieldsValue({
       ...record,
+      dateOfBirth: record?.dateOfBirth ? dayjs(record.dateOfBirth) : undefined,
     });
   };
 
