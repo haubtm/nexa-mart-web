@@ -632,9 +632,7 @@ const OrderAdminContainer: React.FC = () => {
                 onClick={() => handleQuickUpdate()}
                 loading={isUpdateOrderStatusLoading}
               >
-                {possibleNext.length > 0
-                  ? `Cập nhật: ${STATUS_VI[possibleNext[0]]}`
-                  : 'Cập nhật nhanh'}
+                Cập nhật
               </Button>
             </Space>
           ) : (
