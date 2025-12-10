@@ -127,7 +127,7 @@ const ProductForm = ({
                     <Row gutter={16}>
                       <Col span={12}>
                         <FormItem<IProductCreateRequest>
-                          label="Tên hàng hóa"
+                          label="Tên sản phẩm"
                           name="name"
                           required
                           rules={[rules]}
@@ -137,11 +137,11 @@ const ProductForm = ({
                       </Col>
                       <Col span={12}>
                         <FormItem<IProductCreateRequest>
-                          label="Mã hàng hóa"
+                          label="Mã sản phẩm"
                           name="code"
                           rules={[rules]}
                         >
-                          <Input placeholder="Mã hàng hóa tự động" />
+                          <Input placeholder="Mã sản phẩm tự động" />
                         </FormItem>
                       </Col>
                     </Row>
