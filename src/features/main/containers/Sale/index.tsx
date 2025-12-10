@@ -319,7 +319,9 @@ const CartTab: React.FC<{
           // In hóa đơn PDF nếu checkbox được check
           if (printInvoice && data.invoiceId) {
             try {
-              const invoiceRes = await saleApi.byInvoiceId({ invoiceId: data.invoiceId });
+              const invoiceRes = await saleApi.byInvoiceId({
+                invoiceId: data.invoiceId,
+              });
               if (invoiceRes?.data) {
                 generateInvoicePdf(invoiceRes.data as any);
               }
@@ -334,7 +336,9 @@ const CartTab: React.FC<{
           setPaymentUrl(data.paymentUrl || null);
           // Cắt 2 số cuối từ orderCode (ví dụ: 2000000041 -> 41)
           const orderCode = data.orderCode;
-          const invoiceId = orderCode ? Number(String(orderCode).slice(-2)) : null;
+          const invoiceId = orderCode
+            ? Number(String(orderCode).slice(-2))
+            : null;
           setOrderIdToTrack(invoiceId);
           setPayOpen(false);
           setQrVisible(true);
@@ -350,14 +354,17 @@ const CartTab: React.FC<{
     const id = setInterval(async () => {
       try {
         const r = await (refetchOrderStatus?.() as unknown as Promise<any>);
-        const invoiceStatus = r?.data?.data?.invoiceStatus || orderStatusData?.data?.invoiceStatus;
+        const invoiceStatus =
+          r?.data?.data?.invoiceStatus || orderStatusData?.data?.invoiceStatus;
         // Dừng polling khi trạng thái là PAID hoặc COMPLETED
         if (invoiceStatus === 'PAID' || invoiceStatus === 'COMPLETED') {
           message?.success('Thanh toán hoàn tất');
           // In hóa đơn PDF nếu checkbox được check
           if (printInvoice && orderIdToTrack) {
             try {
-              const invoiceRes = await saleApi.byInvoiceId({ invoiceId: orderIdToTrack });
+              const invoiceRes = await saleApi.byInvoiceId({
+                invoiceId: orderIdToTrack,
+              });
               if (invoiceRes?.data) {
                 generateInvoicePdf(invoiceRes.data as any);
               }
@@ -684,10 +691,16 @@ const CartTab: React.FC<{
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 style={{ display: 'flex', width: '100%' }}
               >
-                <Radio.Button value="CASH" style={{ flex: 1, textAlign: 'center' }}>
+                <Radio.Button
+                  value="CASH"
+                  style={{ flex: 1, textAlign: 'center' }}
+                >
                   Tiền mặt
                 </Radio.Button>
-                <Radio.Button value="ONLINE" style={{ flex: 1, textAlign: 'center' }}>
+                <Radio.Button
+                  value="ONLINE"
+                  style={{ flex: 1, textAlign: 'center' }}
+                >
                   Chuyển khoản
                 </Radio.Button>
               </Radio.Group>
@@ -783,9 +796,7 @@ const CartTab: React.FC<{
                 formatter={(v) =>
                   v === undefined ? '0' : Number(v).toLocaleString('vi-VN')
                 }
-                parser={(v) =>
-                  Number((v || '0').replace(/\D/g, ''))
-                }
+                parser={(v) => Number((v || '0').replace(/\D/g, ''))}
                 onChange={(v) => setAmountPaid(Number(v ?? 0))}
               />
             </Flex>
@@ -877,7 +888,14 @@ const CartTab: React.FC<{
               </Text>
             </div>
 
-            <div style={{ marginTop: 16, padding: '12px', background: '#f0f2f5', borderRadius: 4 }}>
+            <div
+              style={{
+                marginTop: 16,
+                padding: '12px',
+                background: '#f0f2f5',
+                borderRadius: 4,
+              }}
+            >
               <Text type="secondary">
                 Khách sẽ quét mã QR để thanh toán sau khi nhấn "Hoàn tất"
               </Text>
@@ -936,6 +954,7 @@ const SaleContainer: React.FC = () => {
     searchTerm: searchDebounced,
     hasPrice: true,
     hasStock: true,
+    size: 99,
   }) as unknown as { data?: ProductListResponse; isLoading: boolean };
 
   // Quản lý nhiều đơn
