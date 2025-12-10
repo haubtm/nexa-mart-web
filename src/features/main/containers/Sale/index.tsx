@@ -954,7 +954,7 @@ const SaleContainer: React.FC = () => {
     searchTerm: searchDebounced,
     hasPrice: true,
     hasStock: true,
-    size: 99,
+    size: 20,
   }) as unknown as { data?: ProductListResponse; isLoading: boolean };
 
   // Quản lý nhiều đơn
@@ -971,15 +971,20 @@ const SaleContainer: React.FC = () => {
     setCarts((prev) => prev.map((c) => (c.id === id ? updater(c) : c)));
   };
 
-  // Map productId -> units (để render Select đổi đơn vị trong giỏ)
+  // State lưu units của các sản phẩm đã chọn (để không bị mất khi sản phẩm không còn trong danh sách fetch)
+  const [savedUnitsByProductId, setSavedUnitsByProductId] = useState<
+    Record<number, ProductUnit[]>
+  >({});
+
+  // Map productId -> units (kết hợp cả data từ productData và units đã lưu)
   const unitsByProductId = useMemo(() => {
     const products = productData?.data?.products ?? [];
-    const map: Record<number, ProductUnit[]> = {};
+    const map: Record<number, ProductUnit[]> = { ...savedUnitsByProductId };
     products.forEach((p) => {
       map[p.id] = [...(p.units ?? [])];
     });
     return map;
-  }, [productData]);
+  }, [productData, savedUnitsByProductId]);
 
   // Options sản phẩm (không liệt kê đơn vị)
   const productOptions = useMemo(() => {
@@ -995,6 +1000,7 @@ const SaleContainer: React.FC = () => {
           productName: p.name,
           defaultUnitId: base?.id,
           defaultUnitName: base?.unitName,
+          units, // Thêm units vào meta để lưu lại khi chọn
         },
       };
     });
@@ -1006,6 +1012,7 @@ const SaleContainer: React.FC = () => {
     productName: string;
     defaultUnitId?: number;
     defaultUnitName?: string;
+    units?: ProductUnit[];
   }) => {
     const unitId =
       meta.defaultUnitId ?? unitsByProductId[meta.productId]?.[0]?.id;
@@ -1017,6 +1024,14 @@ const SaleContainer: React.FC = () => {
     if (!unitId) {
       message?.warning('Sản phẩm chưa có đơn vị bán.');
       return;
+    }
+
+    // Lưu units của sản phẩm vào state để không bị mất khi sản phẩm không còn trong danh sách fetch
+    if (meta.units && meta.units.length > 0) {
+      setSavedUnitsByProductId((prev) => ({
+        ...prev,
+        [meta.productId]: meta.units!,
+      }));
     }
 
     setCart(activeKey, (c) => {
